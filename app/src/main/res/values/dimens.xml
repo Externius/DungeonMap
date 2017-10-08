@@ -1,0 +1,7 @@
+<resources>
+    <dimen name="content_text_margin">16dp</dimen>
+    <dimen name="settings_item_width">150dp</dimen>
+    <dimen name="drawTextSmallFontSize">15sp</dimen>
+    <dimen name="drawTextMediumFontSize">10sp</dimen>
+    <dimen name="drawTextLargeFontSize">8sp</dimen>
+</resources>

@@ -1,0 +1,104 @@
+<resources>
+    <string name="app_name">Dungeon Map Generator</string>
+    <string name="generate_button_text">Generate Dungeon</string>
+    <string name="export_button_text">Export HTML</string>
+    <string name="title_activity_about">About This Generator</string>
+    <string name="about">About</string>
+    <string name="about_content">Have an entire dungeon up your sleeve! Add parameters, generate with one click!\n \n
+        You can find the source code at github: \n https://github.com/externius/DungeonMap\n \n
+        Please feel free to contact me if you have any recommendation at t.andras@outlook.com. </string>
+    <string name="title_activity_settings">Generated Dungeon</string>
+    <string name="monster_type">Monster type: </string>
+    <string-array name="monster_type_array">
+        <item>Any</item>
+        <item>Aberration</item>
+        <item>Beast</item>
+        <item>Celestial</item>
+        <item>Construct</item>
+        <item>Dragon</item>
+        <item>Elemental</item>
+        <item>Fey</item>
+        <item>Fiend</item>
+        <item>Giant</item>
+        <item>Humanoid</item>
+        <item>Monstrosity</item>
+        <item>Ooze</item>
+        <item>Plant</item>
+        <item>Undead</item>
+    </string-array>
+    <string name="dungeon_difficulty"> Dungeon difficulty: </string>
+    <string-array name="dungeon_difficulty_array">
+        <item>Easy</item>
+        <item>Medium</item>
+        <item>Hard</item>
+        <item>Deadly</item>
+    </string-array>
+    <string name="party_level"> Party level: </string>
+    <string-array name="party_level_array">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+        <item>15</item>
+        <item>16</item>
+        <item>17</item>
+        <item>18</item>
+        <item>19</item>
+        <item>20</item>
+    </string-array>
+    <string name="party_size"> Party size: </string>
+    <string-array name="party_size_array">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+    </string-array>
+    <string name="dungeon_size"> Dungeon size: </string>
+    <string-array name="dungeon_size_array">
+        <item>Small</item>
+        <item>Medium</item>
+        <item>Large</item>
+    </string-array>
+    <string name="room_density"> Room density: </string>
+    <string-array name="room_density_array">
+        <item>Low</item>
+        <item>Medium</item>
+        <item>High</item>
+    </string-array>
+    <string name="room_size"> Room size: </string>
+    <string-array name="room_size_array">
+        <item>Small</item>
+        <item>Medium</item>
+        <item>Large</item>
+    </string-array>
+    <string name="traps"> Traps: </string>
+    <string-array name="traps_array">
+        <item>None</item>
+        <item>Few</item>
+        <item>More</item>
+    </string-array>
+    <string name="dead_ends"> Dead ends: </string>
+    <string-array name="dead_ends_array">
+        <item>Yes</item>
+        <item>No</item>
+    </string-array>
+    <string name="corridors"> Corridors: </string>
+    <string-array name="corridors_array">
+        <item>Yes</item>
+        <item>No</item>
+    </string-array>
+</resources>

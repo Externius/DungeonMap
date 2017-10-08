@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="dungeonMap_view" type="id" />
+    <item name="dungeon_activity_generate_button" type="id" />
+    <item name="dungeon_activity_export_button" type="id" />
+</resources>
