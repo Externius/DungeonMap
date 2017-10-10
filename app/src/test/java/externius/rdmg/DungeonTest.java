@@ -21,7 +21,7 @@ import static org.junit.Assert.assertTrue;
 
 public class DungeonTest {
 
-    private final Dungeon dungeon = new Dungeon(800, 800, 15, 10, 15, 0, true);
+    private final Dungeon dungeon = new Dungeon(800, 800, 15, 10, 15, 15, true);
 
     @Rule
     public final TestName name = new TestName();
@@ -49,7 +49,6 @@ public class DungeonTest {
         System.out.println(name.getMethodName());
         DrawTestDungeon.draw(dungeon.getDungeonTiles());
         assertTrue(dungeon.getRoomDescription().size() == 2);
-        System.out.println();
     }
 
     @Test
@@ -60,7 +59,6 @@ public class DungeonTest {
         DrawTestDungeon.draw(dungeon.getDungeonTiles());
         List<DungeonTile> dungeonList = UtilsTest.twoDArrayToList(dungeon.getDungeonTiles());
         assertThat(dungeonList, hasItem(Matchers.<DungeonTile>hasProperty("texture", equalTo(Textures.ENTRY))));
-        System.out.println();
     }
 
     @Test
@@ -72,7 +70,6 @@ public class DungeonTest {
         DrawTestDungeon.draw(dungeon.getDungeonTiles());
         List<DungeonTile> dungeonList = UtilsTest.twoDArrayToList(dungeon.getDungeonTiles());
         assertThat(dungeonList, hasItem(Matchers.<DungeonTile>hasProperty("texture", equalTo(Textures.CORRIDOR))));
-        System.out.println();
     }
 
     @Test
@@ -85,7 +82,19 @@ public class DungeonTest {
         DrawTestDungeon.draw(dungeon.getDungeonTiles());
         List<DungeonTile> dungeonList = UtilsTest.twoDArrayToList(dungeon.getDungeonTiles());
         assertThat(dungeonList, hasItem(Matchers.<DungeonTile>hasProperty("texture", equalTo(Textures.CORRIDOR))));
-        System.out.println();
+    }
+
+    @Test
+    public void testAddRandomTrap(){
+        dungeon.generateRoom();
+        dungeon.addEntryPoint();
+        dungeon.generateCorridors();
+        dungeon.addDeadEnds();
+        dungeon.addRandomTrap();
+        System.out.println(name.getMethodName());
+        DrawTestDungeon.draw(dungeon.getDungeonTiles());
+        List<DungeonTile> dungeonList = UtilsTest.twoDArrayToList(dungeon.getDungeonTiles());
+        assertThat(dungeonList, hasItem(Matchers.<DungeonTile>hasProperty("texture", equalTo(Textures.TRAP))));
     }
 
 }

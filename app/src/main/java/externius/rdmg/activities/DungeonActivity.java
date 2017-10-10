@@ -307,9 +307,9 @@ public class DungeonActivity extends AppCompatActivity {
                 case "None":
                     return 0;
                 case "Few":
-                    return 4;
+                    return 15;
                 case "More":
-                    return 8;
+                    return 30;
                 default:
                     break;
             }

@@ -18,6 +18,7 @@ public class Dungeon {
     DungeonTile[][] dungeonTiles;
     private List<int[]> doors = new ArrayList<>();
     private List<DungeonTile> result = new ArrayList<>();
+    private List<DungeonTile> corridors = new ArrayList<>();
     List<RoomDescription> roomDescription = new ArrayList<>();
     private List<TrapDescription> trapDescription = new ArrayList<>();
     int dungeonWidth;
@@ -29,7 +30,6 @@ public class Dungeon {
     private int trapCount;
     private int roomCount;
     int roomSize;
-    private int minTrapCount;
     private boolean hasDeadEnds;
 
     Dungeon() {
@@ -54,21 +54,19 @@ public class Dungeon {
         if (hasDeadEnds) {
             addDeadEnds();
         }
-        if (trapCount < minTrapCount) {
-            addRandomTrap();
-        }
+        addRandomTrap();
     }
 
     public void init() {
+        corridors = new ArrayList<>();
         int imgSizeX = dungeonWidth / dungeonSize;
         int imgSizeY = dungeonHeight / dungeonSize;
         roomCount = Math.round(((float) dungeonSize / 100) * (float) roomDensity);
         roomSize = Math.round((float) (dungeonSize - Math.round(dungeonSize * 0.35)) / 100 * roomSizePercent);
         roomDescription = new ArrayList<>();
         trapDescription = new ArrayList<>();
+        trapCount = dungeonSize * trapPercent / 100;
         dungeonSize += 2; // because of boundaries
-        minTrapCount = trapPercent == 0 ? 0 : 1;
-        trapCount = 0;
         dungeonTiles = new DungeonTile[dungeonSize][dungeonSize];
         for (int i = 0; i < dungeonSize; i++) {
             for (int j = 0; j < dungeonSize; j++) {
@@ -82,13 +80,15 @@ public class Dungeon {
         }
     }
 
-    private void addRandomTrap() {
-        for (int i = 1; i < dungeonSize - 1; i++) {
-            for (int j = 1; j < dungeonSize - 1; j++) {
-                if (dungeonTiles[i][j].getTexture() == Textures.CORRIDOR) { // find corridor
-                    addTrap(i, j);
-                    return;
-                }
+    public void addRandomTrap() {
+        int count = 0;
+        while (trapCount > count) {
+            int x = Utils.getRandomInt(0, corridors.size());
+            int i = corridors.get(x).getI();
+            int j = corridors.get(x).getJ();
+            if (dungeonTiles[i][j].getTexture() == Textures.CORRIDOR) {
+                addTrap(i, j);
+                count++;
             }
         }
     }
@@ -184,13 +184,8 @@ public class Dungeon {
     private void setPath() {
         for (DungeonTile tile : result) {
             if (tile.getTexture() != Textures.DOOR && tile.getTexture() != Textures.ENTRY && tile.getTexture() != Textures.TRAP) { // do not change door or entry or trap Texture
-                if (Math.floor(Math.random() * 100) < trapPercent) {
-                    addTrap(tile.getI(), tile.getJ());
-                    trapCount += 1;
-                } else {
-                    dungeonTiles[tile.getI()][tile.getJ()].setTexture(Textures.CORRIDOR);
-                }
-
+                dungeonTiles[tile.getI()][tile.getJ()].setTexture(Textures.CORRIDOR);
+                corridors.add(tile);
             }
         }
     }
