@@ -14,7 +14,8 @@
         android:layout_height="wrap_content"
         android:gravity="start"
         android:orientation="horizontal"
-        android:id="@+id/dungeon_layout">
+        android:id="@+id/dungeon_layout"
+        android:background="@color/primaryAccent">
 
     </RelativeLayout>
 

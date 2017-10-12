@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -21,6 +22,7 @@ import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -66,23 +68,177 @@ public class DungeonActivity extends AppCompatActivity {
         setContentView(R.layout.activity_dungeon);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        Bundle extras = getIntent().getExtras(); // get extra parameters
-        setParameters(extras); //set parameters from parent activity
+
         RelativeLayout layout = (RelativeLayout) findViewById(R.id.dungeon_layout);
-        json = readJSON();
-        generateDungeon(layout);
+        ImageView imageView = new ImageView(this);
+        imageView.setImageResource(R.drawable.generating_screen);
+        RelativeLayout.LayoutParams relativeParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+        imageView.setLayoutParams(relativeParams);
+        imageView.setScaleType(ImageView.ScaleType.FIT_START);
+        layout.addView(imageView);
+
+        new CreateDungeon().execute();
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
     }
 
+    private class CreateDungeon extends AsyncTask<String, Void, Object> {
+        protected Object doInBackground(String... args) {
+            Bundle extras = getIntent().getExtras(); // get extra parameters
+            setParameters(extras); //set parameters from parent activity
+            json = readJSON();
+            return getDungeonView();
+        }
+
+        protected void onPostExecute(Object result) {
+            RelativeLayout layout = (RelativeLayout) findViewById(R.id.dungeon_layout);
+            layout.removeAllViews();
+            layout.addView((View) result);
+            addButton(layout);
+            addDescription(layout, dungeonView.getRoomDescription(), dungeonView.getTrapDescription());
+            layout.setBackgroundColor(Color.WHITE);
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            }
+        }
+
+        private String readJSON() {
+            String result;
+            try (InputStream is = getResources().openRawResource(R.raw.monsters)) {
+                Scanner scanner = new Scanner(is);
+                StringBuilder sb = new StringBuilder();
+                while (scanner.hasNextLine()) {
+                    sb.append(scanner.nextLine());
+                }
+                result = sb.toString();
+            } catch (Exception ex) {
+                Log.e("Exception", "Read JSON file failed: " + ex.toString());
+                return null;
+            }
+            return result;
+        }
+
+        private Boolean setBooleans(String input) {
+            return input != null && !input.isEmpty() && Objects.equals(input.toUpperCase(), "YES");
+        }
+
+        private int setDungeonDifficulty(String dd) {
+            if (dd != null && !dd.isEmpty()) {
+                switch (dd) {
+                    case "Easy":
+                        return 0;
+                    case MEDIUM:
+                        return 1;
+                    case "Hard":
+                        return 2;
+                    case "Deadly":
+                        return 3;
+                    default:
+                        break;
+                }
+            }
+            return 0;
+        }
+
+        private int setDungeonSize(String ds) {
+            if (ds != null && !ds.isEmpty()) {
+                switch (ds) {
+                    case SMALL:
+                        return 15;
+                    case MEDIUM:
+                        return 20;
+                    case LARGE:
+                        return 25;
+                    default:
+                        break;
+                }
+            }
+            return 15;
+        }
+
+        private int setRoomDensity(String rd) {
+            if (rd != null && !rd.isEmpty()) {
+                switch (rd) {
+                    case "Low":
+                        return 20;
+                    case MEDIUM:
+                        return 30;
+                    case "High":
+                        return 40;
+                    default:
+                        break;
+                }
+            }
+            return 20;
+        }
+
+        private int setRoomSize(String rs) {
+            if (rs != null && !rs.isEmpty()) {
+                switch (rs) {
+                    case SMALL:
+                        return 20;
+                    case MEDIUM:
+                        return 25;
+                    case LARGE:
+                        return 30;
+                    default:
+                        break;
+                }
+            }
+            return 20;
+        }
+
+        private int setTraps(String tr) {
+            if (tr != null && !tr.isEmpty()) {
+                switch (tr) {
+                    case "None":
+                        return 0;
+                    case "Few":
+                        return 15;
+                    case "More":
+                        return 30;
+                    default:
+                        break;
+                }
+            }
+            return 0;
+        }
+
+        private void setParameters(Bundle extras) {
+            String ds = extras.getString("DUNGEON_SIZE");
+            String rd = extras.getString("ROOM_DENSITY");
+            String rs = extras.getString("ROOM_SIZE");
+            String tr = extras.getString("TRAPS");
+            String cs = extras.getString("CORRIDORS");
+            String pL = extras.getString("PARTY_LEVEL");
+            String pS = extras.getString("PARTY_SIZE");
+            String dd = extras.getString("DUNGEON_DIFFICULTY");
+            String mt = extras.getString("MONSTER_TYPE");
+            String de = extras.getString("DEAD_ENDS");
+            dungeonDifficulty = setDungeonDifficulty(dd);
+            dungeonSize = setDungeonSize(ds);
+            roomDensity = setRoomDensity(rd);
+            roomSize = setRoomSize(rs);
+            traps = setTraps(tr);
+            hasDeadEnds = setBooleans(de);
+            hasCorridor = setBooleans(cs);
+            partySize = Integer.parseInt(pS);
+            partyLevel = Integer.parseInt(pL);
+            if (mt != null && !mt.isEmpty()) {
+                monsterType = mt.toLowerCase();
+            }
+            saved = false;
+        }
+
+    }
 
     private void generateDungeon(RelativeLayout layout) {
         if (findViewById(R.id.dungeonMap_view) != null) {
             layout.removeAllViews();
             saved = false;
         }
-        addDungeonView(layout);
+        layout.addView(getDungeonView());
         addButton(layout);
         addDescription(layout, dungeonView.getRoomDescription(), dungeonView.getTrapDescription());
     }
@@ -231,119 +387,8 @@ public class DungeonActivity extends AppCompatActivity {
         }
     }
 
-    private Boolean setBooleans(String input) {
-        return input != null && !input.isEmpty() && Objects.equals(input.toUpperCase(), "YES");
-    }
 
-    private int setDungeonDifficulty(String dd) {
-        if (dd != null && !dd.isEmpty()) {
-            switch (dd) {
-                case "Easy":
-                    return 0;
-                case MEDIUM:
-                    return 1;
-                case "Hard":
-                    return 2;
-                case "Deadly":
-                    return 3;
-                default:
-                    break;
-            }
-        }
-        return 0;
-    }
-
-    private int setDungeonSize(String ds) {
-        if (ds != null && !ds.isEmpty()) {
-            switch (ds) {
-                case SMALL:
-                    return 15;
-                case MEDIUM:
-                    return 20;
-                case LARGE:
-                    return 25;
-                default:
-                    break;
-            }
-        }
-        return 15;
-    }
-
-    private int setRoomDensity(String rd) {
-        if (rd != null && !rd.isEmpty()) {
-            switch (rd) {
-                case "Low":
-                    return 20;
-                case MEDIUM:
-                    return 30;
-                case "High":
-                    return 40;
-                default:
-                    break;
-            }
-        }
-        return 20;
-    }
-
-    private int setRoomSize(String rs) {
-        if (rs != null && !rs.isEmpty()) {
-            switch (rs) {
-                case SMALL:
-                    return 20;
-                case MEDIUM:
-                    return 25;
-                case LARGE:
-                    return 30;
-                default:
-                    break;
-            }
-        }
-        return 20;
-    }
-
-    private int setTraps(String tr) {
-        if (tr != null && !tr.isEmpty()) {
-            switch (tr) {
-                case "None":
-                    return 0;
-                case "Few":
-                    return 15;
-                case "More":
-                    return 30;
-                default:
-                    break;
-            }
-        }
-        return 0;
-    }
-
-    private void setParameters(Bundle extras) {
-        String ds = extras.getString("DUNGEON_SIZE");
-        String rd = extras.getString("ROOM_DENSITY");
-        String rs = extras.getString("ROOM_SIZE");
-        String tr = extras.getString("TRAPS");
-        String cs = extras.getString("CORRIDORS");
-        String pL = extras.getString("PARTY_LEVEL");
-        String pS = extras.getString("PARTY_SIZE");
-        String dd = extras.getString("DUNGEON_DIFFICULTY");
-        String mt = extras.getString("MONSTER_TYPE");
-        String de = extras.getString("DEAD_ENDS");
-        dungeonDifficulty = setDungeonDifficulty(dd);
-        dungeonSize = setDungeonSize(ds);
-        roomDensity = setRoomDensity(rd);
-        roomSize = setRoomSize(rs);
-        traps = setTraps(tr);
-        hasDeadEnds = setBooleans(de);
-        hasCorridor = setBooleans(cs);
-        partySize = Integer.parseInt(pS);
-        partyLevel = Integer.parseInt(pL);
-        if (mt != null && !mt.isEmpty()) {
-            monsterType = mt.toLowerCase();
-        }
-        saved = false;
-    }
-
-    private void addDungeonView(RelativeLayout layout) {
+    private DungeonMapView getDungeonView() {
         Display display = getWindowManager().getDefaultDisplay();
         Point size = new Point();
         display.getSize(size);
@@ -372,8 +417,9 @@ public class DungeonActivity extends AppCompatActivity {
         dungeonView.setHasDeadEnds(hasDeadEnds);
         dungeonView.setId(R.id.dungeonMap_view);
         dungeonView.GenerateDungeon();
-        layout.addView(dungeonView);
+        return dungeonView;
     }
+
 
     private void addDescription(RelativeLayout layout, List<RoomDescription> roomDescription, List<TrapDescription> trapDescription) {
         List<TextView> rooms = new ArrayList<>();
@@ -448,19 +494,4 @@ public class DungeonActivity extends AppCompatActivity {
         relativeLayout.addView(view, params);
     }
 
-    private String readJSON() {
-        String result;
-        try (InputStream is = getResources().openRawResource(R.raw.monsters)) {
-            Scanner scanner = new Scanner(is);
-            StringBuilder sb = new StringBuilder();
-            while (scanner.hasNextLine()) {
-                sb.append(scanner.nextLine());
-            }
-            result = sb.toString();
-        } catch (Exception ex) {
-            Log.e("Exception", "Read JSON file failed: " + ex.toString());
-            return null;
-        }
-        return result;
-    }
 }
