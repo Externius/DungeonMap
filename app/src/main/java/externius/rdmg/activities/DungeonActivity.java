@@ -74,7 +74,7 @@ public class DungeonActivity extends AppCompatActivity {
         imageView.setImageResource(R.drawable.generating_screen);
         RelativeLayout.LayoutParams relativeParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
         imageView.setLayoutParams(relativeParams);
-        imageView.setScaleType(ImageView.ScaleType.FIT_START);
+        imageView.setScaleType(ImageView.ScaleType.FIT_XY);
         layout.addView(imageView);
 
         new CreateDungeon().execute();

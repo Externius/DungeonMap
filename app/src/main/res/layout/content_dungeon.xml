@@ -7,15 +7,15 @@
     android:orientation="vertical"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="externius.rdmg.activities.DungeonActivity"
-    tools:showIn="@layout/activity_dungeon">
+    tools:showIn="@layout/activity_dungeon"
+    android:fillViewport="true">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="start"
         android:orientation="horizontal"
-        android:id="@+id/dungeon_layout"
-        android:background="@color/primaryAccent">
+        android:id="@+id/dungeon_layout">
 
     </RelativeLayout>
 
