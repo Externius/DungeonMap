@@ -23,6 +23,8 @@ public class DungeonMapView extends View {
     private final Bitmap marble = BitmapFactory.decodeResource(getResources(), R.drawable.marble);
     private final Bitmap corridor = BitmapFactory.decodeResource(getResources(), R.drawable.corridor);
     private final Bitmap door = BitmapFactory.decodeResource(getResources(), R.drawable.door);
+    private final Bitmap doorClosed = BitmapFactory.decodeResource(getResources(), R.drawable.door_closed);
+    private final Bitmap doorTrapped = BitmapFactory.decodeResource(getResources(), R.drawable.door_trapped);
     private final Bitmap room = BitmapFactory.decodeResource(getResources(), R.drawable.room);
     private final Bitmap entry = BitmapFactory.decodeResource(getResources(), R.drawable.entry);
     private final Bitmap trap = BitmapFactory.decodeResource(getResources(), R.drawable.trap);
@@ -100,6 +102,12 @@ public class DungeonMapView extends View {
                         break;
                     case DOOR:
                         canvas.drawBitmap(scaleBitmap(rotateBitmap(door, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
+                        break;
+                    case DOOR_CLOSED:
+                        canvas.drawBitmap(scaleBitmap(rotateBitmap(doorClosed, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
+                        break;
+                    case DOOR_TRAPPED:
+                        canvas.drawBitmap(scaleBitmap(rotateBitmap(doorTrapped, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
                         break;
                     case ROOM:
                         canvas.drawBitmap(scaleBitmap(room, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);

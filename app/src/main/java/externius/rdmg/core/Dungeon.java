@@ -2,6 +2,7 @@ package externius.rdmg.core;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -15,21 +16,22 @@ import externius.rdmg.models.TrapDescription;
 
 public class Dungeon {
     private static final int MOVEMENT = 10;
+    private final List<DungeonTile> rooms = new ArrayList<>();
     DungeonTile[][] dungeonTiles;
-    private List<int[]> doors = new ArrayList<>();
-    private List<DungeonTile> result = new ArrayList<>();
-    private List<DungeonTile> corridors = new ArrayList<>();
     List<RoomDescription> roomDescription = new ArrayList<>();
-    private List<TrapDescription> trapDescription = new ArrayList<>();
     int dungeonWidth;
     int dungeonHeight;
     int dungeonSize;
-    private int roomDensity;
     int roomSizePercent;
+    int roomSize;
+    private List<DungeonTile> doors = new ArrayList<>();
+    private List<DungeonTile> result = new ArrayList<>();
+    private List<DungeonTile> corridors = new ArrayList<>();
+    private List<TrapDescription> trapDescription = new ArrayList<>();
+    private int roomDensity;
     private int trapPercent;
     private int trapCount;
     private int roomCount;
-    int roomSize;
     private boolean hasDeadEnds;
 
     Dungeon() {
@@ -99,38 +101,53 @@ public class Dungeon {
     }
 
     public void addDeadEnds() {
-        int[] firstDoor = doors.get(0); // get the first door
-        List<int[]> deadEnds = generateDeadEnds();
-        deadEnds.add(firstDoor);
-        doors = new ArrayList<>(); // empty doors
-        for (int[] end : deadEnds) { // repopulate DOORS
+        List<DungeonTile> deadEnds = generateDeadEnds();
+        DungeonTile firstDoor = doors.get(0); // get  first door
+        for (DungeonTile end : deadEnds) {
+            doors = new ArrayList<>(); // empty doors
+            doors.add(firstDoor);
             doors.add(end);
+            generateCorridors();
         }
-        generateCorridors();
     }
 
-    private List<int[]> generateDeadEnds() {
-        int x;
-        int y;
-        List<int[]> deadEnds = new ArrayList<>();
+    private List<DungeonTile> generateDeadEnds() {
         int count = roomCount / 2;
-        int maxAttempt = dungeonTiles.length * dungeonTiles.length;
+        int deadEndsCount = 0;
+        List<DungeonTile> deadEnds = new ArrayList<>();
+        DungeonTile[][] croppedDungeonTiles = new DungeonTile[dungeonTiles.length - 4][dungeonTiles.length - 4];
+        for (int i = 2; i < dungeonTiles.length - 2; i++) {
+            System.arraycopy(dungeonTiles[i], 2, croppedDungeonTiles[i - 2], 0, dungeonTiles[i].length - 4);
+        }
+        List<DungeonTile> dungeonList = twoDArrayToList(croppedDungeonTiles);
+        dungeonList.removeAll(rooms);
+        dungeonList.removeAll(doors);
+        dungeonList.removeAll(corridors);
+        int maxAttempt = dungeonList.size() * 2;
         do {
-            x = Utils.getRandomInt(2, dungeonTiles.length - 2);
-            y = Utils.getRandomInt(2, dungeonTiles.length - 2);
-            if (checkTileForDeadEnd(x, y)) {
-                dungeonTiles[x][y].setTexture(Textures.CORRIDOR);
-                deadEnds.add(new int[]{x, y});
+            DungeonTile tile = dungeonList.get(Utils.getRandomInt(0, dungeonList.size()));
+            if (checkTileForDeadEnd(tile.getI(), tile.getJ())) {
+                dungeonTiles[tile.getI()][tile.getJ()].setTexture(Textures.CORRIDOR);
+                deadEnds.add(dungeonTiles[tile.getI()][tile.getJ()]);
+                deadEndsCount++;
             }
             maxAttempt--;
         }
-        while (deadEnds.size() < count && maxAttempt > 0);
+        while (count != deadEndsCount && maxAttempt > 0);
         return deadEnds;
     }
 
+    private <T> List<T> twoDArrayToList(T[][] twoDArray) {
+        List<T> list = new ArrayList<>();
+        for (T[] array : twoDArray) {
+            list.addAll(Arrays.asList(array));
+        }
+        return list;
+    }
+
     private boolean checkTileForDeadEnd(int x, int y) {
-        for (int i = x - 2; i < x + 4; i++) {
-            for (int j = y - 2; j < y + 4; j++) {
+        for (int i = x - 1; i < x + 2; i++) {
+            for (int j = y - 1; j < y + 2; j++) {
                 if (dungeonTiles[i][j].getTexture() != Textures.MARBLE) { // check if any other tile is there
                     return false;
                 }
@@ -139,7 +156,6 @@ public class Dungeon {
         return true;
     }
 
-
     public void addEntryPoint() {
         boolean entryIsOk;
         int x;
@@ -147,11 +163,11 @@ public class Dungeon {
         do {
             x = Utils.getRandomInt(1, dungeonTiles.length - 1);
             y = Utils.getRandomInt(1, dungeonTiles.length - 1);
-            entryIsOk = dungeonTiles[x][y].getTexture() != Textures.DOOR && dungeonTiles[x][y].getTexture() != Textures.ROOM; // not door or room tile
+            entryIsOk = dungeonTiles[x][y].getTexture() == Textures.MARBLE;
         }
         while (!entryIsOk);
         dungeonTiles[x][y].setTexture(Textures.ENTRY);
-        doors.add(new int[]{x, y});
+        doors.add(dungeonTiles[x][y]);
     }
 
     public void generateCorridors() {
@@ -159,8 +175,8 @@ public class Dungeon {
             result = new ArrayList<>();
             List<DungeonTile> openList = new ArrayList<>();
             List<DungeonTile> closedList = new ArrayList<>();
-            DungeonTile start = dungeonTiles[doors.get(d)[0]][doors.get(d)[1]]; // set door as the starting point
-            DungeonTile end = dungeonTiles[doors.get(d + 1)[0]][doors.get(d + 1)[1]]; // set the next door as the end point
+            DungeonTile start = doors.get(d); // set door as the starting point
+            DungeonTile end = doors.get(d + 1); // set the next door as the end point
             for (int i = 1; i < dungeonTiles.length - 1; i++) { // preconfig H value + restore default values
                 for (int j = 1; j < dungeonTiles.length - 1; j++) {
                     dungeonTiles[i][j].setH(Utils.manhattan(Math.abs(i - end.getI()), Math.abs(j - end.getJ())));
@@ -183,7 +199,7 @@ public class Dungeon {
 
     private void setPath() {
         for (DungeonTile tile : result) {
-            if (tile.getTexture() != Textures.DOOR && tile.getTexture() != Textures.ENTRY && tile.getTexture() != Textures.TRAP) { // do not change door or entry or trap Texture
+            if (tile.getTexture() == Textures.MARBLE) { // only change the marble texture
                 dungeonTiles[tile.getI()][tile.getJ()].setTexture(Textures.CORRIDOR);
                 corridors.add(tile);
             }
@@ -298,6 +314,7 @@ public class Dungeon {
         for (int i = 0; i < down; i++) { // fill room texture
             for (int j = 0; j < right; j++) {
                 dungeonTiles[x + i][y + j].setTexture(Textures.ROOM);
+                rooms.add(dungeonTiles[x + i][y + j]);
                 dungeonTiles[x + i][y + j].setRoomCount(" ");
             }
         }
@@ -322,7 +339,7 @@ public class Dungeon {
     boolean checkDoor(int x, int y) {
         for (int i = x - 1; i < x + 2; i++) {
             for (int j = y - 1; j < y + 2; j++) {
-                if (dungeonTiles[i][j].getTexture() == Textures.DOOR) { //check nearby doors
+                if (dungeonTiles[i][j].getTexture() == Textures.DOOR || dungeonTiles[i][j].getTexture() == Textures.DOOR_CLOSED || dungeonTiles[i][j].getTexture() == Textures.DOOR_TRAPPED) { //check nearby doors
                     return false;
                 }
             }
@@ -348,8 +365,14 @@ public class Dungeon {
     }
 
     void setDoor(int x, int y) {
-        dungeonTiles[x][y].setTexture(Textures.DOOR);
-        doors.add(new int[]{x, y});
+        if (Utils.getRandomInt(0, 101) < 50) {
+            dungeonTiles[x][y].setTexture(Textures.DOOR_TRAPPED);
+        } else if (Utils.getRandomInt(0, 101) < 70) {
+            dungeonTiles[x][y].setTexture(Textures.DOOR_CLOSED);
+        } else {
+            dungeonTiles[x][y].setTexture(Textures.DOOR);
+        }
+        doors.add(dungeonTiles[x][y]);
     }
 
     private int[] setTilesForRoom() {
