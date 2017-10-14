@@ -18,6 +18,7 @@ import externius.rdmg.activities.MainActivity;
 import externius.rdmg.helpers.Utils;
 import externius.rdmg.models.DungeonTile;
 import externius.rdmg.models.RoomDescription;
+import externius.rdmg.models.Textures;
 import externius.rdmg.models.TrapDescription;
 
 import static org.junit.Assert.assertEquals;
@@ -68,8 +69,12 @@ public class UtilsTest {
         Utils.setMonsterType("any");
         DungeonTile[][] dungeon = getTiles();
         List<RoomDescription> roomDescription = new ArrayList<>();
+        List<DungeonTile> doors = new ArrayList<>();
+        doors.add(new DungeonTile(3,3,50,50,50,50));
+        dungeon[3][3].setTexture(Textures.DOOR);
+        dungeon[3][4].setTexture(Textures.ROOM);
         for (int i = 0; i < 3; i++) {
-            Utils.addRoomDescription(dungeon, i + 1, i + 1, roomDescription);
+            Utils.addRoomDescription(dungeon, i + 1, i + 1, roomDescription, doors);
         }
         assertEquals(name.getMethodName() + " size isn't right", 3, roomDescription.size());
     }

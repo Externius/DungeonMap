@@ -23,12 +23,14 @@ public class DungeonMapView extends View {
     private final Bitmap marble = BitmapFactory.decodeResource(getResources(), R.drawable.marble);
     private final Bitmap corridor = BitmapFactory.decodeResource(getResources(), R.drawable.corridor);
     private final Bitmap door = BitmapFactory.decodeResource(getResources(), R.drawable.door);
-    private final Bitmap doorClosed = BitmapFactory.decodeResource(getResources(), R.drawable.door_closed);
+    private final Bitmap doorLocked = BitmapFactory.decodeResource(getResources(), R.drawable.door_locked);
     private final Bitmap doorTrapped = BitmapFactory.decodeResource(getResources(), R.drawable.door_trapped);
     private final Bitmap room = BitmapFactory.decodeResource(getResources(), R.drawable.room);
     private final Bitmap entry = BitmapFactory.decodeResource(getResources(), R.drawable.entry);
     private final Bitmap trap = BitmapFactory.decodeResource(getResources(), R.drawable.trap);
     private final Bitmap ncDoor = BitmapFactory.decodeResource(getResources(), R.drawable.nc_door);
+    private final Bitmap ncDoorLocked = BitmapFactory.decodeResource(getResources(), R.drawable.nc_door_locked);
+    private final Bitmap ncDoorTrapped = BitmapFactory.decodeResource(getResources(), R.drawable.nc_door_trapped);
     private Bitmap roomEdge;
 
     private DungeonTile[][] dungeonTiles;
@@ -103,8 +105,8 @@ public class DungeonMapView extends View {
                     case DOOR:
                         canvas.drawBitmap(scaleBitmap(rotateBitmap(door, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
                         break;
-                    case DOOR_CLOSED:
-                        canvas.drawBitmap(scaleBitmap(rotateBitmap(doorClosed, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
+                    case DOOR_LOCKED:
+                        canvas.drawBitmap(scaleBitmap(rotateBitmap(doorLocked, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
                         break;
                     case DOOR_TRAPPED:
                         canvas.drawBitmap(scaleBitmap(rotateBitmap(doorTrapped, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
@@ -122,6 +124,12 @@ public class DungeonMapView extends View {
                         break;
                     case NO_CORRIDOR_DOOR:
                         canvas.drawBitmap(scaleBitmap(rotateBitmap(ncDoor, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
+                        break;
+                    case NO_CORRIDOR_DOOR_LOCKED:
+                        canvas.drawBitmap(scaleBitmap(rotateBitmap(ncDoorLocked, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
+                        break;
+                    case NO_CORRIDOR_DOOR_TRAPPED:
+                        canvas.drawBitmap(scaleBitmap(rotateBitmap(ncDoorTrapped, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
                         break;
                     default:
                         break;

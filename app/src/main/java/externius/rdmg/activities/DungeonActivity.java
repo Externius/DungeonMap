@@ -427,26 +427,33 @@ public class DungeonActivity extends AppCompatActivity {
             TextView roomName = new TextView(this);
             TextView monster = new TextView(this);
             TextView treasure = new TextView(this);
+            TextView doors = new TextView(this);
             roomName.setText(room.getName());
             roomName.setId(View.generateViewId());
             monster.setText(room.getMonster());
             monster.setId(View.generateViewId());
             treasure.setText(room.getTreasure());
             treasure.setId(View.generateViewId());
+            doors.setText(room.getDoors());
+            doors.setId(View.generateViewId());
             setTextStyle(roomName);
             setTextStyle(monster);
             setTextStyle(treasure);
+            setTextStyle(doors);
             rooms.add(roomName);
             rooms.add(monster);
             rooms.add(treasure);
+            rooms.add(doors);
         }
         addViewToLayout(layout, rooms.get(0), null, true, findViewById(R.id.dungeon_activity_export_button));
         addViewToLayout(layout, rooms.get(1), findViewById(R.id.dungeon_activity_export_button), false, rooms.get(0));
         addViewToLayout(layout, rooms.get(2), rooms.get(1), false, rooms.get(0));
-        for (int i = 3; i < rooms.size(); i += 3) { // 3 because the first 3 manually added
+        addViewToLayout(layout, rooms.get(3), rooms.get(2), false, rooms.get(0));
+        for (int i = 4; i < rooms.size(); i += 4) { // 4 because the first 4 manually added
             addViewToLayout(layout, rooms.get(i), rooms.get(i - 3), true, rooms.get(i - 1));
             addViewToLayout(layout, rooms.get(i + 1), rooms.get(i - 1), false, rooms.get(i));
             addViewToLayout(layout, rooms.get(i + 2), rooms.get(i + 1), false, rooms.get(i));
+            addViewToLayout(layout, rooms.get(i + 3), rooms.get(i + 2), false, rooms.get(i));
         }
         if (!trapDescription.isEmpty()) {
             List<TextView> trapsD = new ArrayList<>();
@@ -463,12 +470,12 @@ public class DungeonActivity extends AppCompatActivity {
                 trapsD.add(trapDes);
 
             }
+            addViewToLayout(layout, trapsD.get(0), null, true, rooms.get(rooms.size() - 1));
+            addViewToLayout(layout, trapsD.get(1), rooms.get(rooms.size() - 1), false, trapsD.get(0));
             for (int i = 2; i < trapsD.size(); i += 2) { // 2 because the first 2 manually added
                 addViewToLayout(layout, trapsD.get(i), null, true, trapsD.get(i - 1));
                 addViewToLayout(layout, trapsD.get(i + 1), trapsD.get(i - 1), false, trapsD.get(i));
             }
-            addViewToLayout(layout, trapsD.get(0), null, true, rooms.get(rooms.size() - 1));
-            addViewToLayout(layout, trapsD.get(1), rooms.get(rooms.size() - 1), false, trapsD.get(0));
         }
     }
 

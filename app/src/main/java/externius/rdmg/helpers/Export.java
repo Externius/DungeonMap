@@ -31,7 +31,7 @@ public final class Export {
                 "<table id=\"table_description\">");
         for (int i = 0; i < roomDescription.size(); i++) {
             stringBuilder.append("<tr>\n" +
-                    "<td rowspan=\"2\" class=\"room\">");
+                    "<td rowspan=\"3\" class=\"room\">");
             stringBuilder.append(roomDescription.get(i).getName());
             stringBuilder.append("</td>\n" +
                     "<td>");
@@ -40,6 +40,9 @@ public final class Export {
                     "</tr>\n" +
                     "<tr><td>");
             stringBuilder.append(roomDescription.get(i).getTreasure());
+            stringBuilder.append("</td></tr>");
+            stringBuilder.append("<tr><td>");
+            stringBuilder.append(roomDescription.get(i).getDoors());
             stringBuilder.append("</td></tr>");
         }
         for (int i = 0; i < trapDescription.size(); i++) {

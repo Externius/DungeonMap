@@ -3,6 +3,7 @@ package externius.rdmg.core;
 import java.util.ArrayList;
 import java.util.List;
 
+import externius.rdmg.helpers.Door;
 import externius.rdmg.helpers.RoomPosition;
 import externius.rdmg.helpers.Utils;
 import externius.rdmg.models.DungeonTile;
@@ -11,6 +12,7 @@ import externius.rdmg.models.Textures;
 public class DungeonNoCorridor extends Dungeon {
     private List<DungeonTile> openDoorList = new ArrayList<>();
     private List<DungeonTile> edgeTileList = new ArrayList<>();
+    private final List<DungeonTile> roomStart = new ArrayList<>();
 
     public DungeonNoCorridor(int dungeonWidth, int dungeonHeight, int dungeonSize, int roomSizePercent) {
         this.dungeonWidth = dungeonWidth;
@@ -45,6 +47,7 @@ public class DungeonNoCorridor extends Dungeon {
         addFirstRoom();
         fillRoomToDoor();
         addEntryPoint();
+        addDescription();
     }
 
     public void addFirstRoom() {
@@ -54,6 +57,27 @@ public class DungeonNoCorridor extends Dungeon {
         int right = Utils.getRandomInt(2, roomSize + 1);
         int down = Utils.getRandomInt(2, roomSize + 1);
         fillRoom(x, y, down, right);
+        roomStart.add(dungeonTiles[x][y]);
+    }
+
+    @Override
+    void fillRoom(int x, int y, int right, int down) {
+        int doorCount = getDoorCount(down, right);
+        for (int i = 0; i < down + 2; i++) { // fill with room_edge texture the bigger boundaries
+            for (int j = 0; j < right + 2; j++) {
+                dungeonTiles[x + i - 1][y + j - 1].setTexture(Textures.ROOM_EDGE);
+            }
+        }
+        for (int i = 0; i < down; i++) { // fill room texture
+            for (int j = 0; j < right; j++) {
+                dungeonTiles[x + i][y + j].setTexture(Textures.ROOM);
+                rooms.add(dungeonTiles[x + i][y + j]);
+                dungeonTiles[x + i][y + j].setRoomCount(" ");
+            }
+        }
+        for (int d = 0; d < doorCount; d++) {
+            addDoor(x, y, down, right);
+        }
     }
 
     @Override
@@ -83,9 +107,9 @@ public class DungeonNoCorridor extends Dungeon {
                 if (RoomPosition.isUp()) {
                     randomFillUpDown(openDoorList.get(i).getI() + 1, openDoorList.get(i).getJ(), openDoorList.get(i));
                 } else if (RoomPosition.isDown()) {
-                    randomFillUpDown(openDoorList.get(i).getI()- 1, openDoorList.get(i).getJ(), openDoorList.get(i));
+                    randomFillUpDown(openDoorList.get(i).getI() - 1, openDoorList.get(i).getJ(), openDoorList.get(i));
                 } else if (RoomPosition.isRight()) {
-                    randomFillLeftRight(openDoorList.get(i).getI(), openDoorList.get(i).getJ()- 1, openDoorList.get(i));
+                    randomFillLeftRight(openDoorList.get(i).getI(), openDoorList.get(i).getJ() - 1, openDoorList.get(i));
                 } else if (RoomPosition.isLeft()) {
                     randomFillLeftRight(openDoorList.get(i).getI(), openDoorList.get(i).getJ() + 1, openDoorList.get(i));
                 }
@@ -115,18 +139,74 @@ public class DungeonNoCorridor extends Dungeon {
         setVerticalEdge(x, y, right, down);
         setVerticalEdge(x, y, right < 0 ? 1 : -1, down);
         fillDoor(down, right);
-        Utils.addRoomDescription(dungeonTiles, x, y, roomDescription);
+        roomStart.add(dungeonTiles[x][y]);
+    }
+
+    public void addDescription() {
+        cleanDoorList();
+        setDoorsDescriptions();
+        for (DungeonTile room : roomStart) {
+            List<DungeonTile> openList = new ArrayList<>();
+            List<DungeonTile> closedList = new ArrayList<>();
+            DungeonTile start = room;
+            addToClosedList(closedList, start); // add start point to closed list
+            addToOpen(start, openList, closedList); // add the nearby nodes to openList
+            while (!openList.isEmpty()) {
+                start = openList.get(0); // get next room
+                addToClosedList(closedList, start); // add to closed list this node
+                removeFromOpen(openList, start); // remove from open list this node
+                addToOpen(start, openList, closedList); // add open list the nearby nodes
+            }
+            Utils.addNCRoomDescription(dungeonTiles, room.getI(), room.getJ(), roomDescription, Door.getNCDoorDescription(dungeonTiles, closedList));
+        }
+    }
+
+    private void setDoorsDescriptions() {
+        for (DungeonTile door : doors) {
+            door.setRoomCount(Door.getNCDoor(door));
+        }
+    }
+
+    @Override
+    boolean checkTileForOpenList(int x, int y) {
+        return dungeonTiles[x][y].getTexture() == Textures.ROOM;
+    }
+
+
+    private void addToOpenList(int x, int y, List<DungeonTile> openList, List<DungeonTile> closedList) {
+        if (checkTileForOpenList(x, y) && !closedList.contains(dungeonTiles[x][y]) && !openList.contains(dungeonTiles[x][y])) { // not in openlist/closedlist
+            openList.add(dungeonTiles[x][y]);
+        }
+    }
+
+    private void addToOpen(DungeonTile node, List<DungeonTile> openList, List<DungeonTile> closedList) {
+        addToOpenList(node.getI(), node.getJ() - 1, openList, closedList); // left
+        addToOpenList(node.getI() - 1, node.getJ(), openList, closedList); // top
+        addToOpenList(node.getI() + 1, node.getJ(), openList, closedList); // bottom
+        addToOpenList(node.getI(), node.getJ() + 1, openList, closedList); // right
+    }
+
+    private void cleanDoorList() {
+        List<DungeonTile> toDelete = new ArrayList<>();
+        for (DungeonTile door : doors) {
+            if (door.getTexture() == Textures.ROOM_EDGE) {
+                toDelete.add(door);
+            }
+        }
+        for (DungeonTile tile : toDelete) {
+            doors.remove(tile);
+        }
     }
 
     private void setVerticalEdge(int x, int y, int right, int down) {
         boolean addToEdgeList = !(right == 1 || right == -1);
         if (down < 0) { // up
             for (int i = down; i < 2; i++) { //right edge
-                setRoomEdge(dungeonTiles, x + i, y + right, addToEdgeList);
+                setRoomEdge(x + i, y + right, addToEdgeList);
             }
         } else { // bottom
             for (int i = -1; i < down + 1; i++) { //left edge
-                setRoomEdge(dungeonTiles, x + i, y + right, addToEdgeList);
+                setRoomEdge(x + i, y + right, addToEdgeList);
             }
         }
     }
@@ -199,7 +279,7 @@ public class DungeonNoCorridor extends Dungeon {
         setHorizontalEdge(x, y, right, down);
         setHorizontalEdge(x, y, right, down < 0 ? 1 : -1);
         fillDoor(down, right);
-        Utils.addRoomDescription(dungeonTiles, x, y, roomDescription);
+        roomStart.add(dungeonTiles[x][y]);
     }
 
 
@@ -230,7 +310,7 @@ public class DungeonNoCorridor extends Dungeon {
     private boolean checkNearbyDoor(DungeonTile node) {
         for (int i = node.getI() - 1; i < node.getI() + 2; i++) {
             for (int j = node.getJ() - 1; j < node.getJ() + 2; j++) {
-                if (dungeonTiles[i][j].getTexture() == Textures.NO_CORRIDOR_DOOR) { // check nearby doors
+                if (Door.checkNCDoor(dungeonTiles, i, j)) { // check nearby doors
                     return false;
                 }
             }
@@ -248,7 +328,6 @@ public class DungeonNoCorridor extends Dungeon {
         for (DungeonTile tile : toDelete) {
             edgeTileList.remove(tile);
         }
-
     }
 
     private boolean checkRooms(int x, int y) {
@@ -259,20 +338,20 @@ public class DungeonNoCorridor extends Dungeon {
         boolean addToEdgeList = !(down == 1 || down == -1);
         if (right < 0) { // left
             for (int i = right; i < 2; i++) {
-                setRoomEdge(dungeonTiles, x + down, y + i, addToEdgeList);
+                setRoomEdge(x + down, y + i, addToEdgeList);
             }
         } else { // right
             for (int i = -1; i < right + 1; i++) {
-                setRoomEdge(dungeonTiles, x + down, y + i, addToEdgeList);
+                setRoomEdge(x + down, y + i, addToEdgeList);
             }
         }
     }
 
-    private void setRoomEdge(DungeonTile[][] dungeonTiles, int x, int y, boolean addToEdgeList) {
-        if (dungeonTiles[x][y].getTexture() != Textures.NO_CORRIDOR_DOOR && addToEdgeList) { // if its not a corridor_door
+    private void setRoomEdge(int x, int y, boolean addToEdgeList) {
+        if (!Door.checkNCDoor(dungeonTiles, x, y) && addToEdgeList) { // if its not a corridor_door
             dungeonTiles[x][y].setTexture(Textures.ROOM_EDGE);
             edgeTileList.add(dungeonTiles[x][y]);
-        } else if (dungeonTiles[x][y].getTexture() != Textures.NO_CORRIDOR_DOOR) {
+        } else if (!Door.checkNCDoor(dungeonTiles, x, y)) {
             dungeonTiles[x][y].setTexture(Textures.ROOM_EDGE);
         }
     }
@@ -427,7 +506,7 @@ public class DungeonNoCorridor extends Dungeon {
     }
 
     private boolean checkTile(int x, int y) {
-        return dungeonTiles[x][y].getTexture() == Textures.ROOM_EDGE || dungeonTiles[x][y].getTexture() == Textures.NO_CORRIDOR_DOOR;
+        return dungeonTiles[x][y].getTexture() == Textures.ROOM_EDGE || Door.checkNCDoor(dungeonTiles, x, y);
     }
 
     private int checkVertical(int x, int y) {
@@ -452,7 +531,7 @@ public class DungeonNoCorridor extends Dungeon {
     public boolean checkDoor(int x, int y) {
         for (int i = x - 1; i < x + 2; i++) {
             for (int j = y - 1; j < y + 2; j++) {
-                if (dungeonTiles[i][j].getTexture() == Textures.NO_CORRIDOR_DOOR) { // check nearby doors
+                if (Door.checkNCDoor(dungeonTiles, i, j)) { // check nearby doors
                     return false;
                 }
             }
@@ -462,8 +541,15 @@ public class DungeonNoCorridor extends Dungeon {
 
     @Override
     void setDoor(int x, int y) {
-        dungeonTiles[x][y].setTexture(Textures.NO_CORRIDOR_DOOR);
+        if (Utils.getRandomInt(0, 101) < 40) {
+            dungeonTiles[x][y].setTexture(Textures.NO_CORRIDOR_DOOR_TRAPPED);
+        } else if (Utils.getRandomInt(0, 101) < 50) {
+            dungeonTiles[x][y].setTexture(Textures.NO_CORRIDOR_DOOR_LOCKED);
+        } else {
+            dungeonTiles[x][y].setTexture(Textures.NO_CORRIDOR_DOOR);
+        }
         openDoorList.add(dungeonTiles[x][y]);
+        doors.add(dungeonTiles[x][y]);
     }
 
     public List<DungeonTile> getOpenDoorList() {

@@ -39,8 +39,13 @@ public final class Utils {
         dungeon[x][y].setRoomCount(String.valueOf(trapDescription.size()));
     }
 
-    public static void addRoomDescription(DungeonTile[][] dungeon, int x, int y, List<RoomDescription> roomDescription) {
-        roomDescription.add(new RoomDescription(getRoomName(roomDescription.size() + 1), Treasure.getTreasure(), Encounter.getMonster()));
+    public static void addRoomDescription(DungeonTile[][] dungeon, int x, int y, List<RoomDescription> roomDescription, List<DungeonTile> doorList) {
+        roomDescription.add(new RoomDescription(getRoomName(roomDescription.size() + 1), Treasure.getTreasure(), Encounter.getMonster(), Door.getDoorDescription(dungeon, doorList)));
+        dungeon[x][y].setRoomCount(String.valueOf(roomDescription.size()));
+    }
+
+    public static void addNCRoomDescription(DungeonTile[][] dungeon, int x, int y, List<RoomDescription> roomDescription, String doors) {
+        roomDescription.add(new RoomDescription(getRoomName(roomDescription.size() + 1), Treasure.getTreasure(), Encounter.getMonster(), doors));
         dungeon[x][y].setRoomCount(String.valueOf(roomDescription.size()));
     }
 
@@ -55,7 +60,6 @@ public final class Utils {
         }
         return max;
     }
-
 
     private static String getRoomName(int x) {
         return "#ROOM" + x + "#";

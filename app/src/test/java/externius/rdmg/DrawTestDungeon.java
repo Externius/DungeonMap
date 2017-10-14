@@ -32,8 +32,10 @@ final class DrawTestDungeon {
                     System.out.print(".");
                     break;
                 case NO_CORRIDOR_DOOR:
+                case NO_CORRIDOR_DOOR_LOCKED:
+                case NO_CORRIDOR_DOOR_TRAPPED:
                 case DOOR:
-                case DOOR_CLOSED:
+                case DOOR_LOCKED:
                 case DOOR_TRAPPED:
                     System.out.print("D");
                     break;

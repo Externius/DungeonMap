@@ -16,7 +16,7 @@ import externius.rdmg.models.TrapDescription;
 
 public class Dungeon {
     private static final int MOVEMENT = 10;
-    private final List<DungeonTile> rooms = new ArrayList<>();
+    final List<DungeonTile> rooms = new ArrayList<>();
     DungeonTile[][] dungeonTiles;
     List<RoomDescription> roomDescription = new ArrayList<>();
     int dungeonWidth;
@@ -24,7 +24,7 @@ public class Dungeon {
     int dungeonSize;
     int roomSizePercent;
     int roomSize;
-    private List<DungeonTile> doors = new ArrayList<>();
+    List<DungeonTile> doors = new ArrayList<>();
     private List<DungeonTile> result = new ArrayList<>();
     private List<DungeonTile> corridors = new ArrayList<>();
     private List<TrapDescription> trapDescription = new ArrayList<>();
@@ -206,7 +206,7 @@ public class Dungeon {
         }
     }
 
-    private void removeFromOpen(List<DungeonTile> openList, DungeonTile node) {
+    void removeFromOpen(List<DungeonTile> openList, DungeonTile node) {
         openList.remove(node);
     }
 
@@ -247,7 +247,7 @@ public class Dungeon {
         }
     }
 
-    private boolean checkTileForOpenList(int x, int y) {
+    boolean checkTileForOpenList(int x, int y) {
         return dungeonTiles[x][y].getH() != 0 && dungeonTiles[x][y].getTexture() != Textures.ROOM && dungeonTiles[x][y].getTexture() != Textures.ROOM_EDGE; // check its not edge/room/room_edge
     }
 
@@ -281,7 +281,7 @@ public class Dungeon {
 
     }
 
-    private void addToClosedList(List<DungeonTile> closedList, DungeonTile node) {
+    void addToClosedList(List<DungeonTile> closedList, DungeonTile node) {
         closedList.add(dungeonTiles[node.getI()][node.getJ()]);
     }
 
@@ -318,13 +318,16 @@ public class Dungeon {
                 dungeonTiles[x + i][y + j].setRoomCount(" ");
             }
         }
-        Utils.addRoomDescription(dungeonTiles, x, y, roomDescription);
+        int currentSize = doors.size();
         for (int d = 0; d < doorCount; d++) {
             addDoor(x, y, down, right);
         }
+        int newSize = doors.size();
+        List<DungeonTile> currentDoors = new ArrayList<>(doors.subList(currentSize, newSize));
+        Utils.addRoomDescription(dungeonTiles, x, y, roomDescription, currentDoors);
     }
 
-    private void addDoor(int x, int y, int down, int right) {
+    void addDoor(int x, int y, int down, int right) {
         boolean doorIsOK;
         int doorX;
         int doorY;
@@ -339,7 +342,7 @@ public class Dungeon {
     boolean checkDoor(int x, int y) {
         for (int i = x - 1; i < x + 2; i++) {
             for (int j = y - 1; j < y + 2; j++) {
-                if (dungeonTiles[i][j].getTexture() == Textures.DOOR || dungeonTiles[i][j].getTexture() == Textures.DOOR_CLOSED || dungeonTiles[i][j].getTexture() == Textures.DOOR_TRAPPED) { //check nearby doors
+                if (dungeonTiles[i][j].getTexture() == Textures.DOOR || dungeonTiles[i][j].getTexture() == Textures.DOOR_LOCKED || dungeonTiles[i][j].getTexture() == Textures.DOOR_TRAPPED) { //check nearby doors
                     return false;
                 }
             }
@@ -365,10 +368,10 @@ public class Dungeon {
     }
 
     void setDoor(int x, int y) {
-        if (Utils.getRandomInt(0, 101) < 50) {
+        if (Utils.getRandomInt(0, 101) < 40) {
             dungeonTiles[x][y].setTexture(Textures.DOOR_TRAPPED);
-        } else if (Utils.getRandomInt(0, 101) < 70) {
-            dungeonTiles[x][y].setTexture(Textures.DOOR_CLOSED);
+        } else if (Utils.getRandomInt(0, 101) < 50) {
+            dungeonTiles[x][y].setTexture(Textures.DOOR_LOCKED);
         } else {
             dungeonTiles[x][y].setTexture(Textures.DOOR);
         }
