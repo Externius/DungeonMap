@@ -35,7 +35,7 @@ public final class Utils {
     }
 
     public static void addTrapDescription(DungeonTile[][] dungeon, int x, int y, List<TrapDescription> trapDescription) {
-        trapDescription.add(new TrapDescription(Trap.getTrapName(trapDescription.size() + 1), Trap.getCurrentTrap()));
+        trapDescription.add(new TrapDescription(Trap.getTrapName(trapDescription.size() + 1), Trap.getCurrentTrap(false)));
         dungeon[x][y].setRoomCount(String.valueOf(trapDescription.size()));
     }
 

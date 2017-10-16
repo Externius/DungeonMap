@@ -31,6 +31,10 @@ public final class Door {
             10, 10, 15, 15, 18, 18, 27
     };
 
+    private static final int[] lockDifficulty = {
+            5, 10, 15, 20, 25, 25, 30
+    };
+
     private Door() {
 
     }
@@ -50,28 +54,28 @@ public final class Door {
         }
     }
 
-    private static String getState(Textures texture) {
+    private static String getState(Textures texture, int x) {
         switch (texture) {
             case NO_CORRIDOR_DOOR_LOCKED:
             case DOOR_LOCKED:
-                return " Locked";
+                return " Locked Door (AC " + doorAC[x] + ", HP " + doorHP[x] + ", DC " + lockDifficulty[x] + " to unlock)";
             case NO_CORRIDOR_DOOR_TRAPPED:
             case DOOR_TRAPPED:
-                return " Trapped";
+                return " Trapped Door (AC " + doorAC[x] + ", HP " + doorHP[x] + ") " + Trap.getCurrentTrap(true);
             default:
-                return " Open";
+                return " Open Door (AC " + doorAC[x] + ", HP " + doorHP[x] + ")";
         }
     }
 
     private static String getDoorText(Textures texture, int x) {
         if (RoomPosition.isUp()) {
-            return "South Entry #" + sCount++ + ": " + doorTypes[x] + getState(texture) + " Door (AC: " + doorAC[x] + ", HP: " + doorHP[x] + ")\n";
+            return "South Entry #" + sCount++ + ": " + doorTypes[x] + getState(texture, x) + "\n";
         } else if (RoomPosition.isDown()) {
-            return "North Entry #" + nCount++ + ": " + doorTypes[x] + getState(texture) + " Door (AC: " + doorAC[x] + ", HP: " + doorHP[x] + ")\n";
+            return "North Entry #" + nCount++ + ": " + doorTypes[x] + getState(texture, x) + "\n";
         } else if (RoomPosition.isRight()) {
-            return "West Entry #" + wCount++ + ": " + doorTypes[x] + getState(texture) + " Door (AC: " + doorAC[x] + ", HP: " + doorHP[x] + ")\n";
+            return "West Entry #" + wCount++ + ": " + doorTypes[x] + getState(texture, x) + "\n";
         } else {
-            return "East Entry #" + eCount++ + ": " + doorTypes[x] + getState(texture) + " Door (AC: " + doorAC[x] + ", HP: " + doorHP[x] + ")\n";
+            return "East Entry #" + eCount++ + ": " + doorTypes[x] + getState(texture, x) + "\n";
         }
     }
 
@@ -91,7 +95,7 @@ public final class Door {
 
     public static String getNCDoor(DungeonTile door) {
         int x = getDoorDC();
-        return ": " + doorTypes[x] + getState(door.getTexture()) + " Door (AC: " + doorAC[x] + ", HP: " + doorHP[x] + ")\n";
+        return ": " + doorTypes[x] + getState(door.getTexture(), x) + "\n";
     }
 
     public static String getNCDoorDescription(DungeonTile[][] dungeon, List<DungeonTile> closedList) {

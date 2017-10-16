@@ -35,6 +35,17 @@ final class Trap {
             {"Rolling Sphere", "Dexterity", "15", "15", " Intelligence", "false"}
     };
 
+    private static final String[][] trapDoorKind = { // name, save, spot, disable, disableCheck, attackMod
+            {"Fire trap", "Dexterity", "10", "15", "Intelligence", "false"},
+            {"Lock Covered in Dragon Bile", "Constitution", "10", "15", "Intelligence", "false"},
+            {"Hail of Needles", "Dexterity", "15", "13", "Dexterity", "false"},
+            {"Stone Blocks from Ceiling", "Dexterity", "15", "15", "Intelligence", "true"}, //
+            {"Doorknob Smeared with Contact Poison", "Constitution", "15", "10", "Intelligence", "false"}, //
+            {"Poison Darts", "Constitution", "15", "15", "Intelligence", "true"}, //
+            {"Poison Needle", "Constitution", "15", "15", "Dexterity", "false"},
+            {"Energy Drain", "Constitution", "15", "15", "Dispel Magic", "false"}
+    };
+
     private static String[] currentTrap;
 
     private Trap() {
@@ -89,15 +100,13 @@ final class Trap {
         }
     }
 
-    static String getCurrentTrap() {
+    static String getCurrentTrap(boolean Door) {
         int trapDanger = getTrapDanger(); // setback, dangerous, deadly
-        currentTrap = trapKind[Utils.getRandomInt(0, trapKind.length)]; // get random currentTrap index
-        int dmg = getTrapDamage(trapDanger);
-        int save = getTrapSaveDC(trapDanger);
-        String spot = currentTrap[2];
-        String disable = currentTrap[3];
-        String disableCheck = currentTrap[4];
-        String attack = getTrapAttackBonus(trapDanger);
-        return currentTrap[0] + " [" + trapSeverity[trapDanger] + "]: DC " + spot + " to spot, DC  " + disable + " to disable (" + disableCheck + "), DC " + save + " " + currentTrap[1] + " save or take " + dmg + "D10 damage" + attack;
+        if (Door) { // get random currentTrap index
+            currentTrap = trapDoorKind[Utils.getRandomInt(0, trapDoorKind.length)];
+        } else {
+            currentTrap = trapKind[Utils.getRandomInt(0, trapKind.length)];
+        }
+        return currentTrap[0] + " [" + trapSeverity[trapDanger] + "]: DC " + currentTrap[2] + " to spot, DC " + currentTrap[3] + " to disable (" + currentTrap[4] + "), DC " + getTrapSaveDC(trapDanger) + " " + currentTrap[1] + " save or take " + getTrapDamage(trapDanger) + "D10 damage" + getTrapAttackBonus(trapDanger);
     }
 }
