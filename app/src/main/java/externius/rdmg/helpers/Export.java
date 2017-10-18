@@ -22,16 +22,16 @@ public final class Export {
         stringBuilder.append("<html>\n" +
                 "<head>\n" +
                 "<title>DungeonMap</title>\n" +
-                "<style>table, th, td {border-collapse: collapse;} th, td {padding: 8px; text-align: left; border-bottom: 1px solid #ddd; width: 100%;}td.room{ width: unset;}</style>\n" +
+                "<style>table, th, td {border-collapse: collapse;} th, td {padding: 8px; text-align: left; border-bottom: 1px solid #ddd;} .wrap {white-space: pre-wrap;}</style>\n" +
                 "</head>\n" +
                 "<body>\n" +
                 "<img src=\"data:image/png;base64,");
         stringBuilder.append(bitmapToBase64String(bmp));
         stringBuilder.append("\">\n" +
-                "<table id=\"table_description\">");
+                "<table id=\"table_description\" class=\"wrap\">");
         for (int i = 0; i < roomDescription.size(); i++) {
             stringBuilder.append("<tr>\n" +
-                    "<td rowspan=\"3\" class=\"room\">");
+                    "<td rowspan=\"3\">");
             stringBuilder.append(roomDescription.get(i).getName());
             stringBuilder.append("</td>\n" +
                     "<td>");

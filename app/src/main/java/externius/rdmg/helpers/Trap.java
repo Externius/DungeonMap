@@ -100,9 +100,9 @@ final class Trap {
         }
     }
 
-    static String getCurrentTrap(boolean Door) {
+    static String getCurrentTrap(boolean door) {
         int trapDanger = getTrapDanger(); // setback, dangerous, deadly
-        if (Door) { // get random currentTrap index
+        if (door) { // get random currentTrap index
             currentTrap = trapDoorKind[Utils.getRandomInt(0, trapDoorKind.length)];
         } else {
             currentTrap = trapKind[Utils.getRandomInt(0, trapKind.length)];

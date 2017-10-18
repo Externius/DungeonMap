@@ -12,7 +12,7 @@ import externius.rdmg.models.Textures;
 public class DungeonNoCorridor extends Dungeon {
     private List<DungeonTile> openDoorList = new ArrayList<>();
     private List<DungeonTile> edgeTileList = new ArrayList<>();
-    private final List<DungeonTile> roomStart = new ArrayList<>();
+    private List<DungeonTile> roomStart = new ArrayList<>();
 
     public DungeonNoCorridor(int dungeonWidth, int dungeonHeight, int dungeonSize, int roomSizePercent) {
         this.dungeonWidth = dungeonWidth;
@@ -51,6 +51,7 @@ public class DungeonNoCorridor extends Dungeon {
     }
 
     public void addFirstRoom() {
+        roomStart = new ArrayList<>();
         openDoorList = new ArrayList<>();
         int x = Utils.getRandomInt(5, dungeonTiles.length - (roomSize + 4));
         int y = Utils.getRandomInt(5, dungeonTiles.length - (roomSize + 4));
