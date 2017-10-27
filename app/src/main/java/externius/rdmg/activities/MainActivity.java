@@ -20,6 +20,8 @@ public class MainActivity extends AppCompatActivity {
     private Spinner spinnerDifficulty;
     private Spinner spinnerPartyLevel;
     private Spinner spinnerPartySize;
+    private Spinner spinnerTreasureValue;
+    private Spinner spinnerItemsRarity;
     private Spinner spinnerSize;
     private Spinner spinnerRoomDens;
     private Spinner spinnerRoomSize;
@@ -32,19 +34,21 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         //get spinners
-        spinnerDifficulty = (Spinner) findViewById(R.id.dungeon_difficulty);
-        spinnerPartyLevel = (Spinner) findViewById(R.id.party_level);
-        spinnerPartySize = (Spinner) findViewById(R.id.party_size);
-        spinnerSize = (Spinner) findViewById(R.id.dungeon_size);
-        spinnerRoomDens = (Spinner) findViewById(R.id.room_density);
-        spinnerRoomSize = (Spinner) findViewById(R.id.room_size);
-        spinnerTraps = (Spinner) findViewById(R.id.traps);
-        spinnerCorridors = (Spinner) findViewById(R.id.corridors);
-        spinnerMonsterType = (Spinner) findViewById(R.id.monster_type);
-        spinnerDeadEnds = (Spinner) findViewById(R.id.dead_end);
+        spinnerDifficulty = findViewById(R.id.dungeon_difficulty);
+        spinnerPartyLevel = findViewById(R.id.party_level);
+        spinnerPartySize = findViewById(R.id.party_size);
+        spinnerTreasureValue = findViewById(R.id.treasure_value);
+        spinnerItemsRarity = findViewById(R.id.items_rarity);
+        spinnerSize = findViewById(R.id.dungeon_size);
+        spinnerRoomDens = findViewById(R.id.room_density);
+        spinnerRoomSize = findViewById(R.id.room_size);
+        spinnerTraps = findViewById(R.id.traps);
+        spinnerCorridors = findViewById(R.id.corridors);
+        spinnerMonsterType = findViewById(R.id.monster_type);
+        spinnerDeadEnds = findViewById(R.id.dead_end);
         spinnerCorridors.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
@@ -68,8 +72,9 @@ public class MainActivity extends AppCompatActivity {
         spinnerDifficulty.setSelection(1);
         spinnerPartySize.setSelection(3);
         spinnerTraps.setSelection(1);
-
-        final Button button = (Button) findViewById(R.id.generate_button);
+        spinnerTreasureValue.setSelection(1);
+        spinnerItemsRarity.setSelection(1);
+        final Button button = findViewById(R.id.generate_button);
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 generateDungeon();
@@ -79,31 +84,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void generateDungeon() {
-        //get values
-        String dungeonDifficulty = spinnerDifficulty.getSelectedItem().toString();
-        String partyLevel = spinnerPartyLevel.getSelectedItem().toString();
-        String partySize = spinnerPartySize.getSelectedItem().toString();
-        String size = spinnerSize.getSelectedItem().toString();
-        String roomDens = spinnerRoomDens.getSelectedItem().toString();
-        String roomSize = spinnerRoomSize.getSelectedItem().toString();
-        String traps = spinnerTraps.getSelectedItem().toString();
-        String corridors = spinnerCorridors.getSelectedItem().toString();
-        String monsterType = spinnerMonsterType.getSelectedItem().toString();
-        String deadEnds = spinnerDeadEnds.getSelectedItem().toString();
         Intent dungeon = new Intent(this, DungeonActivity.class);
         Bundle extras = new Bundle();
-        extras.putString("DUNGEON_DIFFICULTY", dungeonDifficulty);
-        extras.putString("PARTY_LEVEL", partyLevel);
-        extras.putString("PARTY_SIZE", partySize);
-        extras.putString("DUNGEON_SIZE", size);
-        extras.putString("ROOM_DENSITY", roomDens);
-        extras.putString("ROOM_SIZE", roomSize);
-        extras.putString("TRAPS", traps);
-        extras.putString("CORRIDORS", corridors);
-        extras.putString("MONSTER_TYPE", monsterType);
-        extras.putString("DEAD_ENDS", deadEnds);
+        extras.putString("DUNGEON_DIFFICULTY", spinnerDifficulty.getSelectedItem().toString());
+        extras.putString("PARTY_LEVEL", spinnerPartyLevel.getSelectedItem().toString());
+        extras.putString("PARTY_SIZE", spinnerPartySize.getSelectedItem().toString());
+        extras.putString("TREASURE_VALUE", spinnerTreasureValue.getSelectedItem().toString());
+        extras.putString("ITEMS_RARITY", spinnerItemsRarity.getSelectedItem().toString());
+        extras.putString("DUNGEON_SIZE", spinnerSize.getSelectedItem().toString());
+        extras.putString("ROOM_DENSITY", spinnerRoomDens.getSelectedItem().toString());
+        extras.putString("ROOM_SIZE", spinnerRoomSize.getSelectedItem().toString());
+        extras.putString("TRAPS", spinnerTraps.getSelectedItem().toString());
+        extras.putString("CORRIDORS", spinnerCorridors.getSelectedItem().toString());
+        extras.putString("MONSTER_TYPE", spinnerMonsterType.getSelectedItem().toString());
+        extras.putString("DEAD_ENDS", spinnerDeadEnds.getSelectedItem().toString());
         dungeon.putExtras(extras);
-
         startActivity(dungeon);
     }
 

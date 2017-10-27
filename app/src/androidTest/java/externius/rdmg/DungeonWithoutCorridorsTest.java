@@ -15,6 +15,7 @@ import externius.rdmg.activities.MainActivity;
 import static android.support.test.espresso.Espresso.onData;
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
+import static android.support.test.espresso.action.ViewActions.scrollTo;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static org.hamcrest.core.IsAnything.anything;
 
@@ -31,12 +32,14 @@ public class DungeonWithoutCorridorsTest {
         }
     };
 
+
     @Test
     public void testDefault() {
+        onView(withId(R.id.generate_button)).perform(scrollTo());
         onView(withId(R.id.corridors)).perform(click());
         onData(anything()).atPosition(1).perform(click());
-        onView(withId(R.id.generate_button)).perform(click());
-        onView(withId(R.id.dungeon_activity_generate_button)).perform(click());
+        onView(withId(R.id.generate_button)).perform(scrollTo(), click());
+        onView(withId(R.id.dungeon_activity_generate_button)).perform(scrollTo(), click());
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testDefault");
     }
 
@@ -44,12 +47,13 @@ public class DungeonWithoutCorridorsTest {
     public void testMedium() {
         onView(withId(R.id.dungeon_size)).perform(click());
         onData(anything()).atPosition(1).perform(click());
+        onView(withId(R.id.generate_button)).perform(scrollTo());
         onView(withId(R.id.room_size)).perform(click());
         onData(anything()).atPosition(1).perform(click());
         onView(withId(R.id.corridors)).perform(click());
         onData(anything()).atPosition(1).perform(click());
-        onView(withId(R.id.generate_button)).perform(click());
-        onView(withId(R.id.dungeon_activity_generate_button)).perform(click());
+        onView(withId(R.id.generate_button)).perform(scrollTo(), click());
+        onView(withId(R.id.dungeon_activity_generate_button)).perform(scrollTo(), click());
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testMedium");
     }
 
@@ -57,12 +61,13 @@ public class DungeonWithoutCorridorsTest {
     public void testLarge() {
         onView(withId(R.id.dungeon_size)).perform(click());
         onData(anything()).atPosition(2).perform(click());
+        onView(withId(R.id.generate_button)).perform(scrollTo());
         onView(withId(R.id.room_size)).perform(click());
         onData(anything()).atPosition(2).perform(click());
         onView(withId(R.id.corridors)).perform(click());
         onData(anything()).atPosition(1).perform(click());
-        onView(withId(R.id.generate_button)).perform(click());
-        onView(withId(R.id.dungeon_activity_generate_button)).perform(click());
+        onView(withId(R.id.generate_button)).perform(scrollTo(), click());
+        onView(withId(R.id.dungeon_activity_generate_button)).perform(scrollTo(), click());
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testLarge");
     }
 }

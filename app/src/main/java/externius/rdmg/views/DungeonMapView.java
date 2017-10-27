@@ -12,7 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import externius.rdmg.R;
-import externius.rdmg.core.*;
+import externius.rdmg.core.Dungeon;
+import externius.rdmg.core.DungeonNoCorridor;
+import externius.rdmg.helpers.Treasure;
 import externius.rdmg.helpers.Utils;
 import externius.rdmg.models.DungeonTile;
 import externius.rdmg.models.RoomDescription;
@@ -32,12 +34,14 @@ public class DungeonMapView extends View {
     private final Bitmap ncDoorLocked = BitmapFactory.decodeResource(getResources(), R.drawable.nc_door_locked);
     private final Bitmap ncDoorTrapped = BitmapFactory.decodeResource(getResources(), R.drawable.nc_door_trapped);
     private Bitmap roomEdge;
-
+    private double treasureValue;
+    private int itemsRarity;
     private DungeonTile[][] dungeonTiles;
     private final Paint paint = new Paint();
     private List<RoomDescription> roomDescription = new ArrayList<>();
     private List<TrapDescription> trapDescription = new ArrayList<>();
-    private String json;
+    private String jsonMonster;
+    private String jsonTreasure;
     private int dungeonWidth;
     private int dungeonHeight;
     private int dungeonSize;
@@ -60,7 +64,10 @@ public class DungeonMapView extends View {
         Utils.setPartyLevel(partyLevel);
         Utils.setDungeonDifficulty(dungeonDifficulty);
         Utils.setMonsterType(monsterType);
-        Utils.setJson(json);
+        Utils.setJsonMonster(jsonMonster);
+        Utils.setJsonTreasure(jsonTreasure);
+        Treasure.setTreasureValue(treasureValue);
+        Treasure.setItemsRarity(itemsRarity);
         paint.setTextSize(getFontSize(dungeonSize));
         if (hasCorridor) {
             roomEdge = BitmapFactory.decodeResource(getResources(), R.drawable.marble);
@@ -171,8 +178,8 @@ public class DungeonMapView extends View {
         return roomDescription;
     }
 
-    public void setJson(String json) {
-        this.json = json;
+    public void setJsonMonster(String jsonMonster) {
+        this.jsonMonster = jsonMonster;
     }
 
     public void setDungeonWidth(int dungeonWidth) {
@@ -225,5 +232,17 @@ public class DungeonMapView extends View {
 
     public void setHasDeadEnds(boolean hasDeadEnds) {
         this.hasDeadEnds = hasDeadEnds;
+    }
+
+    public void setTreasureValue(double treasureValue) {
+        this.treasureValue = treasureValue;
+    }
+
+    public void setItemsRarity(int itemsRarity) {
+        this.itemsRarity = itemsRarity;
+    }
+
+    public void setJsonTreasure(String jsonTreasure) {
+        this.jsonTreasure = jsonTreasure;
     }
 }

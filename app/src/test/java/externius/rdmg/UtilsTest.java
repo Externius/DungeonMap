@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Scanner;
 
 import externius.rdmg.activities.MainActivity;
+import externius.rdmg.helpers.Treasure;
 import externius.rdmg.helpers.Utils;
 import externius.rdmg.models.DungeonTile;
 import externius.rdmg.models.RoomDescription;
@@ -33,6 +34,11 @@ public class UtilsTest {
         Utils.setDungeonDifficulty(1);
         Utils.setPartySize(4);
         Utils.setPartyLevel(1);
+        Utils.setJsonMonster(readJSON("monsters.json"));
+        Utils.setJsonTreasure(UtilsTest.readJSON("treasures.json"));
+        Utils.setMonsterType("any");
+        Treasure.setTreasureValue(1);
+        Treasure.setItemsRarity(3);
     }
 
 
@@ -65,8 +71,6 @@ public class UtilsTest {
 
     @Test
     public void testAddRoomDescription() {
-        Utils.setJson(readJSON());
-        Utils.setMonsterType("any");
         DungeonTile[][] dungeon = getTiles();
         List<RoomDescription> roomDescription = new ArrayList<>();
         List<DungeonTile> doors = new ArrayList<>();
@@ -99,9 +103,9 @@ public class UtilsTest {
         return dungeon;
     }
 
-    static String readJSON() {
+    static String readJSON(String resource) {
         String result;
-        try (InputStream is = MainActivity.class.getClassLoader().getResourceAsStream("monsters.json")) {
+        try (InputStream is = MainActivity.class.getClassLoader().getResourceAsStream(resource)) {
             Scanner scanner = new Scanner(is);
             StringBuilder sb = new StringBuilder();
             while (scanner.hasNextLine()) {

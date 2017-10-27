@@ -194,9 +194,7 @@ public class DungeonNoCorridor extends Dungeon {
                 toDelete.add(door);
             }
         }
-        for (DungeonTile tile : toDelete) {
-            doors.remove(tile);
-        }
+        doors.removeAll(toDelete);
     }
 
     private void setVerticalEdge(int x, int y, int right, int down) {
@@ -326,9 +324,7 @@ public class DungeonNoCorridor extends Dungeon {
                 toDelete.add(tile);
             }
         }
-        for (DungeonTile tile : toDelete) {
-            edgeTileList.remove(tile);
-        }
+        edgeTileList.removeAll(toDelete);
     }
 
     private boolean checkRooms(int x, int y) {

@@ -1,8 +1,6 @@
 package externius.rdmg.helpers;
 
 
-import com.google.gson.Gson;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -121,7 +119,8 @@ final class Encounter {
         }
     }
 
-    private static String[] calcEncounter(List<Monster> filteredMonsters) {
+    private static String calcEncounter() {
+        List<Monster> filteredMonsters = getMonsters(Utils.getMonsterList()); //get monsters for party level
         int monsterCount = filteredMonsters.size();
         int monster = 0;
         double allXP;
@@ -132,28 +131,17 @@ final class Encounter {
             for (int i = multipliers.length - 1; i > -1; i--) {
                 count = multipliers[i][0];
                 allXP = monsterXP * count * multipliers[i][1];
-                if (allXP <= difficulty[Utils.getDungeonDifficulty()]) {
-                    return new String[]{Integer.toString((int) allXP), Integer.toString((int) count), filteredMonsters.get(currentMonster).getName(), filteredMonsters.get(currentMonster).getChallengeRating()};
+                if (allXP <= difficulty[Utils.getDungeonDifficulty()] && count > 1) {
+                    return "Monster: " + (int) count + "x " + filteredMonsters.get(currentMonster).getName() + " (CR: " + filteredMonsters.get(currentMonster).getChallengeRating() + ") " + (int) allXP + " XP";
+                } else if (allXP <= difficulty[Utils.getDungeonDifficulty()]) {
+                    return "Monster: " + filteredMonsters.get(currentMonster).getName() + " (CR: " + filteredMonsters.get(currentMonster).getChallengeRating() + ") " + (int) allXP + " XP";
                 }
             }
             monster++;
         }
         while (monster < monsterCount);
-        return new String[]{};
+        return "Monster: None";
     }
-
-    private static String getEncounter() {
-        Gson gson = new Gson();
-        List<Monster> monsters = Arrays.asList(gson.fromJson(Utils.getJson(), Monster[].class)); // get monsters
-        List<Monster> filteredMonsters = getMonsters(monsters); //get monsters for party level
-        String[] encounter = calcEncounter(filteredMonsters);
-        if (encounter.length > 0) {
-            return "Monster: " + encounter[1] + "x " + encounter[2] + " (CR: " + encounter[3] + ") " + encounter[0] + " XP";
-        } else {
-            return "Monster: None";
-        }
-    }
-
 
     static String getMonster() {
         if (Math.floor(Math.random() * 100) > Utils.getPercentage()) {
@@ -164,7 +152,7 @@ final class Encounter {
         difficulty[1] = thresholds[Utils.getPartyLevel()][1] * Utils.getPartySize();
         difficulty[2] = thresholds[Utils.getPartyLevel()][2] * Utils.getPartySize();
         difficulty[3] = thresholds[Utils.getPartyLevel()][3] * Utils.getPartySize();
-        return getEncounter();
+        return calcEncounter();
     }
 
 }

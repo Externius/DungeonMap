@@ -101,4 +101,18 @@
         <item>Yes</item>
         <item>No</item>
     </string-array>
+    <string name="items_rarity"> Items max rarity: </string>
+    <string-array name="items_rarity_array">
+        <item>Common</item>
+        <item>Uncommon</item>
+        <item>Rare</item>
+        <item>Very Rare</item>
+        <item>Legendary</item>
+    </string-array>
+    <string name="treasure_value"> Treasure value: </string>
+    <string-array name="treasure_value_array">
+        <item>Low</item>
+        <item>Standard</item>
+        <item>High</item>
+    </string-array>
 </resources>

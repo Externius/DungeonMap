@@ -1,23 +1,39 @@
 package externius.rdmg.helpers;
 
 
+import com.google.gson.Gson;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
 import externius.rdmg.models.DungeonTile;
+import externius.rdmg.models.Monster;
 import externius.rdmg.models.RoomDescription;
 import externius.rdmg.models.TrapDescription;
+import externius.rdmg.models.Treasures;
 
 public final class Utils {
     private static int partyLevel;
     private static int partySize;
     private static int dungeonDifficulty;
-    private static String json;
     private static String monsterType;
+    private static List<Monster> monsterList;
+    private static List<Treasures> treasureList;
+    private static final Gson gson = new Gson();
 
     private Utils() {
 
     }
+
+    static List<Monster> getMonsterList() {
+        return monsterList;
+    }
+
+    static List<Treasures> getTreasureList() {
+        return treasureList;
+    }
+
 
     static int getPercentage() {
         switch (dungeonDifficulty) {
@@ -89,12 +105,8 @@ public final class Utils {
         Utils.dungeonDifficulty = dungeonDifficulty;
     }
 
-    static String getJson() {
-        return json;
-    }
-
-    public static void setJson(String json) {
-        Utils.json = json;
+    public static void setJsonMonster(String jsonMonster) {
+        monsterList = Arrays.asList(gson.fromJson(jsonMonster, Monster[].class));
     }
 
     static String getMonsterType() {
@@ -103,5 +115,9 @@ public final class Utils {
 
     public static void setMonsterType(String monsterType) {
         Utils.monsterType = monsterType;
+    }
+
+    public static void setJsonTreasure(String jsonTreasure) {
+        treasureList = Arrays.asList(gson.fromJson(jsonTreasure, Treasures[].class));
     }
 }

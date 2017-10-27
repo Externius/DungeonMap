@@ -60,16 +60,19 @@ public class DungeonActivity extends AppCompatActivity {
     private boolean hasDeadEnds;
     private String monsterType;
     private DungeonMapView dungeonView;
-    private String json;
+    private String jsonMonster;
+    private String jsonTreasure;
+    private double treasureValue;
+    private int itemsRarity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dungeon);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        RelativeLayout layout = (RelativeLayout) findViewById(R.id.dungeon_layout);
+        RelativeLayout layout = findViewById(R.id.dungeon_layout);
         ImageView imageView = new ImageView(this);
         imageView.setImageResource(R.drawable.generating_screen);
         RelativeLayout.LayoutParams relativeParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
@@ -87,25 +90,23 @@ public class DungeonActivity extends AppCompatActivity {
         protected Object doInBackground(String... args) {
             Bundle extras = getIntent().getExtras(); // get extra parameters
             setParameters(extras); //set parameters from parent activity
-            json = readJSON();
+            jsonMonster = readJSON(R.raw.monsters);
+            jsonTreasure = readJSON(R.raw.treasures);
             return getDungeonView();
         }
 
         protected void onPostExecute(Object result) {
-            RelativeLayout layout = (RelativeLayout) findViewById(R.id.dungeon_layout);
+            RelativeLayout layout = findViewById(R.id.dungeon_layout);
             layout.removeAllViews();
             layout.addView((View) result);
             addButton(layout);
             addDescription(layout, dungeonView.getRoomDescription(), dungeonView.getTrapDescription());
             layout.setBackgroundColor(Color.WHITE);
-            if (getSupportActionBar() != null) {
-                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            }
         }
 
-        private String readJSON() {
+        private String readJSON(int id) {
             String result;
-            try (InputStream is = getResources().openRawResource(R.raw.monsters)) {
+            try (InputStream is = getResources().openRawResource(id)) {
                 Scanner scanner = new Scanner(is);
                 StringBuilder sb = new StringBuilder();
                 while (scanner.hasNextLine()) {
@@ -205,26 +206,55 @@ public class DungeonActivity extends AppCompatActivity {
             return 0;
         }
 
+        private double setTreasureValue(String tV) {
+            if (tV != null && !tV.isEmpty()) {
+                switch (tV) {
+                    case "Low":
+                        return 0.5;
+                    case "Standard":
+                        return 1;
+                    case "High":
+                        return 1.5;
+                    default:
+                        break;
+                }
+            }
+            return 0;
+        }
+
+        private int setItemsRarity(String iR) {
+            if (iR != null && !iR.isEmpty()) {
+                switch (iR) {
+                    case "Common":
+                        return 0;
+                    case "Uncommon":
+                        return 1;
+                    case "Rare":
+                        return 2;
+                    case "Very Rare":
+                        return 3;
+                    case "Legendary":
+                        return 4;
+                    default:
+                        break;
+                }
+            }
+            return 0;
+        }
+
         private void setParameters(Bundle extras) {
-            String ds = extras.getString("DUNGEON_SIZE");
-            String rd = extras.getString("ROOM_DENSITY");
-            String rs = extras.getString("ROOM_SIZE");
-            String tr = extras.getString("TRAPS");
-            String cs = extras.getString("CORRIDORS");
-            String pL = extras.getString("PARTY_LEVEL");
-            String pS = extras.getString("PARTY_SIZE");
-            String dd = extras.getString("DUNGEON_DIFFICULTY");
             String mt = extras.getString("MONSTER_TYPE");
-            String de = extras.getString("DEAD_ENDS");
-            dungeonDifficulty = setDungeonDifficulty(dd);
-            dungeonSize = setDungeonSize(ds);
-            roomDensity = setRoomDensity(rd);
-            roomSize = setRoomSize(rs);
-            traps = setTraps(tr);
-            hasDeadEnds = setBooleans(de);
-            hasCorridor = setBooleans(cs);
-            partySize = Integer.parseInt(pS);
-            partyLevel = Integer.parseInt(pL);
+            dungeonDifficulty = setDungeonDifficulty(extras.getString("DUNGEON_DIFFICULTY"));
+            dungeonSize = setDungeonSize(extras.getString("DUNGEON_SIZE"));
+            roomDensity = setRoomDensity(extras.getString("ROOM_DENSITY"));
+            roomSize = setRoomSize(extras.getString("ROOM_SIZE"));
+            traps = setTraps(extras.getString("TRAPS"));
+            hasDeadEnds = setBooleans(extras.getString("DEAD_ENDS"));
+            hasCorridor = setBooleans(extras.getString("CORRIDORS"));
+            partySize = Integer.parseInt(extras.getString("PARTY_SIZE"));
+            partyLevel = Integer.parseInt(extras.getString("PARTY_LEVEL"));
+            treasureValue = setTreasureValue(extras.getString("TREASURE_VALUE"));
+            itemsRarity = setItemsRarity(extras.getString("ITEMS_RARITY"));
             if (mt != null && !mt.isEmpty()) {
                 monsterType = mt.toLowerCase();
             }
@@ -251,7 +281,7 @@ public class DungeonActivity extends AppCompatActivity {
         button.setLayoutParams(relativeParams);
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                RelativeLayout layout = (RelativeLayout) findViewById(R.id.dungeon_layout);
+                RelativeLayout layout = findViewById(R.id.dungeon_layout);
                 generateDungeon(layout);
             }
         });
@@ -403,11 +433,14 @@ public class DungeonActivity extends AppCompatActivity {
         dungeonView.setDungeonWidth(area);
         dungeonView.setDungeonSize(dungeonSize);
         dungeonView.setHasCorridor(hasCorridor);
-        dungeonView.setJson(json);
+        dungeonView.setJsonMonster(jsonMonster);
+        dungeonView.setJsonTreasure(jsonTreasure);
         dungeonView.setRoomDensity(roomDensity);
         dungeonView.setRoomSizePercent(roomSize);
         dungeonView.setTrapPercent(traps);
         dungeonView.setPartyLevel(partyLevel);
+        dungeonView.setItemsRarity(itemsRarity);
+        dungeonView.setTreasureValue(treasureValue);
         dungeonView.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));

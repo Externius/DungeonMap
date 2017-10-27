@@ -10,6 +10,7 @@ import org.junit.rules.TestName;
 import java.util.List;
 
 import externius.rdmg.core.DungeonNoCorridor;
+import externius.rdmg.helpers.Treasure;
 import externius.rdmg.helpers.Utils;
 import externius.rdmg.models.DungeonTile;
 import externius.rdmg.models.Textures;
@@ -34,8 +35,11 @@ public class DungeonNoCorridorTest {
         Utils.setDungeonDifficulty(1);
         Utils.setPartySize(4);
         Utils.setPartyLevel(1);
-        Utils.setJson(UtilsTest.readJSON());
+        Utils.setJsonMonster(UtilsTest.readJSON("monsters.json"));
+        Utils.setJsonTreasure(UtilsTest.readJSON("treasures.json"));
         Utils.setMonsterType("any");
+        Treasure.setTreasureValue(1);
+        Treasure.setItemsRarity(3);
         dungeonNoCorridor.init();
     }
 
