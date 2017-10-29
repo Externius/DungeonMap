@@ -19,6 +19,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Display;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -32,6 +33,7 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -45,25 +47,27 @@ import externius.rdmg.views.DungeonMapView;
 
 public class DungeonActivity extends AppCompatActivity {
     private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 1;
-    private boolean saved = false;
+    private static boolean saved = false;
     private static final String SMALL = "Small";
     private static final String MEDIUM = "Medium";
     private static final String LARGE = "Large";
-    private int dungeonDifficulty;
-    private int partyLevel;
-    private int partySize;
-    private int dungeonSize;
-    private int roomDensity;
-    private int roomSize;
-    private int traps;
-    private boolean hasCorridor;
-    private boolean hasDeadEnds;
-    private String monsterType;
-    private DungeonMapView dungeonView;
-    private String jsonMonster;
-    private String jsonTreasure;
-    private double treasureValue;
-    private int itemsRarity;
+    private static int dungeonDifficulty;
+    private static int partyLevel;
+    private static int partySize;
+    private static int dungeonSize;
+    private static int roomDensity;
+    private static int roomSize;
+    private static int traps;
+    private static boolean hasCorridor;
+    private static boolean hasDeadEnds;
+    private static String monsterType;
+    private static DungeonMapView dungeonView;
+    private static String jsonMonster;
+    private static String jsonTreasure;
+    private static double treasureValue;
+    private static int itemsRarity;
+    private static WeakReference<DungeonActivity> activity;
+    private static CreateDungeon createDungeonTask = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,34 +83,70 @@ public class DungeonActivity extends AppCompatActivity {
         imageView.setLayoutParams(relativeParams);
         imageView.setScaleType(ImageView.ScaleType.FIT_XY);
         layout.addView(imageView);
-
-        new CreateDungeon().execute();
+        createDungeonTask = new CreateDungeon(this);
+        createDungeonTask.execute();
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
     }
 
-    private class CreateDungeon extends AsyncTask<String, Void, Object> {
-        protected Object doInBackground(String... args) {
-            Bundle extras = getIntent().getExtras(); // get extra parameters
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (createDungeonTask != null) {
+            createDungeonTask.cancel(true);
+        }
+        this.finish();
+    }
+
+    static class CreateDungeon extends AsyncTask<Void, Void, Object> {
+
+        CreateDungeon(DungeonActivity activity) {
+            DungeonActivity.activity = new WeakReference<>(activity);
+        }
+
+        @Override
+        protected void onPreExecute() {
+            Bundle extras = activity.get().getIntent().getExtras(); // get extra parameters
             setParameters(extras); //set parameters from parent activity
+        }
+
+        @Override
+        protected Object doInBackground(Void... args) {
             jsonMonster = readJSON(R.raw.monsters);
             jsonTreasure = readJSON(R.raw.treasures);
             return getDungeonView();
         }
 
+        @Override
         protected void onPostExecute(Object result) {
-            RelativeLayout layout = findViewById(R.id.dungeon_layout);
-            layout.removeAllViews();
-            layout.addView((View) result);
-            addButton(layout);
-            addDescription(layout, dungeonView.getRoomDescription(), dungeonView.getTrapDescription());
-            layout.setBackgroundColor(Color.WHITE);
+            if (result != null) {
+                RelativeLayout layout = activity.get().findViewById(R.id.dungeon_layout);
+                layout.removeAllViews();
+                layout.addView((View) result);
+                addButton(layout);
+                addDescription(layout, dungeonView.getRoomDescription(), dungeonView.getTrapDescription());
+                layout.setBackgroundColor(Color.WHITE);
+            }
         }
 
-        private String readJSON(int id) {
+        private static String readJSON(int id) {
+            if (activity.get() == null) {
+                return null;
+            }
             String result;
-            try (InputStream is = getResources().openRawResource(id)) {
+            try (InputStream is = activity.get().getResources().openRawResource(id)) {
                 Scanner scanner = new Scanner(is);
                 StringBuilder sb = new StringBuilder();
                 while (scanner.hasNextLine()) {
@@ -120,11 +160,11 @@ public class DungeonActivity extends AppCompatActivity {
             return result;
         }
 
-        private Boolean setBooleans(String input) {
+        private static Boolean setBooleans(String input) {
             return input != null && !input.isEmpty() && Objects.equals(input.toUpperCase(), "YES");
         }
 
-        private int setDungeonDifficulty(String dd) {
+        private static int setDungeonDifficulty(String dd) {
             if (dd != null && !dd.isEmpty()) {
                 switch (dd) {
                     case "Easy":
@@ -142,7 +182,7 @@ public class DungeonActivity extends AppCompatActivity {
             return 0;
         }
 
-        private int setDungeonSize(String ds) {
+        private static int setDungeonSize(String ds) {
             if (ds != null && !ds.isEmpty()) {
                 switch (ds) {
                     case SMALL:
@@ -158,7 +198,7 @@ public class DungeonActivity extends AppCompatActivity {
             return 15;
         }
 
-        private int setRoomDensity(String rd) {
+        private static int setRoomDensity(String rd) {
             if (rd != null && !rd.isEmpty()) {
                 switch (rd) {
                     case "Low":
@@ -174,7 +214,7 @@ public class DungeonActivity extends AppCompatActivity {
             return 20;
         }
 
-        private int setRoomSize(String rs) {
+        private static int setRoomSize(String rs) {
             if (rs != null && !rs.isEmpty()) {
                 switch (rs) {
                     case SMALL:
@@ -190,7 +230,7 @@ public class DungeonActivity extends AppCompatActivity {
             return 20;
         }
 
-        private int setTraps(String tr) {
+        private static int setTraps(String tr) {
             if (tr != null && !tr.isEmpty()) {
                 switch (tr) {
                     case "None":
@@ -206,7 +246,7 @@ public class DungeonActivity extends AppCompatActivity {
             return 0;
         }
 
-        private double setTreasureValue(String tV) {
+        private static double setTreasureValue(String tV) {
             if (tV != null && !tV.isEmpty()) {
                 switch (tV) {
                     case "Low":
@@ -222,7 +262,7 @@ public class DungeonActivity extends AppCompatActivity {
             return 0;
         }
 
-        private int setItemsRarity(String iR) {
+        private static int setItemsRarity(String iR) {
             if (iR != null && !iR.isEmpty()) {
                 switch (iR) {
                     case "Common":
@@ -242,7 +282,7 @@ public class DungeonActivity extends AppCompatActivity {
             return 0;
         }
 
-        private void setParameters(Bundle extras) {
+        private static void setParameters(Bundle extras) {
             String mt = extras.getString("MONSTER_TYPE");
             dungeonDifficulty = setDungeonDifficulty(extras.getString("DUNGEON_DIFFICULTY"));
             dungeonSize = setDungeonSize(extras.getString("DUNGEON_SIZE"));
@@ -263,8 +303,8 @@ public class DungeonActivity extends AppCompatActivity {
 
     }
 
-    private void generateDungeon(RelativeLayout layout) {
-        if (findViewById(R.id.dungeonMap_view) != null) {
+    private static void generateDungeon(RelativeLayout layout) {
+        if (activity.get().findViewById(R.id.dungeonMap_view) != null) {
             layout.removeAllViews();
             saved = false;
         }
@@ -273,22 +313,22 @@ public class DungeonActivity extends AppCompatActivity {
         addDescription(layout, dungeonView.getRoomDescription(), dungeonView.getTrapDescription());
     }
 
-    private void addButton(RelativeLayout layout) {
-        Button button = new Button(this); //create generate button
+    private static void addButton(RelativeLayout layout) {
+        Button button = new Button(activity.get()); //create generate button
         button.setText(R.string.generate_button_text);
         RelativeLayout.LayoutParams relativeParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         relativeParams.addRule(RelativeLayout.BELOW, R.id.dungeonMap_view);
         button.setLayoutParams(relativeParams);
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                RelativeLayout layout = findViewById(R.id.dungeon_layout);
+                RelativeLayout layout = activity.get().findViewById(R.id.dungeon_layout);
                 generateDungeon(layout);
             }
         });
         button.setId(R.id.dungeon_activity_generate_button);
         buttonStyle(button);
         layout.addView(button);
-        button = new Button(this); // create export button
+        button = new Button(activity.get()); // create export button
         button.setText(R.string.export_button_text);
         button.setId(R.id.dungeon_activity_export_button);
         relativeParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
@@ -304,31 +344,31 @@ public class DungeonActivity extends AppCompatActivity {
     }
 
     @SuppressWarnings("deprecation")
-    private void buttonStyle(Button button) {
+    private static void buttonStyle(Button button) {
         button.setTextColor(Color.WHITE);
         GradientDrawable drawable = new GradientDrawable();
         drawable.setShape(GradientDrawable.RECTANGLE);
         if (Build.VERSION.SDK_INT < 23) {
-            drawable.setColor(getResources().getColor(R.color.primaryAccent));
-            drawable.setStroke(4, getResources().getColor(R.color.primaryDivider));
+            drawable.setColor(activity.get().getResources().getColor(R.color.primaryAccent));
+            drawable.setStroke(4, activity.get().getResources().getColor(R.color.primaryDivider));
         } else {
-            drawable.setColor(getResources().getColor(R.color.primaryAccent, null));
-            drawable.setStroke(4, getResources().getColor(R.color.primaryDivider, null));
+            drawable.setColor(activity.get().getResources().getColor(R.color.primaryAccent, null));
+            drawable.setStroke(4, activity.get().getResources().getColor(R.color.primaryDivider, null));
         }
         button.setBackgroundDrawable(drawable);
     }
 
 
-    private void checkPermission() {
-        if (ContextCompat.checkSelfPermission(this,
+    private static void checkPermission() {
+        if (ContextCompat.checkSelfPermission(activity.get(),
                 Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
             // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+            if (ActivityCompat.shouldShowRequestPermissionRationale(activity.get(),
                     Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                Toast.makeText(DungeonActivity.this, "To save the dungeon, the app needs write permission", Toast.LENGTH_LONG).show();
+                Toast.makeText(activity.get(), "To save the dungeon, the app needs write permission", Toast.LENGTH_LONG).show();
             } else {
-                ActivityCompat.requestPermissions(this,
+                ActivityCompat.requestPermissions(activity.get(),
                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                         REQUEST_WRITE_EXTERNAL_STORAGE);
             }
@@ -347,9 +387,9 @@ public class DungeonActivity extends AppCompatActivity {
         }
     }
 
-    private void export() {
+    private static void export() {
         if (isExternalStorageWritableAndHasSpace()) {
-            Bitmap dungeonBitmap = getBitmapFromView(findViewById(R.id.dungeonMap_view));
+            Bitmap dungeonBitmap = getBitmapFromView(activity.get().findViewById(R.id.dungeonMap_view));
             File directory = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
                     + "/DungeonMaps/");
             String html = Export.generateHTML(dungeonBitmap, dungeonView.getRoomDescription(), dungeonView.getTrapDescription());
@@ -363,7 +403,7 @@ public class DungeonActivity extends AppCompatActivity {
         }
     }
 
-    private String getFilename(File directory) {
+    private static String getFilename(File directory) {
         File[] files = directory.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
@@ -377,7 +417,7 @@ public class DungeonActivity extends AppCompatActivity {
         }
     }
 
-    private Bitmap getBitmapFromView(View view) {
+    private static Bitmap getBitmapFromView(View view) {
         //Define a bitmap with the same size as the view
         Bitmap returnedBitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
         //Bind a canvas to it
@@ -396,13 +436,13 @@ public class DungeonActivity extends AppCompatActivity {
         return returnedBitmap;
     }
 
-    private boolean isExternalStorageWritableAndHasSpace() {
+    private static boolean isExternalStorageWritableAndHasSpace() {
         String state = Environment.getExternalStorageState();
         long space = Environment.getExternalStorageDirectory().getFreeSpace() / 1024 / 1024;
         return Environment.MEDIA_MOUNTED.equals(state) && space > 1;
     }
 
-    private void createFile(File directory, String filename, String html) {
+    private static void createFile(File directory, String filename, String html) {
         File file = new File(directory, filename);
         try (FileOutputStream outputStream = new FileOutputStream(file)) {
             outputStream.write(html.getBytes());
@@ -410,16 +450,19 @@ public class DungeonActivity extends AppCompatActivity {
             Log.e("Exception", "File write failed: " + e.toString());
         }
         if (saved) {
-            Toast.makeText(DungeonActivity.this, "You are already saved this dungeon", Toast.LENGTH_SHORT).show();
+            Toast.makeText(activity.get(), "You are already saved this dungeon", Toast.LENGTH_SHORT).show();
         } else {
-            Toast.makeText(DungeonActivity.this, filename + " saved at: " + directory.getPath(), Toast.LENGTH_LONG).show();
+            Toast.makeText(activity.get(), filename + " saved at: " + directory.getPath(), Toast.LENGTH_LONG).show();
             saved = true;
         }
     }
 
 
-    private DungeonMapView getDungeonView() {
-        Display display = getWindowManager().getDefaultDisplay();
+    private static DungeonMapView getDungeonView() {
+        if (activity.get() == null) {
+            return null;
+        }
+        Display display = activity.get().getWindowManager().getDefaultDisplay();
         Point size = new Point();
         display.getSize(size);
         int area;
@@ -428,7 +471,7 @@ public class DungeonActivity extends AppCompatActivity {
         } else {
             area = size.x;
         }
-        dungeonView = new DungeonMapView(this);
+        dungeonView = new DungeonMapView(activity.get());
         dungeonView.setDungeonHeight(area);
         dungeonView.setDungeonWidth(area);
         dungeonView.setDungeonSize(dungeonSize);
@@ -454,13 +497,13 @@ public class DungeonActivity extends AppCompatActivity {
     }
 
 
-    private void addDescription(RelativeLayout layout, List<RoomDescription> roomDescription, List<TrapDescription> trapDescription) {
+    private static void addDescription(RelativeLayout layout, List<RoomDescription> roomDescription, List<TrapDescription> trapDescription) {
         List<TextView> rooms = new ArrayList<>();
         for (RoomDescription room : roomDescription) { // generate rooms TextViews
-            TextView roomName = new TextView(this);
-            TextView monster = new TextView(this);
-            TextView treasure = new TextView(this);
-            TextView doors = new TextView(this);
+            TextView roomName = new TextView(activity.get());
+            TextView monster = new TextView(activity.get());
+            TextView treasure = new TextView(activity.get());
+            TextView doors = new TextView(activity.get());
             roomName.setText(room.getName());
             roomName.setId(View.generateViewId());
             monster.setText(room.getMonster());
@@ -478,8 +521,8 @@ public class DungeonActivity extends AppCompatActivity {
             rooms.add(treasure);
             rooms.add(doors);
         }
-        addViewToLayout(layout, rooms.get(0), null, true, findViewById(R.id.dungeon_activity_export_button));
-        addViewToLayout(layout, rooms.get(1), findViewById(R.id.dungeon_activity_export_button), false, rooms.get(0));
+        addViewToLayout(layout, rooms.get(0), null, true, activity.get().findViewById(R.id.dungeon_activity_export_button));
+        addViewToLayout(layout, rooms.get(1), activity.get().findViewById(R.id.dungeon_activity_export_button), false, rooms.get(0));
         addViewToLayout(layout, rooms.get(2), rooms.get(1), false, rooms.get(0));
         addViewToLayout(layout, rooms.get(3), rooms.get(2), false, rooms.get(0));
         for (int i = 4; i < rooms.size(); i += 4) { // 4 because the first 4 manually added
@@ -491,8 +534,8 @@ public class DungeonActivity extends AppCompatActivity {
         if (!trapDescription.isEmpty()) {
             List<TextView> trapsD = new ArrayList<>();
             for (TrapDescription trap : trapDescription) { // generate traps TextViews
-                TextView trapName = new TextView(this);
-                TextView trapDes = new TextView(this);
+                TextView trapName = new TextView(activity.get());
+                TextView trapDes = new TextView(activity.get());
                 trapName.setText(trap.getName());
                 trapName.setId(View.generateViewId());
                 trapDes.setText(trap.getDescription());
@@ -513,15 +556,15 @@ public class DungeonActivity extends AppCompatActivity {
     }
 
     @SuppressWarnings("deprecation")
-    private void setTextStyle(TextView textView) {
+    private static void setTextStyle(TextView textView) {
         if (Build.VERSION.SDK_INT < 23) {
-            textView.setTextColor(getResources().getColor(R.color.primaryText));
+            textView.setTextColor(activity.get().getResources().getColor(R.color.primaryText));
         } else {
-            textView.setTextColor(getResources().getColor(R.color.primaryText, null));
+            textView.setTextColor(activity.get().getResources().getColor(R.color.primaryText, null));
         }
     }
 
-    private void addViewToLayout(RelativeLayout relativeLayout, View view, View parent, boolean root, View end) {
+    private static void addViewToLayout(RelativeLayout relativeLayout, View view, View parent, boolean root, View end) {
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         if (root) {
             params.addRule(RelativeLayout.BELOW, end.getId());
