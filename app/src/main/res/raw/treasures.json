@@ -6,7 +6,6 @@
     "magical": false,
     "types": [
       "humanoid",
-      "undead",
       "dragon",
       "elemental",
       "fey",

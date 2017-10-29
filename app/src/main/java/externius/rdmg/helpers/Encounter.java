@@ -125,7 +125,7 @@ final class Encounter {
         int monster = 0;
         double allXP;
         double count;
-        do {
+        while (monster < monsterCount) {
             int currentMonster = Utils.getRandomInt(0, filteredMonsters.size()); // get random monster
             int monsterXP = challengeRatingXP[challengeRating.indexOf(filteredMonsters.get(currentMonster).getChallengeRating())]; //get monster xp
             for (int i = multipliers.length - 1; i > -1; i--) {
@@ -139,7 +139,6 @@ final class Encounter {
             }
             monster++;
         }
-        while (monster < monsterCount);
         return "Monster: None";
     }
 
