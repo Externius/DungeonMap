@@ -44,7 +44,7 @@ public class DungeonTest {
 
     @Test
     public void testWithOutTraps() {
-        onView(withId(R.id.generate_button)).perform(scrollTo());
+        onView(withId(R.id.load_button)).perform(scrollTo());
         onView(withId(R.id.traps)).perform(click());
         onData(anything()).atPosition(0).perform(click());
         onView(withId(R.id.generate_button)).perform(scrollTo(), click());
@@ -54,7 +54,7 @@ public class DungeonTest {
 
     @Test
     public void testWithoutDeadEnds() {
-        onView(withId(R.id.generate_button)).perform(scrollTo());
+        onView(withId(R.id.load_button)).perform(scrollTo());
         onView(withId(R.id.dead_end)).perform(click());
         onData(anything()).atPosition(1).perform(click());
         onView(withId(R.id.generate_button)).perform(scrollTo(), click());

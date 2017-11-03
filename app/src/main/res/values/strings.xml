@@ -2,10 +2,18 @@
     <string name="app_name">Dungeon Map Generator</string>
     <string name="generate_button_text">Generate Dungeon</string>
     <string name="export_button_text">Export HTML</string>
+    <string name="save_button_text">Save Dungeon</string>
+    <string name="load_button_text">Load Dungeon</string>
+    <string name="cancel_button_text">Cancel</string>
     <string name="title_activity_about">About This Generator</string>
     <string name="about">About</string>
-    <string name="about_content">Have an entire dungeon up your sleeve! Add parameters, generate with one click!\n \n
-        You can find the source code at github: \n https://github.com/externius/DungeonMap\n \n
+    <string name="delete_all_button_text">Delete all</string>
+    <string name="delete_confirmation_text">Are you sure?</string>
+    <string name="delete_confirmation_single_text">Do you want to delete this dungeon?</string>
+    <string name="all_deleted">All saved dungeons deleted</string>
+    <string name="selected_deleted">Dungeon deleted</string>
+    <string name="about_content">Have an entire dungeon up your sleeve! Add parameters, generate with one click!\n\n
+        You can find the source code at GitHub: \n https://github.com/externius/DungeonMap\n\n
         Please feel free to contact me if you have any recommendation at t.andras@outlook.com. </string>
     <string name="title_activity_settings">Generated Dungeon</string>
     <string name="monster_type">Monster type: </string>

@@ -59,7 +59,19 @@ public class DungeonMapView extends View {
         super(context);
     }
 
-    public void GenerateDungeon() {
+    public void loadDungeon(DungeonTile[][] dungeonTiles, List<RoomDescription> roomDescription, List<TrapDescription> trapDescription, boolean hasCorridor) {
+        this.dungeonTiles = dungeonTiles;
+        this.roomDescription = roomDescription;
+        this.trapDescription = trapDescription;
+        if (hasCorridor) {
+            roomEdge = BitmapFactory.decodeResource(getResources(), R.drawable.marble);
+        } else {
+            roomEdge = BitmapFactory.decodeResource(getResources(), R.drawable.room_edge);
+        }
+        paint.setTextSize(getFontSize(dungeonSize));
+    }
+
+    public void generateDungeon() {
         Utils.setPartySize(partySize);
         Utils.setPartyLevel(partyLevel);
         Utils.setDungeonDifficulty(dungeonDifficulty);
@@ -244,5 +256,9 @@ public class DungeonMapView extends View {
 
     public void setJsonTreasure(String jsonTreasure) {
         this.jsonTreasure = jsonTreasure;
+    }
+
+    public DungeonTile[][] getDungeonTiles() {
+        return dungeonTiles;
     }
 }

@@ -22,6 +22,7 @@ import externius.rdmg.activities.MainActivity;
 
 import static android.support.test.InstrumentationRegistry.getTargetContext;
 import static android.support.test.espresso.Espresso.onView;
+import static android.support.test.espresso.action.ViewActions.scrollTo;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
@@ -122,8 +123,11 @@ public class MainActivityTest {
 
     public static void checkDungeonUI(String className, String name) {
         onView(withId(R.id.dungeonMap_view)).check(matches(isDisplayed()));
+        onView(withId(R.id.dungeon_activity_save_button)).check(matches(isDisplayed()));
         onView(withId(R.id.dungeon_activity_generate_button)).check(matches(isDisplayed()));
+        onView(withId(R.id.dungeon_activity_export_button)).perform(scrollTo());
         onView(withId(R.id.dungeon_activity_export_button)).check(matches(isDisplayed()));
+        onView(withText("#ROOM1#")).perform(scrollTo());
         onView(withText("#ROOM1#")).check(matches(isDisplayed()));
         Description description = Description.createTestDescription(className, name);
         takeScreenshot(description);

@@ -35,7 +35,7 @@ public class DungeonWithoutCorridorsTest {
 
     @Test
     public void testDefault() {
-        onView(withId(R.id.generate_button)).perform(scrollTo());
+        onView(withId(R.id.load_button)).perform(scrollTo());
         onView(withId(R.id.corridors)).perform(click());
         onData(anything()).atPosition(1).perform(click());
         onView(withId(R.id.generate_button)).perform(scrollTo(), click());
@@ -47,7 +47,7 @@ public class DungeonWithoutCorridorsTest {
     public void testMedium() {
         onView(withId(R.id.dungeon_size)).perform(click());
         onData(anything()).atPosition(1).perform(click());
-        onView(withId(R.id.generate_button)).perform(scrollTo());
+        onView(withId(R.id.load_button)).perform(scrollTo());
         onView(withId(R.id.room_size)).perform(click());
         onData(anything()).atPosition(1).perform(click());
         onView(withId(R.id.corridors)).perform(click());
@@ -61,7 +61,7 @@ public class DungeonWithoutCorridorsTest {
     public void testLarge() {
         onView(withId(R.id.dungeon_size)).perform(click());
         onData(anything()).atPosition(2).perform(click());
-        onView(withId(R.id.generate_button)).perform(scrollTo());
+        onView(withId(R.id.load_button)).perform(scrollTo());
         onView(withId(R.id.room_size)).perform(click());
         onData(anything()).atPosition(2).perform(click());
         onView(withId(R.id.corridors)).perform(click());

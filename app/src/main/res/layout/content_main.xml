@@ -9,7 +9,8 @@
     tools:context="externius.rdmg.activities.MainActivity"
     tools:layout_editor_absoluteX="0dp"
     tools:layout_editor_absoluteY="81dp"
-    tools:showIn="@layout/activity_main">
+    tools:showIn="@layout/activity_main"
+    android:id="@+id/main_scrollview">
 
 
     <RelativeLayout
@@ -193,6 +194,15 @@
             android:layout_margin="@dimen/button_margin"
             android:layout_below="@+id/corridors_text"
             android:text="@string/generate_button_text" />
+
+        <Button
+            android:id="@+id/load_button"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/button_margin"
+            android:layout_below="@+id/generate_button"
+            android:text="@string/load_button_text" />
     </RelativeLayout>
 
 </ScrollView>

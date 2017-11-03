@@ -40,6 +40,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="externius.rdmg.activities.MainActivity" />
         </activity>
+        <provider
+            android:authorities="externius.rdmg.dungeonsprovider"
+            android:name=".database.DungeonsProvider"
+            android:exported="false"/>
     </application>
 
 </manifest>
