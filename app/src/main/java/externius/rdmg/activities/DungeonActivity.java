@@ -156,13 +156,13 @@ public class DungeonActivity extends AppCompatActivity {
                 RelativeLayout layout = activity.get().findViewById(R.id.dungeon_layout);
                 layout.removeAllViews();
                 layout.addView((View) result);
-                addButton(layout);
+                addButtons(layout);
                 addDescription(layout, dungeonView.getRoomDescription(), dungeonView.getTrapDescription());
                 layout.setBackgroundColor(Color.WHITE);
             } else if (loadedDungeon != null) { // its a loaded dungeon
                 RelativeLayout layout = activity.get().findViewById(R.id.dungeon_layout);
                 layout.addView(getDungeonView(true));
-                addButton(layout);
+                addButtons(layout);
                 addDescription(layout, loadedRoomDescription, loadedTrapDescription);
             }
         }
@@ -359,7 +359,7 @@ public class DungeonActivity extends AppCompatActivity {
             exported = false;
         }
         layout.addView(getDungeonView(false));
-        addButton(layout);
+        addButtons(layout);
         addDescription(layout, dungeonView.getRoomDescription(), dungeonView.getTrapDescription());
     }
 
@@ -397,26 +397,35 @@ public class DungeonActivity extends AppCompatActivity {
         activity.get().getContentResolver().insert(DungeonsProvider.CONTENT_URI, values);
     }
 
-    private static void addButton(RelativeLayout layout) {
-        Button button = new Button(activity.get()); //create save button
-        button.setText(R.string.save_button_text);
+    private static void addButtons(RelativeLayout layout) {
+        addSaveButton(layout);
+        addGenerateButton(layout);
+        addExportButton(layout);
+    }
+
+    private static void addExportButton(RelativeLayout layout) {
+        Button button = new Button(activity.get());
+        button.setText(R.string.export_button_text);
+        button.setId(R.id.dungeon_activity_export_button);
         RelativeLayout.LayoutParams relativeParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        relativeParams.addRule(RelativeLayout.BELOW, R.id.dungeonMap_view);
+        relativeParams.addRule(RelativeLayout.BELOW, R.id.dungeon_activity_generate_button);
         button.setLayoutParams(relativeParams);
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (checkMassClick()) {
                     return;
                 }
-                saveData();
+                checkPermission();
             }
         });
-        button.setId(R.id.dungeon_activity_save_button);
         buttonStyle(button);
         layout.addView(button);
-        button = new Button(activity.get()); //create generate button
+    }
+
+    private static void addGenerateButton(RelativeLayout layout) {
+        Button button = new Button(activity.get());
         button.setText(R.string.generate_button_text);
-        relativeParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        RelativeLayout.LayoutParams relativeParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         relativeParams.addRule(RelativeLayout.BELOW, R.id.dungeon_activity_save_button);
         button.setLayoutParams(relativeParams);
         button.setOnClickListener(new View.OnClickListener() {
@@ -431,20 +440,23 @@ public class DungeonActivity extends AppCompatActivity {
         button.setId(R.id.dungeon_activity_generate_button);
         buttonStyle(button);
         layout.addView(button);
-        button = new Button(activity.get()); // create export button
-        button.setText(R.string.export_button_text);
-        button.setId(R.id.dungeon_activity_export_button);
-        relativeParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        relativeParams.addRule(RelativeLayout.BELOW, R.id.dungeon_activity_generate_button);
+    }
+
+    private static void addSaveButton(RelativeLayout layout) {
+        Button button = new Button(activity.get());
+        button.setText(R.string.save_button_text);
+        RelativeLayout.LayoutParams relativeParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        relativeParams.addRule(RelativeLayout.BELOW, R.id.dungeonMap_view);
         button.setLayoutParams(relativeParams);
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (checkMassClick()) {
                     return;
                 }
-                checkPermission();
+                saveData();
             }
         });
+        button.setId(R.id.dungeon_activity_save_button);
         buttonStyle(button);
         layout.addView(button);
     }
@@ -615,6 +627,44 @@ public class DungeonActivity extends AppCompatActivity {
 
 
     private static void addDescription(RelativeLayout layout, List<RoomDescription> roomDescription, List<TrapDescription> trapDescription) {
+        List<TextView> rooms = getRoomTextViews(layout, roomDescription);
+        for (int i = 4; i < rooms.size(); i += 4) { // 4 because the first 4 manually added
+            addViewToLayout(layout, rooms.get(i), rooms.get(i - 3), true, rooms.get(i - 1));
+            addViewToLayout(layout, rooms.get(i + 1), rooms.get(i - 1), false, rooms.get(i));
+            addViewToLayout(layout, rooms.get(i + 2), rooms.get(i + 1), false, rooms.get(i));
+            addViewToLayout(layout, rooms.get(i + 3), rooms.get(i + 2), false, rooms.get(i));
+        }
+        if (!trapDescription.isEmpty()) {
+            List<TextView> trapsD = getTrapTextViews(trapDescription);
+            addViewToLayout(layout, trapsD.get(0), null, true, rooms.get(rooms.size() - 1));
+            addViewToLayout(layout, trapsD.get(1), rooms.get(rooms.size() - 1), false, trapsD.get(0));
+            for (int i = 2; i < trapsD.size(); i += 2) { // 2 because the first 2 manually added
+                addViewToLayout(layout, trapsD.get(i), null, true, trapsD.get(i - 1));
+                addViewToLayout(layout, trapsD.get(i + 1), trapsD.get(i - 1), false, trapsD.get(i));
+            }
+        }
+    }
+
+    @NonNull
+    private static List<TextView> getTrapTextViews(List<TrapDescription> trapDescription) {
+        List<TextView> trapsD = new ArrayList<>();
+        for (TrapDescription trap : trapDescription) { // generate traps TextViews
+            TextView trapName = new TextView(activity.get());
+            TextView trapDes = new TextView(activity.get());
+            trapName.setText(trap.getName());
+            trapName.setId(View.generateViewId());
+            trapDes.setText(trap.getDescription());
+            trapDes.setId(View.generateViewId());
+            setTextStyle(trapName);
+            setTextStyle(trapDes);
+            trapsD.add(trapName);
+            trapsD.add(trapDes);
+        }
+        return trapsD;
+    }
+
+    @NonNull
+    private static List<TextView> getRoomTextViews(RelativeLayout layout, List<RoomDescription> roomDescription) {
         List<TextView> rooms = new ArrayList<>();
         for (RoomDescription room : roomDescription) { // generate rooms TextViews
             TextView roomName = new TextView(activity.get());
@@ -642,34 +692,7 @@ public class DungeonActivity extends AppCompatActivity {
         addViewToLayout(layout, rooms.get(1), activity.get().findViewById(R.id.dungeon_activity_export_button), false, rooms.get(0));
         addViewToLayout(layout, rooms.get(2), rooms.get(1), false, rooms.get(0));
         addViewToLayout(layout, rooms.get(3), rooms.get(2), false, rooms.get(0));
-        for (int i = 4; i < rooms.size(); i += 4) { // 4 because the first 4 manually added
-            addViewToLayout(layout, rooms.get(i), rooms.get(i - 3), true, rooms.get(i - 1));
-            addViewToLayout(layout, rooms.get(i + 1), rooms.get(i - 1), false, rooms.get(i));
-            addViewToLayout(layout, rooms.get(i + 2), rooms.get(i + 1), false, rooms.get(i));
-            addViewToLayout(layout, rooms.get(i + 3), rooms.get(i + 2), false, rooms.get(i));
-        }
-        if (!trapDescription.isEmpty()) {
-            List<TextView> trapsD = new ArrayList<>();
-            for (TrapDescription trap : trapDescription) { // generate traps TextViews
-                TextView trapName = new TextView(activity.get());
-                TextView trapDes = new TextView(activity.get());
-                trapName.setText(trap.getName());
-                trapName.setId(View.generateViewId());
-                trapDes.setText(trap.getDescription());
-                trapDes.setId(View.generateViewId());
-                setTextStyle(trapName);
-                setTextStyle(trapDes);
-                trapsD.add(trapName);
-                trapsD.add(trapDes);
-
-            }
-            addViewToLayout(layout, trapsD.get(0), null, true, rooms.get(rooms.size() - 1));
-            addViewToLayout(layout, trapsD.get(1), rooms.get(rooms.size() - 1), false, trapsD.get(0));
-            for (int i = 2; i < trapsD.size(); i += 2) { // 2 because the first 2 manually added
-                addViewToLayout(layout, trapsD.get(i), null, true, trapsD.get(i - 1));
-                addViewToLayout(layout, trapsD.get(i + 1), trapsD.get(i - 1), false, trapsD.get(i));
-            }
-        }
+        return rooms;
     }
 
     private static void setTextStyle(TextView textView) {
