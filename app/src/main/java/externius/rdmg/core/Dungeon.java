@@ -315,7 +315,8 @@ public class Dungeon {
             for (int j = 0; j < right; j++) {
                 dungeonTiles[x + i][y + j].setTexture(Textures.ROOM);
                 rooms.add(dungeonTiles[x + i][y + j]);
-                dungeonTiles[x + i][y + j].setRoomCount(" ");
+                dungeonTiles[x + i][y + j].setDescription(" ");
+                dungeonTiles[x + i][y + j].setIndex(roomDescription.size());
             }
         }
         int currentSize = doors.size();

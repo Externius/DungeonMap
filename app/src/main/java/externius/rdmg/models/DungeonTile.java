@@ -12,7 +12,8 @@ public class DungeonTile {
     private int g;
     private int f;
     private DungeonTile parent;
-    private String roomCount;
+    private String description;
+    private int index;
 
     public DungeonTile(int x, int y) {
         this.x = x;
@@ -96,11 +97,19 @@ public class DungeonTile {
         this.texture = texture;
     }
 
-    public String getRoomCount() {
-        return roomCount;
+    public String getDescription() {
+        return description;
     }
 
-    public void setRoomCount(String roomCount) {
-        this.roomCount = roomCount;
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
     }
 }

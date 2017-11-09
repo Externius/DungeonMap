@@ -81,13 +81,18 @@ public final class Door {
 
     static String getDoorDescription(DungeonTile[][] dungeon, List<DungeonTile> doorList) {
         StringBuilder sb = new StringBuilder();
+        int start;
+        int end;
         wCount = 1;
         sCount = 1;
         eCount = 1;
         nCount = 1;
         for (DungeonTile door : doorList) {
+            start = sb.length();
             RoomPosition.checkRoomPosition(dungeon, door.getI(), door.getJ());
             sb.append(getDoorText(door.getTexture(), getDoorDC()));
+            end = sb.length();
+            dungeon[door.getI()][door.getJ()].setDescription(sb.substring(start, end));
         }
         sb.setLength(sb.length() - 1);
         return sb.toString();
@@ -108,19 +113,19 @@ public final class Door {
             if (checkNCDoor(dungeon, tile.getI(), tile.getJ() - 1)) {
                 sb.append("West Entry #");
                 sb.append(wCount++);
-                sb.append(dungeon[tile.getI()][tile.getJ() - 1].getRoomCount());
+                sb.append(dungeon[tile.getI()][tile.getJ() - 1].getDescription());
             } else if (checkNCDoor(dungeon, tile.getI(), tile.getJ() + 1)) {
                 sb.append("East Entry #");
                 sb.append(eCount++);
-                sb.append(dungeon[tile.getI()][tile.getJ() + 1].getRoomCount());
+                sb.append(dungeon[tile.getI()][tile.getJ() + 1].getDescription());
             } else if (checkNCDoor(dungeon, tile.getI() + 1, tile.getJ())) {
                 sb.append("South Entry #");
                 sb.append(sCount++);
-                sb.append(dungeon[tile.getI() + 1][tile.getJ()].getRoomCount());
+                sb.append(dungeon[tile.getI() + 1][tile.getJ()].getDescription());
             } else if (checkNCDoor(dungeon, tile.getI() - 1, tile.getJ())) {
                 sb.append("North Entry #");
                 sb.append(nCount++);
-                sb.append(dungeon[tile.getI() - 1][tile.getJ()].getRoomCount());
+                sb.append(dungeon[tile.getI() - 1][tile.getJ()].getDescription());
             }
         }
         sb.setLength(sb.length() - 1);

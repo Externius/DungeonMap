@@ -1,6 +1,7 @@
 package externius.rdmg.activities;
 
 import android.Manifest;
+import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -9,6 +10,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Point;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
@@ -20,11 +22,13 @@ import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Display;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -57,6 +61,7 @@ import externius.rdmg.database.DungeonsProvider;
 import externius.rdmg.helpers.Export;
 import externius.rdmg.models.DungeonTile;
 import externius.rdmg.models.RoomDescription;
+import externius.rdmg.models.Textures;
 import externius.rdmg.models.TrapDescription;
 import externius.rdmg.views.DungeonMapView;
 
@@ -89,6 +94,8 @@ public class DungeonActivity extends AppCompatActivity {
     private static Bundle extras = null;
     private static final Gson gson = new Gson();
     private static long mLastClickTime = 0;
+    private static int area;
+    private static Dialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,6 +118,13 @@ public class DungeonActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (dialog != null) {
+            dialog.dismiss();
+        }
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -165,6 +179,7 @@ public class DungeonActivity extends AppCompatActivity {
                 addButtons(layout);
                 addDescription(layout, loadedRoomDescription, loadedTrapDescription);
             }
+            addTouchListener();
         }
 
         private static String readJSON(int id) {
@@ -180,7 +195,7 @@ public class DungeonActivity extends AppCompatActivity {
                 }
                 result = sb.toString();
             } catch (Exception ex) {
-                Log.e("Exception", "Read JSON file failed: " + ex.toString());
+                Log.e("DungeonActivity", "Read JSON file failed: " + ex.toString());
                 return null;
             }
             return result;
@@ -353,7 +368,8 @@ public class DungeonActivity extends AppCompatActivity {
         }
     }
 
-    private static void generateDungeon(RelativeLayout layout) {
+    private static void generateDungeon() {
+        RelativeLayout layout = activity.get().findViewById(R.id.dungeon_layout);
         if (activity.get().findViewById(R.id.dungeonMap_view) != null) {
             layout.removeAllViews();
             exported = false;
@@ -361,6 +377,100 @@ public class DungeonActivity extends AppCompatActivity {
         layout.addView(getDungeonView(false));
         addButtons(layout);
         addDescription(layout, dungeonView.getRoomDescription(), dungeonView.getTrapDescription());
+        addTouchListener();
+    }
+
+    private static void addTouchListener() {
+        loadedTrapDescription = dungeonView.getTrapDescription();
+        loadedRoomDescription = dungeonView.getRoomDescription();
+        loadedDungeon = dungeonView.getDungeonTiles();
+        DungeonMapView view = activity.get().findViewById(R.id.dungeonMap_view);
+        view.setOnTouchListener(getTouch());
+    }
+
+    @NonNull
+    private static View.OnTouchListener getTouch() {
+        return new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                float x = motionEvent.getX();
+                float y = motionEvent.getY();
+                int imgSize = area / dungeonSize;
+                int xIndex = ((int) y / imgSize) + 1;
+                int yIndex = ((int) x / imgSize) + 1;
+                if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+                    Textures texture = loadedDungeon[xIndex][yIndex].getTexture();
+                    switch (texture) {
+                        case ROOM:
+                            showRoomPopUp(loadedDungeon[xIndex][yIndex].getIndex());
+                            break;
+                        case TRAP:
+                            showTrapPopUp(loadedDungeon[xIndex][yIndex].getIndex());
+                            break;
+                        case DOOR:
+                        case DOOR_LOCKED:
+                        case DOOR_TRAPPED:
+                        case NO_CORRIDOR_DOOR:
+                        case NO_CORRIDOR_DOOR_LOCKED:
+                        case NO_CORRIDOR_DOOR_TRAPPED:
+                            showDoorPopUp(loadedDungeon[xIndex][yIndex].getDescription());
+                            break;
+                        case ENTRY:
+                            showEntryPopUp();
+                            break;
+                        default:
+                            break;
+                    }
+                    view.performClick();
+                    return true;
+                }
+                return false;
+            }
+        };
+    }
+
+    private static void showEntryPopUp() {
+        createDialog("Dungeon Entry", null);
+    }
+
+    private static void showDoorPopUp(String description) {
+        int start = description.indexOf(':');
+        int end = description.indexOf('(');
+        TextView details = new TextView(activity.get());
+        details.setText(description.substring(end));
+        setTextStyle(details);
+        createDialog(description.substring(start + 1, end), details);
+    }
+
+    private static void showTrapPopUp(int index) {
+        TrapDescription trap = loadedTrapDescription.get(index);
+        TextView details = new TextView(activity.get());
+        details.setText(trap.getDescription());
+        setTextStyle(details);
+        createDialog(trap.getName(), details);
+    }
+
+    private static void showRoomPopUp(int index) {
+        RoomDescription room = loadedRoomDescription.get(index);
+        TextView details = new TextView(activity.get());
+        String text = room.getMonster() + "\n" + room.getTreasure();
+        details.setText(text);
+        setTextStyle(details);
+        createDialog(room.getName(), details);
+    }
+
+    private static void createDialog(String title, View view) {
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        dialog = new Dialog(activity.get(), R.style.Dialog);
+        dialog.setContentView(R.layout.room_details_popup);
+        dialog.setTitle(title);
+        if (view != null){
+            dialog.addContentView(view, params);
+        }
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(ResourcesCompat.getColor(activity.get().getResources(), R.color.transparentWhite, null)));
+        }
+        dialog.show();
     }
 
     private static void saveData() {
@@ -433,8 +543,7 @@ public class DungeonActivity extends AppCompatActivity {
                 if (checkMassClick()) {
                     return;
                 }
-                RelativeLayout layout = activity.get().findViewById(R.id.dungeon_layout);
-                generateDungeon(layout);
+                generateDungeon();
             }
         });
         button.setId(R.id.dungeon_activity_generate_button);
@@ -572,7 +681,7 @@ public class DungeonActivity extends AppCompatActivity {
         try (FileOutputStream outputStream = new FileOutputStream(file)) {
             outputStream.write(html.getBytes());
         } catch (IOException e) {
-            Log.e("Exception", "File write failed: " + e.toString());
+            Log.e("DungeonActivity", "File write failed: " + e.toString());
         }
         if (exported) {
             Toast.makeText(activity.get(), "You are already exported this dungeon", Toast.LENGTH_SHORT).show();
@@ -590,7 +699,6 @@ public class DungeonActivity extends AppCompatActivity {
         Display display = activity.get().getWindowManager().getDefaultDisplay();
         Point size = new Point();
         display.getSize(size);
-        int area;
         if (size.x > size.y) {
             area = size.y;
         } else {

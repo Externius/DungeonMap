@@ -132,14 +132,14 @@ public class DungeonMapView extends View {
                         break;
                     case ROOM:
                         canvas.drawBitmap(scaleBitmap(room, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                        canvas.drawText(dungeonTiles[i][j].getRoomCount(), Math.round(dungeonTiles[i][j].getX() + dungeonTiles[i][j].getWidth() * 0.1), Math.round(dungeonTiles[i][j].getY() + dungeonTiles[i][j].getHeight() * 0.65), paint);
+                        canvas.drawText(dungeonTiles[i][j].getDescription(), Math.round(dungeonTiles[i][j].getX() + dungeonTiles[i][j].getWidth() * 0.1), Math.round(dungeonTiles[i][j].getY() + dungeonTiles[i][j].getHeight() * 0.65), paint);
                         break;
                     case ENTRY:
                         canvas.drawBitmap(scaleBitmap(entry, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
                         break;
                     case TRAP:
                         canvas.drawBitmap(scaleBitmap(trap, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                        canvas.drawText(dungeonTiles[i][j].getRoomCount(), Math.round(dungeonTiles[i][j].getX() + dungeonTiles[i][j].getWidth() * 0.1), Math.round(dungeonTiles[i][j].getY() + dungeonTiles[i][j].getHeight() * 0.50), paint);
+                        canvas.drawText(dungeonTiles[i][j].getDescription(), Math.round(dungeonTiles[i][j].getX() + dungeonTiles[i][j].getWidth() * 0.1), Math.round(dungeonTiles[i][j].getY() + dungeonTiles[i][j].getHeight() * 0.50), paint);
                         break;
                     case NO_CORRIDOR_DOOR:
                         canvas.drawBitmap(scaleBitmap(rotateBitmap(ncDoor, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
@@ -184,6 +184,12 @@ public class DungeonMapView extends View {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int w = MeasureSpec.getSize(widthMeasureSpec);
         setMeasuredDimension(w, w); // because its always in portrait mode
+    }
+
+    @Override
+    public boolean performClick() {
+         super.performClick();
+         return true;
     }
 
     public List<RoomDescription> getRoomDescription() {

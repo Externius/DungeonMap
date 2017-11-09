@@ -61,6 +61,12 @@ public class DungeonNoCorridor extends Dungeon {
         roomStart.add(dungeonTiles[x][y]);
     }
 
+    private void setRoomTiles(int x, int y) {
+        dungeonTiles[x][y].setTexture(Textures.ROOM);
+        dungeonTiles[x][y].setDescription(" ");
+        dungeonTiles[x][y].setIndex(roomStart.size());
+    }
+
     @Override
     void fillRoom(int x, int y, int right, int down) {
         int doorCount = getDoorCount(down, right);
@@ -71,9 +77,8 @@ public class DungeonNoCorridor extends Dungeon {
         }
         for (int i = 0; i < down; i++) { // fill room texture
             for (int j = 0; j < right; j++) {
-                dungeonTiles[x + i][y + j].setTexture(Textures.ROOM);
+                setRoomTiles(x + i, y + j);
                 rooms.add(dungeonTiles[x + i][y + j]);
-                dungeonTiles[x + i][y + j].setRoomCount(" ");
             }
         }
         for (int d = 0; d < doorCount; d++) {
@@ -164,7 +169,7 @@ public class DungeonNoCorridor extends Dungeon {
 
     private void setDoorsDescriptions() {
         for (DungeonTile door : doors) {
-            door.setRoomCount(Door.getNCDoor(door));
+            door.setDescription(Door.getNCDoor(door));
         }
     }
 
@@ -213,23 +218,19 @@ public class DungeonNoCorridor extends Dungeon {
     private void fillVertical(int x, int y, int down) {
         if (down < 0) { // up
             for (int i = down + 1; i < 1; i++) { // set room
-                dungeonTiles[x + i][y].setTexture(Textures.ROOM);
-                dungeonTiles[x + i][y].setRoomCount(" ");
+                setRoomTiles(x + i, y);
             }
-            dungeonTiles[x + 1][y].setTexture(Textures.ROOM_EDGE); // bottom edge
-            dungeonTiles[x + down][y].setTexture(Textures.ROOM_EDGE); // top edge
-            edgeTileList.add(dungeonTiles[x + 1][y]);
-            edgeTileList.add(dungeonTiles[x + down][y]);
+            setTextureToRoomEdge(x + 1, y); // bottom edge
+            addEdgeTileList(x + 1, y);
         } else { // down
             for (int i = 0; i < down; i++) { // set room
-                dungeonTiles[x + i][y].setTexture(Textures.ROOM);
-                dungeonTiles[x + i][y].setRoomCount(" ");
+                setRoomTiles(x + i, y);
             }
-            dungeonTiles[x - 1][y].setTexture(Textures.ROOM_EDGE); // top edge
-            dungeonTiles[x + down][y].setTexture(Textures.ROOM_EDGE);// bottom edge
-            edgeTileList.add(dungeonTiles[x - 1][y]);
-            edgeTileList.add(dungeonTiles[x + down][y]);
+            setTextureToRoomEdge(x - 1, y); // top edge
+            addEdgeTileList(x - 1, y);
         }
+        setTextureToRoomEdge(x + down, y);
+        addEdgeTileList(x + down, y);
     }
 
 
@@ -346,33 +347,37 @@ public class DungeonNoCorridor extends Dungeon {
 
     private void setRoomEdge(int x, int y, boolean addToEdgeList) {
         if (!Door.checkNCDoor(dungeonTiles, x, y) && addToEdgeList) { // if its not a corridor_door
-            dungeonTiles[x][y].setTexture(Textures.ROOM_EDGE);
-            edgeTileList.add(dungeonTiles[x][y]);
+            setTextureToRoomEdge(x, y);
+            addEdgeTileList(x, y);
         } else if (!Door.checkNCDoor(dungeonTiles, x, y)) {
-            dungeonTiles[x][y].setTexture(Textures.ROOM_EDGE);
+            setTextureToRoomEdge(x, y);
         }
+    }
+
+    private void setTextureToRoomEdge(int x, int y) {
+        dungeonTiles[x][y].setTexture(Textures.ROOM_EDGE);
+    }
+
+    private void addEdgeTileList(int x, int y) {
+        edgeTileList.add(dungeonTiles[x][y]);
     }
 
     private void fillHorizontal(int x, int y, int right) {
         if (right < 0) { // left
             for (int i = right + 1; i < 1; i++) { // set room
-                dungeonTiles[x][y + i].setTexture(Textures.ROOM);
-                dungeonTiles[x][y + i].setRoomCount(" ");
+                setRoomTiles(x, y + i);
             }
-            dungeonTiles[x][y + 1].setTexture(Textures.ROOM_EDGE); // right edge
-            dungeonTiles[x][y + right].setTexture(Textures.ROOM_EDGE); // left edge
-            edgeTileList.add(dungeonTiles[x][y + 1]);
-            edgeTileList.add(dungeonTiles[x][y + right]);
+            setTextureToRoomEdge(x, y + 1); // right edge
+            addEdgeTileList(x, y + 1);
         } else { // right
             for (int i = 0; i < right; i++) { // set room
-                dungeonTiles[x][y + i].setTexture(Textures.ROOM);
-                dungeonTiles[x][y + i].setRoomCount(" ");
+                setRoomTiles(x, y + i);
             }
-            dungeonTiles[x][y - 1].setTexture(Textures.ROOM_EDGE);// left edge
-            dungeonTiles[x][y + right].setTexture(Textures.ROOM_EDGE); // right edge
-            edgeTileList.add(dungeonTiles[x][y - 1]);
-            edgeTileList.add(dungeonTiles[x][y + right]);
+            setTextureToRoomEdge(x, y - 1); // left edge
+            addEdgeTileList(x, y - 1);
         }
+        setTextureToRoomEdge(x, y + right);
+        addEdgeTileList(x, y + right);
     }
 
     private int[] getDownRight(int vertical, int horizontal) {

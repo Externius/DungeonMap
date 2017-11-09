@@ -51,18 +51,21 @@ public final class Utils {
     }
 
     public static void addTrapDescription(DungeonTile[][] dungeon, int x, int y, List<TrapDescription> trapDescription) {
+        dungeon[x][y].setIndex(trapDescription.size());
         trapDescription.add(new TrapDescription(Trap.getTrapName(trapDescription.size() + 1), Trap.getCurrentTrap(false)));
-        dungeon[x][y].setRoomCount(String.valueOf(trapDescription.size()));
+        dungeon[x][y].setDescription(String.valueOf(trapDescription.size()));
     }
 
     public static void addRoomDescription(DungeonTile[][] dungeon, int x, int y, List<RoomDescription> roomDescription, List<DungeonTile> doorList) {
+        dungeon[x][y].setIndex(roomDescription.size());
         roomDescription.add(new RoomDescription(getRoomName(roomDescription.size() + 1), Treasure.getTreasure(), Encounter.getMonster(), Door.getDoorDescription(dungeon, doorList)));
-        dungeon[x][y].setRoomCount(String.valueOf(roomDescription.size()));
+        dungeon[x][y].setDescription(String.valueOf(roomDescription.size()));
     }
 
     public static void addNCRoomDescription(DungeonTile[][] dungeon, int x, int y, List<RoomDescription> roomDescription, String doors) {
+        dungeon[x][y].setIndex(roomDescription.size());
         roomDescription.add(new RoomDescription(getRoomName(roomDescription.size() + 1), Treasure.getTreasure(), Encounter.getMonster(), doors));
-        dungeon[x][y].setRoomCount(String.valueOf(roomDescription.size()));
+        dungeon[x][y].setDescription(String.valueOf(roomDescription.size()));
     }
 
     public static int manhattan(int dx, int dy) {

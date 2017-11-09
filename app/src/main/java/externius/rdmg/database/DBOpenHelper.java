@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DBOpenHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "dungeons.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     static final String TABLE_DUNGEONS = "dungeons";
     public static final String DUNGEON_ID = "_id";
