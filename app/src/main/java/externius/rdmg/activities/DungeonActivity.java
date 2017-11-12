@@ -103,7 +103,15 @@ public class DungeonActivity extends AppCompatActivity {
         setContentView(R.layout.activity_dungeon);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        addLoadingScreen();
+        createDungeonTask = new CreateDungeon(this);
+        createDungeonTask.execute();
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+    }
 
+    private void addLoadingScreen() {
         RelativeLayout layout = findViewById(R.id.dungeon_layout);
         ImageView imageView = new ImageView(this);
         imageView.setImageResource(R.drawable.generating_screen);
@@ -111,11 +119,6 @@ public class DungeonActivity extends AppCompatActivity {
         imageView.setLayoutParams(relativeParams);
         imageView.setScaleType(ImageView.ScaleType.FIT_XY);
         layout.addView(imageView);
-        createDungeonTask = new CreateDungeon(this);
-        createDungeonTask.execute();
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
     }
 
     @Override
@@ -464,7 +467,7 @@ public class DungeonActivity extends AppCompatActivity {
         dialog = new Dialog(activity.get(), R.style.Dialog);
         dialog.setContentView(R.layout.room_details_popup);
         dialog.setTitle(title);
-        if (view != null){
+        if (view != null) {
             dialog.addContentView(view, params);
         }
         if (dialog.getWindow() != null) {

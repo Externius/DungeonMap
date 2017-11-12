@@ -56,20 +56,15 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        //get spinners
-        spinnerDifficulty = findViewById(R.id.dungeon_difficulty);
-        spinnerPartyLevel = findViewById(R.id.party_level);
-        spinnerPartySize = findViewById(R.id.party_size);
-        spinnerTreasureValue = findViewById(R.id.treasure_value);
-        spinnerItemsRarity = findViewById(R.id.items_rarity);
-        spinnerSize = findViewById(R.id.dungeon_size);
-        spinnerRoomDens = findViewById(R.id.room_density);
-        spinnerRoomSize = findViewById(R.id.room_size);
-        spinnerTraps = findViewById(R.id.traps);
-        spinnerCorridors = findViewById(R.id.corridors);
-        spinnerMonsterType = findViewById(R.id.monster_type);
-        spinnerDeadEnds = findViewById(R.id.dead_end);
-        spinnerCorridors.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        getSpinners();
+        setDefaultValues();
+        addListeners();
+        initDB();
+    }
+
+    @NonNull
+    private AdapterView.OnItemSelectedListener getCorridorItemSelectedListener() {
+        return new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 if (Objects.equals(spinnerCorridors.getSelectedItem().toString(), "No")) {
@@ -87,13 +82,18 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             public void onNothingSelected(AdapterView<?> adapterView) {
 
             }
-        });
-        //set some default value
-        spinnerDifficulty.setSelection(1);
-        spinnerPartySize.setSelection(3);
-        spinnerTraps.setSelection(1);
-        spinnerTreasureValue.setSelection(1);
-        spinnerItemsRarity.setSelection(1);
+        };
+    }
+
+    private void initDB() {
+        String[] from = {DBOpenHelper.DUNGEON_NAME};
+        int[] to = {android.R.id.text1};
+        cursorAdapter = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_1, null, from, to, 0);
+        getLoaderManager().initLoader(0, null, this);
+    }
+
+    private void addListeners() {
+        spinnerCorridors.setOnItemSelectedListener(getCorridorItemSelectedListener());
         final Button generateButton = findViewById(R.id.generate_button);
         generateButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -102,10 +102,29 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         });
         final Button loadButton = findViewById(R.id.load_button);
         loadButton.setOnClickListener(loadListener());
-        String[] from = {DBOpenHelper.DUNGEON_NAME};
-        int[] to = {android.R.id.text1};
-        cursorAdapter = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_1, null, from, to, 0);
-        getLoaderManager().initLoader(0, null, this);
+    }
+
+    private void setDefaultValues() {
+        spinnerDifficulty.setSelection(1);
+        spinnerPartySize.setSelection(3);
+        spinnerTraps.setSelection(1);
+        spinnerTreasureValue.setSelection(1);
+        spinnerItemsRarity.setSelection(1);
+    }
+
+    private void getSpinners() {
+        spinnerDifficulty = findViewById(R.id.dungeon_difficulty);
+        spinnerPartyLevel = findViewById(R.id.party_level);
+        spinnerPartySize = findViewById(R.id.party_size);
+        spinnerTreasureValue = findViewById(R.id.treasure_value);
+        spinnerItemsRarity = findViewById(R.id.items_rarity);
+        spinnerSize = findViewById(R.id.dungeon_size);
+        spinnerRoomDens = findViewById(R.id.room_density);
+        spinnerRoomSize = findViewById(R.id.room_size);
+        spinnerTraps = findViewById(R.id.traps);
+        spinnerCorridors = findViewById(R.id.corridors);
+        spinnerMonsterType = findViewById(R.id.monster_type);
+        spinnerDeadEnds = findViewById(R.id.dead_end);
     }
 
     @Override

@@ -20,10 +20,14 @@ public final class Treasure {
             7500, 9800, 13000, 17000, 22000, 28000, 36000, 47000, 61000, 80000
     };
 
+    private static final int[] itemCount = {
+            0, 4, 4, 5, 5, 7, 7, 8, 8, 8, 9,
+            9, 9, 9, 9, 12, 12, 12, 15, 15, 15
+    };
+
     private Treasure() {
 
     }
-
 
     private static List<Treasures> getFiltered(List<Treasures> treasures) {
         List<Treasures> result = new ArrayList<>();
@@ -57,14 +61,18 @@ public final class Treasure {
         StringBuilder sb = new StringBuilder();
         int currentValue = 0;
         int itemCount = getItemsCount();
+        int currentCount = 0;
+        int maxAttempt = filteredTreasures.size() * 2;
         Treasures currentTreasure;
         List<Treasures> finalList = new ArrayList<>();
-        for (int i = 0; i < itemCount; i++) {
+        while (currentCount < itemCount && maxAttempt > 0) {
             currentTreasure = filteredTreasures.get(Utils.getRandomInt(0, filteredTreasures.size())); // get random treasure
             if (currentValue + currentTreasure.getCost() < sumValue) { // if it's still affordable add to list
                 currentValue += currentTreasure.getCost();
                 finalList.add(currentTreasure);
+                currentCount++;
             }
+            maxAttempt--;
         }
         Map<Treasures, Integer> map = new HashMap<>();
         for (Treasures temp : finalList) { // get duplicated items count
@@ -79,7 +87,7 @@ public final class Treasure {
             sb.append(entry.getKey().getName());
             sb.append(", ");
         }
-        sb.append(sumValue - currentValue); // get the remaining value
+        sb.append(Utils.getRandomInt(1, sumValue - currentValue)); // get the remaining value randomly
         sb.append(" gp");
         return sb.toString();
     }
@@ -87,13 +95,13 @@ public final class Treasure {
     private static int getItemsCount() {
         switch (Utils.getDungeonDifficulty()) {
             case 0:
-                return Utils.getRandomInt(0, 6);
+                return Utils.getRandomInt(0, itemCount[Utils.getPartyLevel()]);
             case 1:
-                return Utils.getRandomInt(2, 11);
+                return Utils.getRandomInt(2, itemCount[Utils.getPartyLevel()]);
             case 2:
-                return Utils.getRandomInt(4, 16);
+                return Utils.getRandomInt(3, itemCount[Utils.getPartyLevel()]);
             case 3:
-                return Utils.getRandomInt(6, 21);
+                return Utils.getRandomInt(3, itemCount[Utils.getPartyLevel()]);
             default:
                 return 0;
         }
