@@ -101,7 +101,7 @@ public final class Treasure {
             case 2:
                 return Utils.getRandomInt(3, itemCount[Utils.getPartyLevel()]);
             case 3:
-                return Utils.getRandomInt(3, itemCount[Utils.getPartyLevel()]);
+                return Utils.getRandomInt(4, itemCount[Utils.getPartyLevel()]);
             default:
                 return 0;
         }

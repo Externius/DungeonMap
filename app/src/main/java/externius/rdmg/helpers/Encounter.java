@@ -119,39 +119,59 @@ final class Encounter {
         }
     }
 
-    private static String calcEncounter() {
-        List<Monster> filteredMonsters = getMonsters(Utils.getMonsterList()); //get monsters for party level
+    private static String addMonster(List<Monster> filteredMonsters, int currentXP) {
         int monsterCount = filteredMonsters.size();
         int monster = 0;
         double allXP;
         double count;
         while (monster < monsterCount) {
-            int currentMonster = Utils.getRandomInt(0, filteredMonsters.size()); // get random monster
-            int monsterXP = challengeRatingXP[challengeRating.indexOf(filteredMonsters.get(currentMonster).getChallengeRating())]; //get monster xp
+            Monster currentMonster = filteredMonsters.get(Utils.getRandomInt(0, filteredMonsters.size())); // get random monster
+            filteredMonsters.remove(currentMonster);
+            int monsterXP = challengeRatingXP[challengeRating.indexOf(currentMonster.getChallengeRating())]; // get monster xp
             for (int i = multipliers.length - 1; i > -1; i--) {
                 count = multipliers[i][0];
                 allXP = monsterXP * count * multipliers[i][1];
-                if (allXP <= difficulty[Utils.getDungeonDifficulty()] && count > 1) {
-                    return "Monster: " + (int) count + "x " + filteredMonsters.get(currentMonster).getName() + " (CR: " + filteredMonsters.get(currentMonster).getChallengeRating() + ") " + (int) allXP + " XP";
-                } else if (allXP <= difficulty[Utils.getDungeonDifficulty()]) {
-                    return "Monster: " + filteredMonsters.get(currentMonster).getName() + " (CR: " + filteredMonsters.get(currentMonster).getChallengeRating() + ") " + (int) allXP + " XP";
+                if (allXP <= currentXP && count > 1) {
+                    return (int) count + "x " + currentMonster.getName() + " (CR: " + currentMonster.getChallengeRating() + ") " + (int) allXP + " XP";
+                } else if (allXP <= currentXP) {
+                    return currentMonster.getName() + " (CR: " + currentMonster.getChallengeRating() + ") " + (int) allXP + " XP";
                 }
             }
             monster++;
         }
-        return "Monster: None";
+        return "None";
+    }
+
+    private static String calcEncounter() {
+        List<Monster> filteredMonsters = getMonsters(Utils.getMonsterList()); //get monsters for party level
+        int sumXP = difficulty[Utils.getDungeonDifficulty()];
+        StringBuilder result = new StringBuilder();
+        result.append("Monster: ");
+        if (Math.floor(Math.random() * 100) > 50) {
+            result.append(addMonster(filteredMonsters, sumXP));
+        } else {
+            int x = Utils.getRandomInt(2, Utils.getDungeonDifficulty() + 3);
+            for (int i = 0; i < x; i++) {
+                result.append(addMonster(filteredMonsters, sumXP / x));
+                result.append(", ");
+            }
+            result.setLength(result.length() - 2);
+        }
+        return result.toString().replaceAll(", None", "");
+    }
+
+    private static void setDifficulty() {
+        difficulty[0] = thresholds[Utils.getPartyLevel()][0] * Utils.getPartySize();
+        difficulty[1] = thresholds[Utils.getPartyLevel()][1] * Utils.getPartySize();
+        difficulty[2] = thresholds[Utils.getPartyLevel()][2] * Utils.getPartySize();
+        difficulty[3] = thresholds[Utils.getPartyLevel()][3] * Utils.getPartySize();
     }
 
     static String getMonster() {
         if (Math.floor(Math.random() * 100) > Utils.getPercentage()) {
             return "Monster: None";
         }
-        //set difficulty
-        difficulty[0] = thresholds[Utils.getPartyLevel()][0] * Utils.getPartySize();
-        difficulty[1] = thresholds[Utils.getPartyLevel()][1] * Utils.getPartySize();
-        difficulty[2] = thresholds[Utils.getPartyLevel()][2] * Utils.getPartySize();
-        difficulty[3] = thresholds[Utils.getPartyLevel()][3] * Utils.getPartySize();
+        setDifficulty();
         return calcEncounter();
     }
-
 }
