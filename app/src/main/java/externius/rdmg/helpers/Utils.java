@@ -21,6 +21,7 @@ public final class Utils {
     private static List<Monster> monsterList;
     private static List<Treasures> treasureList;
     private static final Gson gson = new Gson();
+    private static final Random random = new Random();
 
     private Utils() {
 
@@ -74,8 +75,7 @@ public final class Utils {
 
     public static int getRandomInt(int min, int max) {
         if (max != min) {
-            Random r = new Random();
-            return r.nextInt(max - min) + min;
+            return random.nextInt(max - min) + min;
         }
         return max;
     }

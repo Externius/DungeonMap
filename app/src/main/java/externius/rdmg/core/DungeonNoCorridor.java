@@ -178,7 +178,6 @@ public class DungeonNoCorridor extends Dungeon {
         return dungeonTiles[x][y].getTexture() == Textures.ROOM;
     }
 
-
     private void addToOpenList(int x, int y, List<DungeonTile> openList, List<DungeonTile> closedList) {
         if (checkTileForOpenList(x, y) && !closedList.contains(dungeonTiles[x][y]) && !openList.contains(dungeonTiles[x][y])) { // not in openlist/closedlist
             openList.add(dungeonTiles[x][y]);
@@ -233,7 +232,6 @@ public class DungeonNoCorridor extends Dungeon {
         addEdgeTileList(x + down, y);
     }
 
-
     private int[] checkArea(int x, int y, DungeonTile door) {
         int vertical = checkVertical(x, y);
         int horizontal = checkHorizontal(x, y);
@@ -281,7 +279,6 @@ public class DungeonNoCorridor extends Dungeon {
         fillDoor(down, right);
         roomStart.add(dungeonTiles[x][y]);
     }
-
 
     @Override
     int getDoorCount(int down, int right) {
@@ -399,7 +396,6 @@ public class DungeonNoCorridor extends Dungeon {
         }
         return true;
     }
-
 
     private int checkUp(int x, int y) {
         boolean tile;

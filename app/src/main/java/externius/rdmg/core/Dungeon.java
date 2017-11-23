@@ -251,7 +251,6 @@ public class Dungeon {
         return dungeonTiles[x][y].getH() != 0 && dungeonTiles[x][y].getTexture() != Textures.ROOM && dungeonTiles[x][y].getTexture() != Textures.ROOM_EDGE; // check its not edge/room/room_edge
     }
 
-
     private void setParent(DungeonTile node, int x, int y) {
         dungeonTiles[x][y].setParent(node);
     }
@@ -403,7 +402,6 @@ public class Dungeon {
         }
     }
 
-
     private boolean checkTileGoodForRoom(int x, int y, int right, int down) {
         int maxX = x + down + 2; // +2 because of edges
         int maxY = y + right + 2;
@@ -420,7 +418,6 @@ public class Dungeon {
     private boolean checkIsRoom(int x, int y) {
         return dungeonTiles[x][y].getTexture() == Textures.ROOM || dungeonTiles[x][y].getTexture() == Textures.ROOM_EDGE;
     }
-
 
     public List<RoomDescription> getRoomDescription() {
         return roomDescription;
