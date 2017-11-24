@@ -12,6 +12,13 @@
     <string name="delete_confirmation_single_text">Do you want to delete this dungeon?</string>
     <string name="all_deleted">All saved dungeons deleted</string>
     <string name="selected_deleted">Dungeon deleted</string>
+    <string name="loading_text">Loading…</string>
+    <string-array name="loading_screen_gen_array">
+        <item>Generating…</item>
+        <item>Work, work, work…</item>
+        <item>During the construction of your dungeon 3 dwarfs lost their job on account of automation…</item>
+        <item>No goblins were harmed during the making of this dungeon…</item>
+    </string-array>
     <string name="about_content">Have an entire dungeon up your sleeve! Add parameters, generate with one click!\n\n
         You can find the source code at GitHub: \n https://github.com/externius/DungeonMap\n\n
         Please feel free to contact me if you have any recommendation at t.andras@outlook.com. </string>

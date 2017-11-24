@@ -53,6 +53,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Random;
 import java.util.Scanner;
 
 import externius.rdmg.R;
@@ -96,6 +97,7 @@ public class DungeonActivity extends AppCompatActivity {
     private static long mLastClickTime = 0;
     private static int area;
     private static Dialog dialog;
+    private RelativeLayout layout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,6 +106,7 @@ public class DungeonActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         addLoadingScreen();
+        addScreenText();
         createDungeonTask = new CreateDungeon(this);
         createDungeonTask.execute();
         if (getSupportActionBar() != null) {
@@ -111,8 +114,55 @@ public class DungeonActivity extends AppCompatActivity {
         }
     }
 
+    private void addScreenText() {
+        layout = findViewById(R.id.dungeon_layout);
+        TextView screenText = new TextView(this);
+        setScreenText(screenText);
+        RelativeLayout.LayoutParams params = getScreenTextLayoutParams();
+        screenText.setLayoutParams(params);
+        layout.addView(screenText);
+    }
+
+    @NonNull
+    private RelativeLayout.LayoutParams getScreenTextLayoutParams() {
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        params.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        Point size = getScreenSize();
+        setArea(size);
+        params.setMargins(10, 10, 10, size.y / 12);
+        return params;
+    }
+
+    @NonNull
+    private Point getScreenSize() {
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        return size;
+    }
+
+    private void setArea(Point size) {
+        if (size.x > size.y) {
+            area = size.y;
+        } else {
+            area = size.x;
+        }
+    }
+
+    private void setScreenText(TextView screenText) {
+        String[] text = getResources().getStringArray(R.array.loading_screen_gen_array);
+        Random random = new Random();
+        if (getIntent().getExtras() != null && getIntent().getExtras().getString("URI") != null) {
+            screenText.setText(R.string.loading_text);
+        } else {
+            screenText.setText(text[random.nextInt(text.length)]);
+        }
+        screenText.setTextColor(Color.WHITE);
+    }
+
     private void addLoadingScreen() {
-        RelativeLayout layout = findViewById(R.id.dungeon_layout);
+        layout = findViewById(R.id.dungeon_layout);
         ImageView imageView = new ImageView(this);
         imageView.setImageResource(R.drawable.generating_screen);
         RelativeLayout.LayoutParams relativeParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
@@ -169,15 +219,14 @@ public class DungeonActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Object result) {
+            RelativeLayout layout = activity.get().findViewById(R.id.dungeon_layout);
+            layout.removeAllViews(); // remove the loading screen + text view
+            layout.setBackgroundColor(Color.WHITE);
             if (result != null) { // not a loaded dungeon
-                RelativeLayout layout = activity.get().findViewById(R.id.dungeon_layout);
-                layout.removeAllViews();
                 layout.addView((View) result);
                 addButtons(layout);
                 addDescription(layout, dungeonView.getRoomDescription(), dungeonView.getTrapDescription());
-                layout.setBackgroundColor(Color.WHITE);
             } else if (loadedDungeon != null) { // its a loaded dungeon
-                RelativeLayout layout = activity.get().findViewById(R.id.dungeon_layout);
                 layout.addView(getDungeonView(true));
                 addButtons(layout);
                 addDescription(layout, loadedRoomDescription, loadedTrapDescription);
@@ -398,9 +447,9 @@ public class DungeonActivity extends AppCompatActivity {
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 float x = motionEvent.getX();
                 float y = motionEvent.getY();
-                int imgSize = area / dungeonSize;
-                int xIndex = ((int) y / imgSize) + 1;
-                int yIndex = ((int) x / imgSize) + 1;
+                int imgSize = area / dungeonSize; // get the image size on the dungeon tiles
+                int xIndex = ((int) y / imgSize) + 1; // get the dungeonTile 2D array x index
+                int yIndex = ((int) x / imgSize) + 1; // get the dungeonTile 2D array y index
                 if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
                     Textures texture = loadedDungeon[xIndex][yIndex].getTexture();
                     switch (texture) {
@@ -699,14 +748,6 @@ public class DungeonActivity extends AppCompatActivity {
         if (activity.get() == null) {
             return null;
         }
-        Display display = activity.get().getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-        if (size.x > size.y) {
-            area = size.y;
-        } else {
-            area = size.x;
-        }
         dungeonView = new DungeonMapView(activity.get());
         dungeonView.setDungeonHeight(area);
         dungeonView.setDungeonWidth(area);
@@ -735,7 +776,6 @@ public class DungeonActivity extends AppCompatActivity {
         }
         return dungeonView;
     }
-
 
     private static void addDescription(RelativeLayout layout, List<RoomDescription> roomDescription, List<TrapDescription> trapDescription) {
         List<TextView> rooms = getRoomTextViews(layout, roomDescription);
