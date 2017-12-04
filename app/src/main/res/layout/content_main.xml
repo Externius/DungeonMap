@@ -186,13 +186,27 @@
             android:layout_toEndOf="@+id/corridors_text"
             android:entries="@array/corridors_array" />
 
+        <TextView
+            android:id="@+id/theme_text"
+            style="@style/MainContentText"
+            android:layout_below="@+id/corridors_text"
+            android:text="@string/theme_value" />
+
+        <Spinner
+            android:id="@+id/theme"
+            style="@style/MainContentSpinner"
+            android:layout_alignBaseline="@+id/theme_text"
+            android:layout_below="@+id/corridors"
+            android:layout_toEndOf="@+id/theme_text"
+            android:entries="@array/theme_value_array" />
+
         <Button
             android:id="@+id/generate_button"
             style="@style/Widget.AppCompat.Button.Colored"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/button_margin"
-            android:layout_below="@+id/corridors_text"
+            android:layout_below="@+id/theme_text"
             android:text="@string/generate_button_text" />
 
         <Button

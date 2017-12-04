@@ -21,6 +21,7 @@
     </string-array>
     <string name="about_content">Have an entire dungeon up your sleeve! Add parameters, generate with one click!\n\n
         You can find the source code at GitHub: \n https://github.com/externius/DungeonMap\n\n
+        There is a Web version here: \n https://dungeonmap.info/\n\n
         Please feel free to contact me if you have any recommendation at t.andras@outlook.com. </string>
     <string name="title_activity_settings">Generated Dungeon</string>
     <string name="monster_type">Monster type: </string>
@@ -129,5 +130,11 @@
         <item>Low</item>
         <item>Standard</item>
         <item>High</item>
+    </string-array>
+    <string name="theme_value"> Theme: </string>
+    <string-array name="theme_value_array">
+        <item>Dark</item>
+        <item>Light</item>
+        <item>Minimal</item>
     </string-array>
 </resources>

@@ -22,17 +22,17 @@ import externius.rdmg.models.Textures;
 import externius.rdmg.models.TrapDescription;
 
 public class DungeonMapView extends View {
-    private final Bitmap marble = BitmapFactory.decodeResource(getResources(), R.drawable.marble);
-    private final Bitmap corridor = BitmapFactory.decodeResource(getResources(), R.drawable.corridor);
-    private final Bitmap door = BitmapFactory.decodeResource(getResources(), R.drawable.door);
-    private final Bitmap doorLocked = BitmapFactory.decodeResource(getResources(), R.drawable.door_locked);
-    private final Bitmap doorTrapped = BitmapFactory.decodeResource(getResources(), R.drawable.door_trapped);
-    private final Bitmap room = BitmapFactory.decodeResource(getResources(), R.drawable.room);
-    private final Bitmap entry = BitmapFactory.decodeResource(getResources(), R.drawable.entry);
-    private final Bitmap trap = BitmapFactory.decodeResource(getResources(), R.drawable.trap);
-    private final Bitmap ncDoor = BitmapFactory.decodeResource(getResources(), R.drawable.nc_door);
-    private final Bitmap ncDoorLocked = BitmapFactory.decodeResource(getResources(), R.drawable.nc_door_locked);
-    private final Bitmap ncDoorTrapped = BitmapFactory.decodeResource(getResources(), R.drawable.nc_door_trapped);
+    private Bitmap marble;
+    private Bitmap corridor;
+    private Bitmap door;
+    private Bitmap doorLocked;
+    private Bitmap doorTrapped;
+    private Bitmap room;
+    private Bitmap entry;
+    private Bitmap trap;
+    private Bitmap ncDoor;
+    private Bitmap ncDoorLocked;
+    private Bitmap ncDoorTrapped;
     private Bitmap roomEdge;
     private double treasureValue;
     private int itemsRarity;
@@ -54,6 +54,7 @@ public class DungeonMapView extends View {
     private int dungeonDifficulty;
     private int partySize;
     private String monsterType;
+    private String theme;
 
     public DungeonMapView(Context context) {
         super(context);
@@ -63,11 +64,7 @@ public class DungeonMapView extends View {
         this.dungeonTiles = dungeonTiles;
         this.roomDescription = roomDescription;
         this.trapDescription = trapDescription;
-        if (hasCorridor) {
-            roomEdge = BitmapFactory.decodeResource(getResources(), R.drawable.marble);
-        } else {
-            roomEdge = BitmapFactory.decodeResource(getResources(), R.drawable.room_edge);
-        }
+        setBitmaps(hasCorridor);
         paint.setTextSize(getFontSize(dungeonSize));
     }
 
@@ -81,20 +78,54 @@ public class DungeonMapView extends View {
         Treasure.setTreasureValue(treasureValue);
         Treasure.setItemsRarity(itemsRarity);
         paint.setTextSize(getFontSize(dungeonSize));
+        setBitmaps(hasCorridor);
         if (hasCorridor) {
-            roomEdge = BitmapFactory.decodeResource(getResources(), R.drawable.marble);
             Dungeon dungeon = new Dungeon(dungeonWidth, dungeonHeight, dungeonSize, roomDensity, roomSizePercent, trapPercent, hasDeadEnds);
             dungeon.generate();
             roomDescription = dungeon.getRoomDescription();
             trapDescription = dungeon.getTrapDescription();
             dungeonTiles = dungeon.getDungeonTiles();
         } else {
-            roomEdge = BitmapFactory.decodeResource(getResources(), R.drawable.room_edge);
             DungeonNoCorridor dungeonNoCorridor = new DungeonNoCorridor(dungeonWidth, dungeonHeight, dungeonSize, roomSizePercent);
             dungeonNoCorridor.generate();
             roomDescription = dungeonNoCorridor.getRoomDescription();
             dungeonTiles = dungeonNoCorridor.getDungeonTiles();
         }
+    }
+
+    private void setBitmaps(Boolean hasCorridor) {
+        corridor = BitmapFactory.decodeResource(getResources(), R.drawable.corridor_dark);
+        door = BitmapFactory.decodeResource(getResources(), R.drawable.door_dark);
+        doorLocked = BitmapFactory.decodeResource(getResources(), R.drawable.door_locked_dark);
+        doorTrapped = BitmapFactory.decodeResource(getResources(), R.drawable.door_trapped_dark);
+        trap = BitmapFactory.decodeResource(getResources(), R.drawable.trap_dark);
+        entry = BitmapFactory.decodeResource(getResources(), R.drawable.entry_dark);
+        switch (theme) {
+            case "dark":
+                setTheme(hasCorridor, R.drawable.marble_dark, R.drawable.room_edge_dark, R.drawable.room_dark, R.drawable.nc_door_dark, R.drawable.nc_door_locked_dark, R.drawable.nc_door_trapped_dark);
+                break;
+            case "light":
+                setTheme(hasCorridor, R.drawable.marble_light, R.drawable.room_edge_light, R.drawable.room_light, R.drawable.nc_door_light, R.drawable.nc_door_locked_light, R.drawable.nc_door_trapped_light);
+                break;
+            case "minimal":
+                setTheme(hasCorridor, R.drawable.marble_white, R.drawable.marble_white, R.drawable.room_white, R.drawable.nc_door_white, R.drawable.nc_door_locked_white, R.drawable.nc_door_trapped_white);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void setTheme(Boolean hasCorridor, int marbleID, int roomEdgeID, int roomID, int ncDoorID, int ncDoorLockedID, int ncDoorTrappedID) {
+        if (hasCorridor) {
+            roomEdge = BitmapFactory.decodeResource(getResources(), marbleID);
+        } else {
+            roomEdge = BitmapFactory.decodeResource(getResources(), roomEdgeID);
+        }
+        marble = BitmapFactory.decodeResource(getResources(), marbleID);
+        room = BitmapFactory.decodeResource(getResources(), roomID);
+        ncDoor = BitmapFactory.decodeResource(getResources(), ncDoorID);
+        ncDoorLocked = BitmapFactory.decodeResource(getResources(), ncDoorLockedID);
+        ncDoorTrapped = BitmapFactory.decodeResource(getResources(), ncDoorTrappedID);
     }
 
     private int getFontSize(int dungeonSize) {
@@ -188,8 +219,8 @@ public class DungeonMapView extends View {
 
     @Override
     public boolean performClick() {
-         super.performClick();
-         return true;
+        super.performClick();
+        return true;
     }
 
     public List<RoomDescription> getRoomDescription() {
@@ -266,5 +297,9 @@ public class DungeonMapView extends View {
 
     public DungeonTile[][] getDungeonTiles() {
         return dungeonTiles;
+    }
+
+    public void setTheme(String theme) {
+        this.theme = theme;
     }
 }

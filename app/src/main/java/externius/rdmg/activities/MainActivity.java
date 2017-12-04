@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private Spinner spinnerCorridors;
     private Spinner spinnerMonsterType;
     private Spinner spinnerDeadEnds;
+    private Spinner spinnerTheme;
     private Dialog dialog;
     private CursorAdapter cursorAdapter;
     private String filter;
@@ -125,6 +126,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         spinnerCorridors = findViewById(R.id.corridors);
         spinnerMonsterType = findViewById(R.id.monster_type);
         spinnerDeadEnds = findViewById(R.id.dead_end);
+        spinnerTheme = findViewById(R.id.theme);
     }
 
     @Override
@@ -266,6 +268,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         cursor.close();
         extras.putString("URI", uri.toString());
         extras.putString("FILTER", filter);
+        extras.putString("THEME", spinnerTheme.getSelectedItem().toString());
         dungeon.putExtras(extras);
         setSpinners(extras);
         startActivity(dungeon);
@@ -316,6 +319,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         extras.putString(DBOpenHelper.CORRIDORS, spinnerCorridors.getSelectedItem().toString());
         extras.putString(DBOpenHelper.MONSTER_TYPE, spinnerMonsterType.getSelectedItem().toString());
         extras.putString(DBOpenHelper.DEAD_ENDS, spinnerDeadEnds.getSelectedItem().toString());
+        extras.putString("THEME", spinnerTheme.getSelectedItem().toString());
         dungeon.putExtras(extras);
         startActivity(dungeon);
     }

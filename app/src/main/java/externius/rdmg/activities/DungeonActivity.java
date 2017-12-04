@@ -85,6 +85,7 @@ public class DungeonActivity extends AppCompatActivity {
     private static DungeonMapView dungeonView;
     private static String jsonMonster;
     private static String jsonTreasure;
+    private static String theme;
     private static double treasureValue;
     private static int itemsRarity;
     private static WeakReference<DungeonActivity> activity;
@@ -384,6 +385,7 @@ public class DungeonActivity extends AppCompatActivity {
                 loadedTrapDescription = null;
             }
             String mt = extras.getString(DBOpenHelper.MONSTER_TYPE);
+            String th = extras.getString("THEME");
             dungeonDifficulty = setDungeonDifficulty(extras.getString(DBOpenHelper.DUNGEON_DIFFICULTY));
             dungeonSize = setDungeonSize(extras.getString(DBOpenHelper.DUNGEON_SIZE));
             roomDensity = setRoomDensity(extras.getString(DBOpenHelper.ROOM_DENSITY));
@@ -397,6 +399,9 @@ public class DungeonActivity extends AppCompatActivity {
             itemsRarity = setItemsRarity(extras.getString(DBOpenHelper.ITEMS_RARITY));
             if (mt != null && !mt.isEmpty()) {
                 monsterType = mt.toLowerCase();
+            }
+            if (th != null && !th.isEmpty()) {
+                theme = th.toLowerCase();
             }
             exported = false;
         }
@@ -768,6 +773,7 @@ public class DungeonActivity extends AppCompatActivity {
         dungeonView.setPartySize(partySize);
         dungeonView.setMonsterType(monsterType);
         dungeonView.setHasDeadEnds(hasDeadEnds);
+        dungeonView.setTheme(theme);
         dungeonView.setId(R.id.dungeonMap_view);
         if (load) {
             dungeonView.loadDungeon(loadedDungeon, loadedRoomDescription, loadedTrapDescription, hasCorridor);
