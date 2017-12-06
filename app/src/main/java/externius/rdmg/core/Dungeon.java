@@ -1,10 +1,11 @@
 package externius.rdmg.core;
 
 
+import android.os.Build;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import externius.rdmg.helpers.Utils;
@@ -223,12 +224,11 @@ public class Dungeon {
         for (DungeonTile tile : openList) {
             tile.setF(tile.getG() + tile.getH());
         }
-        Collections.sort(openList, new Comparator<DungeonTile>() { //sort it
-            @Override
-            public int compare(DungeonTile t1, DungeonTile t2) {
-                return t1.getF() - t2.getF();
-            }
-        });
+        if (Build.VERSION.SDK_INT > 23) { // sort it
+            openList.sort((dt1, dt2) -> dt1.getF() - dt2.getF());
+        } else {
+            Collections.sort(openList, (t1, t2) -> t1.getF() - t2.getF());
+        }
     }
 
     private void calcGValue(List<DungeonTile> openList) {
@@ -277,13 +277,11 @@ public class Dungeon {
             parent = parent.getParent();
             result.add(parent);
         }
-
     }
 
     void addToClosedList(List<DungeonTile> closedList, DungeonTile node) {
         closedList.add(dungeonTiles[node.getI()][node.getJ()]);
     }
-
 
     public void generateRoom() {
         int[] coordinates;

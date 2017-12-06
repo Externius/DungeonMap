@@ -42,7 +42,6 @@ import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
@@ -447,42 +446,39 @@ public class DungeonActivity extends AppCompatActivity {
 
     @NonNull
     private static View.OnTouchListener getTouch() {
-        return new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                float x = motionEvent.getX();
-                float y = motionEvent.getY();
-                int imgSize = area / dungeonSize; // get the image size on the dungeon tiles
-                int xIndex = ((int) y / imgSize) + 1; // get the dungeonTile 2D array x index
-                int yIndex = ((int) x / imgSize) + 1; // get the dungeonTile 2D array y index
-                if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-                    Textures texture = loadedDungeon[xIndex][yIndex].getTexture();
-                    switch (texture) {
-                        case ROOM:
-                            showRoomPopUp(loadedDungeon[xIndex][yIndex].getIndex());
-                            break;
-                        case TRAP:
-                            showTrapPopUp(loadedDungeon[xIndex][yIndex].getIndex());
-                            break;
-                        case DOOR:
-                        case DOOR_LOCKED:
-                        case DOOR_TRAPPED:
-                        case NO_CORRIDOR_DOOR:
-                        case NO_CORRIDOR_DOOR_LOCKED:
-                        case NO_CORRIDOR_DOOR_TRAPPED:
-                            showDoorPopUp(loadedDungeon[xIndex][yIndex].getDescription());
-                            break;
-                        case ENTRY:
-                            showEntryPopUp();
-                            break;
-                        default:
-                            break;
-                    }
-                    view.performClick();
-                    return true;
+        return (view, motionEvent) -> {
+            float x = motionEvent.getX();
+            float y = motionEvent.getY();
+            int imgSize = area / dungeonSize; // get the image size on the dungeon tiles
+            int xIndex = ((int) y / imgSize) + 1; // get the dungeonTile 2D array x index
+            int yIndex = ((int) x / imgSize) + 1; // get the dungeonTile 2D array y index
+            if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+                Textures texture = loadedDungeon[xIndex][yIndex].getTexture();
+                switch (texture) {
+                    case ROOM:
+                        showRoomPopUp(loadedDungeon[xIndex][yIndex].getIndex());
+                        break;
+                    case TRAP:
+                        showTrapPopUp(loadedDungeon[xIndex][yIndex].getIndex());
+                        break;
+                    case DOOR:
+                    case DOOR_LOCKED:
+                    case DOOR_TRAPPED:
+                    case NO_CORRIDOR_DOOR:
+                    case NO_CORRIDOR_DOOR_LOCKED:
+                    case NO_CORRIDOR_DOOR_TRAPPED:
+                        showDoorPopUp(loadedDungeon[xIndex][yIndex].getDescription());
+                        break;
+                    case ENTRY:
+                        showEntryPopUp();
+                        break;
+                    default:
+                        break;
                 }
-                return false;
+                view.performClick();
+                return true;
             }
+            return false;
         };
     }
 
@@ -577,13 +573,11 @@ public class DungeonActivity extends AppCompatActivity {
         RelativeLayout.LayoutParams relativeParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         relativeParams.addRule(RelativeLayout.BELOW, R.id.dungeon_activity_generate_button);
         button.setLayoutParams(relativeParams);
-        button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                if (checkMassClick()) {
-                    return;
-                }
-                checkPermission();
+        button.setOnClickListener(v -> {
+            if (checkMassClick()) {
+                return;
             }
+            checkPermission();
         });
         buttonStyle(button);
         layout.addView(button);
@@ -595,13 +589,11 @@ public class DungeonActivity extends AppCompatActivity {
         RelativeLayout.LayoutParams relativeParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         relativeParams.addRule(RelativeLayout.BELOW, R.id.dungeon_activity_save_button);
         button.setLayoutParams(relativeParams);
-        button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                if (checkMassClick()) {
-                    return;
-                }
-                generateDungeon();
+        button.setOnClickListener(v -> {
+            if (checkMassClick()) {
+                return;
             }
+            generateDungeon();
         });
         button.setId(R.id.dungeon_activity_generate_button);
         buttonStyle(button);
@@ -614,13 +606,11 @@ public class DungeonActivity extends AppCompatActivity {
         RelativeLayout.LayoutParams relativeParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         relativeParams.addRule(RelativeLayout.BELOW, R.id.dungeonMap_view);
         button.setLayoutParams(relativeParams);
-        button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                if (checkMassClick()) {
-                    return;
-                }
-                saveData();
+        button.setOnClickListener(v -> {
+            if (checkMassClick()) {
+                return;
             }
+            saveData();
         });
         button.setId(R.id.dungeon_activity_save_button);
         buttonStyle(button);
@@ -648,7 +638,6 @@ public class DungeonActivity extends AppCompatActivity {
         }
         button.setBackground(drawable);
     }
-
 
     private static void checkPermission() {
         if (ContextCompat.checkSelfPermission(activity.get(),
@@ -695,12 +684,7 @@ public class DungeonActivity extends AppCompatActivity {
     }
 
     private static String getFilename(File directory) {
-        File[] files = directory.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.toLowerCase().endsWith(".html");
-            }
-        });
+        File[] files = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".html"));
         if (files.length > 0) {
             return "dungeon" + files.length + ".html";
         } else {
@@ -747,7 +731,6 @@ public class DungeonActivity extends AppCompatActivity {
             exported = true;
         }
     }
-
 
     private static DungeonMapView getDungeonView(Boolean load) {
         if (activity.get() == null) {

@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private Spinner spinnerMonsterType;
     private Spinner spinnerDeadEnds;
     private Spinner spinnerTheme;
-    private Dialog dialog;
+    private Dialog loadDialog;
     private CursorAdapter cursorAdapter;
     private String filter;
     private Uri uri;
@@ -96,11 +96,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private void addListeners() {
         spinnerCorridors.setOnItemSelectedListener(getCorridorItemSelectedListener());
         final Button generateButton = findViewById(R.id.generate_button);
-        generateButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                generateDungeon();
-            }
-        });
+        generateButton.setOnClickListener(v -> generateDungeon());
         final Button loadButton = findViewById(R.id.load_button);
         loadButton.setOnClickListener(loadListener());
     }
@@ -132,46 +128,32 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (dialog != null) {
-            dialog.dismiss();
+        if (loadDialog != null) {
+            loadDialog.dismiss();
         }
     }
 
     @NonNull
     private View.OnClickListener loadListener() {
-        return new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showLoadDialog();
-            }
-
-        };
+        return view -> showLoadDialog();
     }
 
     private void showLoadDialog() {
-        dialog = new Dialog(this, R.style.Dialog);
-        dialog.setContentView(R.layout.load_dungeons_popup);
-        dialog.setTitle("Select saved dungeon");
+        loadDialog = new Dialog(this, R.style.Dialog);
+        loadDialog.setContentView(R.layout.load_dungeons_popup);
+        loadDialog.setTitle("Select saved dungeon");
         Button closePopupBtn;
         Button deleteAllBtn;
-        closePopupBtn = dialog.findViewById(R.id.popup_close_button);
-        deleteAllBtn = dialog.findViewById(R.id.delete_all_dungeon_button);
+        closePopupBtn = loadDialog.findViewById(R.id.popup_close_button);
+        deleteAllBtn = loadDialog.findViewById(R.id.delete_all_dungeon_button);
         setButtonStyle(closePopupBtn);
         setButtonStyle(deleteAllBtn);
-        getDataFromDB(dialog);
-        closePopupBtn.setOnClickListener(new View.OnClickListener() { // close the dialog window
-            @Override
-            public void onClick(View view) {
-                dialog.dismiss();
-            }
-        });
-        deleteAllBtn.setOnClickListener(new View.OnClickListener() { // delete all records
-            @Override
-            public void onClick(View view) {
-                deleteAllData();
-            }
-        });
-        dialog.show();
+        getDataFromDB(loadDialog);
+        // close the dialog window
+        closePopupBtn.setOnClickListener(view -> loadDialog.dismiss());
+        // delete all records
+        deleteAllBtn.setOnClickListener(view -> deleteAllData());
+        loadDialog.show();
     }
 
     private void setButtonStyle(Button button) {
@@ -181,16 +163,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     private void deleteAllData() {
         DialogInterface.OnClickListener dialogClickListener =
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int button) {
-                        if (button == DialogInterface.BUTTON_POSITIVE) {
-                            getContentResolver().delete(DungeonsProvider.CONTENT_URI, null, null);
-                            restartLoader();
-                            Toast.makeText(MainActivity.this,
-                                    getString(R.string.all_deleted),
-                                    Toast.LENGTH_SHORT).show();
-                        }
+                (dialog, button) -> {
+                    if (button == DialogInterface.BUTTON_POSITIVE) {
+                        getContentResolver().delete(DungeonsProvider.CONTENT_URI, null, null);
+                        restartLoader();
+                        Toast.makeText(MainActivity.this,
+                                getString(R.string.all_deleted),
+                                Toast.LENGTH_SHORT).show();
                     }
                 };
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -206,34 +185,23 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         restartLoader();
         list = dialog.findViewById(R.id.load_dungeon_list);
         list.setAdapter(cursorAdapter);
-        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                getSelectedDungeon(l);
-            }
-        });
-        list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                deleteSingleDungeon(l);
-                return true;
-            }
+        list.setOnItemClickListener((adapterView, view, i, l) -> getSelectedDungeon(l));
+        list.setOnItemLongClickListener((adapterView, view, i, l) -> {
+            deleteSingleDungeon(l);
+            return true;
         });
     }
 
     private void deleteSingleDungeon(long id) {
         getUriAndFilter(id);
         DialogInterface.OnClickListener dialogClickListener =
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int button) {
-                        if (button == DialogInterface.BUTTON_POSITIVE) {
-                            getContentResolver().delete(DungeonsProvider.CONTENT_URI, filter, null);
-                            restartLoader();
-                            Toast.makeText(MainActivity.this,
-                                    getString(R.string.selected_deleted),
-                                    Toast.LENGTH_SHORT).show();
-                        }
+                (dialog, button) -> {
+                    if (button == DialogInterface.BUTTON_POSITIVE) {
+                        getContentResolver().delete(DungeonsProvider.CONTENT_URI, filter, null);
+                        restartLoader();
+                        Toast.makeText(MainActivity.this,
+                                getString(R.string.selected_deleted),
+                                Toast.LENGTH_SHORT).show();
                     }
                 };
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -272,7 +240,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         dungeon.putExtras(extras);
         setSpinners(extras);
         startActivity(dungeon);
-        dialog.dismiss();
+        loadDialog.dismiss();
     }
 
     private void setSpinners(Bundle extras) {
