@@ -48,14 +48,13 @@ public final class Treasure {
     }
 
     static String getTreasure() {
-        if (Math.floor(Math.random() * 100) > Utils.getPercentage()) {
+        if (Math.floor(Math.random() * 100) > Utils.getTreasurePercentage()) {
             return "Treasures: Empty";
         }
         getAllCost();
         List<Treasures> filteredTreasures = getFiltered(Utils.getTreasureList());
         return "Treasures: " + calcTreasure(filteredTreasures);
     }
-
 
     private static String calcTreasure(List<Treasures> filteredTreasures) {
         StringBuilder sb = new StringBuilder();

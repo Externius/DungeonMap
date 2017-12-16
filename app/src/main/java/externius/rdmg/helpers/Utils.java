@@ -35,17 +35,31 @@ public final class Utils {
         return treasureList;
     }
 
-
-    static int getPercentage() {
+    static int getTreasurePercentage() {
         switch (dungeonDifficulty) {
             case 0:
-                return Utils.getRandomInt(20, 71);
+                return getRandomInt(20, 71);
             case 1:
-                return Utils.getRandomInt(30, 81);
+                return getRandomInt(30, 81);
             case 2:
-                return Utils.getRandomInt(40, 91);
+                return getRandomInt(40, 91);
             case 3:
-                return Utils.getRandomInt(50, 101);
+                return getRandomInt(50, 101);
+            default:
+                return 0;
+        }
+    }
+
+    static int getMonsterPercentage() {
+        switch (dungeonDifficulty) {
+            case 0:
+                return getRandomInt(40, 81);
+            case 1:
+                return getRandomInt(50, 91);
+            case 2:
+                return getRandomInt(60, 101);
+            case 3:
+                return getRandomInt(70, 101);
             default:
                 return 0;
         }

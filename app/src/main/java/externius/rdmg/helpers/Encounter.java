@@ -45,6 +45,7 @@ final class Encounter {
             135000,
             155000
     };
+
     private static final double[][] multipliers = {
             {1, 1},
             {2, 1.5},
@@ -53,6 +54,7 @@ final class Encounter {
             {11, 3},
             {15, 4}
     };
+
     private static final List<String> challengeRating = new ArrayList<>(Arrays.asList("0", "1/8", "1/4", "1/2", "1", "2", "3", "4", "5",
             "6", "7", "8", "9", "10", "11", "12", "13", "14", "15",
             "16", "17", "18", "19", "20", "21", "22", "23", "24", "25",
@@ -85,7 +87,6 @@ final class Encounter {
     private static final int[] difficulty = {
             0, 0, 0, 0
     };
-
 
     private Encounter() {
 
@@ -122,19 +123,19 @@ final class Encounter {
     private static String addMonster(List<Monster> filteredMonsters, int currentXP) {
         int monsterCount = filteredMonsters.size();
         int monster = 0;
+        int count;
         double allXP;
-        double count;
         while (monster < monsterCount) {
             Monster currentMonster = filteredMonsters.get(Utils.getRandomInt(0, filteredMonsters.size())); // get random monster
             filteredMonsters.remove(currentMonster);
             int monsterXP = challengeRatingXP[challengeRating.indexOf(currentMonster.getChallengeRating())]; // get monster xp
             for (int i = multipliers.length - 1; i > -1; i--) {
-                count = multipliers[i][0];
+                count = (int) multipliers[i][0];
                 allXP = monsterXP * count * multipliers[i][1];
                 if (allXP <= currentXP && count > 1) {
-                    return (int) count + "x " + currentMonster.getName() + " (CR: " + currentMonster.getChallengeRating() + ") " + (int) allXP + " XP";
+                    return count + "x " + currentMonster.getName() + " (CR: " + currentMonster.getChallengeRating() + ") " + monsterXP * count + " XP";
                 } else if (allXP <= currentXP) {
-                    return currentMonster.getName() + " (CR: " + currentMonster.getChallengeRating() + ") " + (int) allXP + " XP";
+                    return currentMonster.getName() + " (CR: " + currentMonster.getChallengeRating() + ") " + monsterXP + " XP";
                 }
             }
             monster++;
@@ -168,7 +169,7 @@ final class Encounter {
     }
 
     static String getMonster() {
-        if (Math.floor(Math.random() * 100) > Utils.getPercentage()) {
+        if (Math.floor(Math.random() * 100) > Utils.getMonsterPercentage()) {
             return "Monster: None";
         }
         setDifficulty();
