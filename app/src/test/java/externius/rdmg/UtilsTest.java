@@ -41,7 +41,6 @@ public class UtilsTest {
         Treasure.setItemsRarity(3);
     }
 
-
     @Test
     public void testManhattan() {
         int x = Utils.manhattan(2, 5);
@@ -74,7 +73,7 @@ public class UtilsTest {
         DungeonTile[][] dungeon = getTiles();
         List<RoomDescription> roomDescription = new ArrayList<>();
         List<DungeonTile> doors = new ArrayList<>();
-        doors.add(new DungeonTile(3,3,50,50,50,50));
+        doors.add(new DungeonTile(3, 3, 50, 50, 50, 50));
         dungeon[3][3].setTexture(Textures.DOOR);
         dungeon[3][4].setTexture(Textures.ROOM);
         for (int i = 0; i < 3; i++) {
@@ -83,6 +82,13 @@ public class UtilsTest {
         assertEquals(name.getMethodName() + " size isn't right", 3, roomDescription.size());
     }
 
+    @Test
+    public void testAddNCRoomDescription() {
+        DungeonTile[][] dungeon = getTiles();
+        List<RoomDescription> roomDescription = new ArrayList<>();
+        Utils.addNCRoomDescription(dungeon, 5, 5, roomDescription, "Example door text");
+        assertEquals(name.getMethodName() + " size isn't right", 1, roomDescription.size());
+    }
 
     private static DungeonTile[][] getTiles() {
         DungeonTile[][] dungeon;

@@ -50,7 +50,6 @@ public class DungeonNoCorridorTest {
         assertTrue(dungeonNoCorridor.getRoomDescription().isEmpty());
     }
 
-
     @Test
     public void testAddFirstRoom() {
         dungeonNoCorridor.addFirstRoom();
@@ -62,6 +61,15 @@ public class DungeonNoCorridorTest {
 
     @Test
     public void testFillRoomToDoor() {
+        dungeonNoCorridor.addFirstRoom();
+        dungeonNoCorridor.fillRoomToDoor();
+        System.out.println(name.getMethodName());
+        DrawTestDungeon.draw(dungeonNoCorridor.getDungeonTiles());
+        assertTrue(dungeonNoCorridor.getOpenDoorList().size() == 0);
+    }
+
+    @Test
+    public void testAddDescription() {
         dungeonNoCorridor.addFirstRoom();
         dungeonNoCorridor.fillRoomToDoor();
         dungeonNoCorridor.addDescription();

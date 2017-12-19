@@ -1,6 +1,7 @@
 package externius.rdmg;
 
 
+import android.content.pm.ActivityInfo;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -24,7 +25,7 @@ import static org.hamcrest.core.IsAnything.anything;
 public class DungeonTest {
 
     @Rule
-    public ActivityTestRule<MainActivity> mainActivityActivityTestRule = new ActivityTestRule<>(MainActivity.class);
+    public final ActivityTestRule<MainActivity> mainActivityTestRule = new ActivityTestRule<>(MainActivity.class);
 
     @Rule
     public TestRule watcher = new TestWatcher() {
@@ -34,12 +35,119 @@ public class DungeonTest {
         }
     };
 
-
     @Test
     public void testDefault() {
-        onView(withId(R.id.generate_button)).perform(scrollTo(), click());
-        onView(withId(R.id.dungeon_activity_generate_button)).perform(scrollTo(), click());
+        MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testDefault");
+    }
+
+    @Test
+    public void testMediumSize() {
+        onView(withId(R.id.dungeon_size)).perform(click());
+        onData(anything()).atPosition(1).perform(click());
+        MainActivityTest.generateDungeon();
+        MainActivityTest.checkDungeonUI(this.getClass().getName(), "testMediumSize");
+    }
+
+    @Test
+    public void testLargeSize() {
+        onView(withId(R.id.dungeon_size)).perform(click());
+        onData(anything()).atPosition(2).perform(click());
+        MainActivityTest.generateDungeon();
+        MainActivityTest.checkDungeonUI(this.getClass().getName(), "testLargeSize");
+    }
+
+    @Test
+    public void testEasyDifficulty() {
+        onView(withId(R.id.dungeon_difficulty)).perform(click());
+        onData(anything()).atPosition(0).perform(click());
+        MainActivityTest.generateDungeon();
+        MainActivityTest.checkDungeonUI(this.getClass().getName(), "testEasyDifficulty");
+    }
+
+    @Test
+    public void testHardDifficulty() {
+        onView(withId(R.id.dungeon_difficulty)).perform(click());
+        onData(anything()).atPosition(2).perform(click());
+        MainActivityTest.generateDungeon();
+        MainActivityTest.checkDungeonUI(this.getClass().getName(), "testHardDifficulty");
+    }
+
+    @Test
+    public void testDeadlyDifficulty() {
+        onView(withId(R.id.dungeon_difficulty)).perform(click());
+        onData(anything()).atPosition(3).perform(click());
+        MainActivityTest.generateDungeon();
+        MainActivityTest.checkDungeonUI(this.getClass().getName(), "testDeadlyDifficulty");
+    }
+
+    @Test
+    public void testPartyLevel() {
+        onView(withId(R.id.party_level)).perform(click());
+        onData(anything()).atPosition(2).perform(click());
+        MainActivityTest.generateDungeon();
+        MainActivityTest.checkDungeonUI(this.getClass().getName(), "testPartyLevel");
+    }
+
+    @Test
+    public void testPartySize() {
+        onView(withId(R.id.party_size)).perform(click());
+        onData(anything()).atPosition(0).perform(click());
+        MainActivityTest.generateDungeon();
+        MainActivityTest.checkDungeonUI(this.getClass().getName(), "testPartySize");
+    }
+
+    @Test
+    public void testTreasureValue() {
+        onView(withId(R.id.treasure_value)).perform(click());
+        onData(anything()).atPosition(0).perform(click());
+        MainActivityTest.generateDungeon();
+        MainActivityTest.checkDungeonUI(this.getClass().getName(), "testTreasureValue");
+    }
+
+    @Test
+    public void testItemsMaxRarity() {
+        onView(withId(R.id.theme)).perform(scrollTo());
+        onView(withId(R.id.items_rarity)).perform(click());
+        onData(anything()).atPosition(0).perform(click());
+        MainActivityTest.generateDungeon();
+        MainActivityTest.checkDungeonUI(this.getClass().getName(), "testItemsMaxRarity");
+    }
+
+    @Test
+    public void testRoomDensity() {
+        onView(withId(R.id.theme)).perform(scrollTo());
+        onView(withId(R.id.room_density)).perform(click());
+        onData(anything()).atPosition(1).perform(click());
+        MainActivityTest.generateDungeon();
+        MainActivityTest.checkDungeonUI(this.getClass().getName(), "testRoomDensity");
+    }
+
+    @Test
+    public void testRoomSizeMedium() {
+        onView(withId(R.id.theme)).perform(scrollTo());
+        onView(withId(R.id.room_size)).perform(click());
+        onData(anything()).atPosition(1).perform(click());
+        MainActivityTest.generateDungeon();
+        MainActivityTest.checkDungeonUI(this.getClass().getName(), "testRoomSizeMedium");
+    }
+
+    @Test
+    public void testRoomSizeLarge() {
+        onView(withId(R.id.theme)).perform(scrollTo());
+        onView(withId(R.id.room_size)).perform(click());
+        onData(anything()).atPosition(2).perform(click());
+        MainActivityTest.generateDungeon();
+        MainActivityTest.checkDungeonUI(this.getClass().getName(), "testRoomSizeLarge");
+    }
+
+    @Test
+    public void testMonsterType() {
+        onView(withId(R.id.load_button)).perform(scrollTo());
+        onView(withId(R.id.monster_type)).perform(click());
+        onData(anything()).atPosition(3).perform(click());
+        MainActivityTest.generateDungeon();
+        MainActivityTest.checkDungeonUI(this.getClass().getName(), "testMonsterType");
     }
 
     @Test
@@ -47,8 +155,7 @@ public class DungeonTest {
         onView(withId(R.id.load_button)).perform(scrollTo());
         onView(withId(R.id.traps)).perform(click());
         onData(anything()).atPosition(0).perform(click());
-        onView(withId(R.id.generate_button)).perform(scrollTo(), click());
-        onView(withId(R.id.dungeon_activity_generate_button)).perform(scrollTo(), click());
+        MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testWithOutTraps");
     }
 
@@ -57,9 +164,17 @@ public class DungeonTest {
         onView(withId(R.id.load_button)).perform(scrollTo());
         onView(withId(R.id.dead_end)).perform(click());
         onData(anything()).atPosition(1).perform(click());
-        onView(withId(R.id.generate_button)).perform(scrollTo(), click());
-        onView(withId(R.id.dungeon_activity_generate_button)).perform(scrollTo(), click());
+        MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testWithoutDeadEnds");
     }
 
+    @Test
+    public void testTheme() {
+        mainActivityTestRule.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        onView(withId(R.id.load_button)).perform(scrollTo());
+        onView(withId(R.id.theme)).perform(click());
+        onData(anything()).atPosition(1).perform(click());
+        MainActivityTest.generateDungeon();
+        MainActivityTest.checkDungeonUI(this.getClass().getName(), "testTheme");
+    }
 }
