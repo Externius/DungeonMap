@@ -537,11 +537,13 @@ public class DungeonActivity extends AppCompatActivity {
     }
 
     private static void saveCurrentDungeon() {
+        activity.get().getContentResolver().insert(DungeonsProvider.CONTENT_URI, getDungeonContentValues());
+    }
+
+    @NonNull
+    private static ContentValues getDungeonContentValues() {
         ContentValues values = new ContentValues();
-        Calendar c = Calendar.getInstance();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd HH:mm:ss", Locale.ENGLISH);
-        String formattedDate = dateFormat.format(c.getTime());
-        values.put(DBOpenHelper.DUNGEON_NAME, "Dungeon_" + formattedDate);
+        values.put(DBOpenHelper.DUNGEON_NAME, "Dungeon_" + getFormattedDate());
         values.put(DBOpenHelper.LOADED_DUNGEON, gson.toJson(dungeonView.getDungeonTiles()));
         values.put(DBOpenHelper.LOADED_ROOM_DESCRIPTION, gson.toJson(dungeonView.getRoomDescription()));
         values.put(DBOpenHelper.LOADED_TRAP_DESCRIPTION, gson.toJson(dungeonView.getTrapDescription()));
@@ -557,7 +559,13 @@ public class DungeonActivity extends AppCompatActivity {
         values.put(DBOpenHelper.CORRIDORS, extras.getString(DBOpenHelper.CORRIDORS));
         values.put(DBOpenHelper.MONSTER_TYPE, extras.getString(DBOpenHelper.MONSTER_TYPE));
         values.put(DBOpenHelper.DEAD_ENDS, extras.getString(DBOpenHelper.DEAD_ENDS));
-        activity.get().getContentResolver().insert(DungeonsProvider.CONTENT_URI, values);
+        return values;
+    }
+
+    private static String getFormattedDate() {
+        Calendar c = Calendar.getInstance();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd HH:mm:ss", Locale.ENGLISH);
+        return dateFormat.format(c.getTime());
     }
 
     private static void addButtons(RelativeLayout layout) {
@@ -737,6 +745,16 @@ public class DungeonActivity extends AppCompatActivity {
             return null;
         }
         dungeonView = new DungeonMapView(activity.get());
+        setDungeonParameters();
+        if (load) {
+            dungeonView.loadDungeon(loadedDungeon, loadedRoomDescription, loadedTrapDescription, hasCorridor);
+        } else {
+            dungeonView.generateDungeon();
+        }
+        return dungeonView;
+    }
+
+    private static void setDungeonParameters() {
         dungeonView.setDungeonHeight(area);
         dungeonView.setDungeonWidth(area);
         dungeonView.setDungeonSize(dungeonSize);
@@ -758,12 +776,6 @@ public class DungeonActivity extends AppCompatActivity {
         dungeonView.setHasDeadEnds(hasDeadEnds);
         dungeonView.setTheme(theme);
         dungeonView.setId(R.id.dungeonMap_view);
-        if (load) {
-            dungeonView.loadDungeon(loadedDungeon, loadedRoomDescription, loadedTrapDescription, hasCorridor);
-        } else {
-            dungeonView.generateDungeon();
-        }
-        return dungeonView;
     }
 
     private static void addDescription(RelativeLayout layout, List<RoomDescription> roomDescription, List<TrapDescription> trapDescription) {

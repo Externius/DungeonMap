@@ -65,19 +65,12 @@ public class DungeonMapView extends View {
         this.roomDescription = roomDescription;
         this.trapDescription = trapDescription;
         setBitmaps(hasCorridor);
-        paint.setTextSize(getFontSize(dungeonSize));
+        setPaint();
     }
 
     public void generateDungeon() {
-        Utils.setPartySize(partySize);
-        Utils.setPartyLevel(partyLevel);
-        Utils.setDungeonDifficulty(dungeonDifficulty);
-        Utils.setMonsterType(monsterType);
-        Utils.setJsonMonster(jsonMonster);
-        Utils.setJsonTreasure(jsonTreasure);
-        Treasure.setTreasureValue(treasureValue);
-        Treasure.setItemsRarity(itemsRarity);
-        paint.setTextSize(getFontSize(dungeonSize));
+        init();
+        setPaint();
         setBitmaps(hasCorridor);
         if (hasCorridor) {
             Dungeon dungeon = new Dungeon(dungeonWidth, dungeonHeight, dungeonSize, roomDensity, roomSizePercent, trapPercent, hasDeadEnds);
@@ -91,6 +84,21 @@ public class DungeonMapView extends View {
             roomDescription = dungeonNoCorridor.getRoomDescription();
             dungeonTiles = dungeonNoCorridor.getDungeonTiles();
         }
+    }
+
+    private void setPaint() {
+        paint.setTextSize(getFontSize(dungeonSize));
+    }
+
+    private void init() {
+        Utils.setPartySize(partySize);
+        Utils.setPartyLevel(partyLevel);
+        Utils.setDungeonDifficulty(dungeonDifficulty);
+        Utils.setMonsterType(monsterType);
+        Utils.setJsonMonster(jsonMonster);
+        Utils.setJsonTreasure(jsonTreasure);
+        Treasure.setTreasureValue(treasureValue);
+        Treasure.setItemsRarity(itemsRarity);
     }
 
     private void setBitmaps(Boolean hasCorridor) {
@@ -137,7 +145,6 @@ public class DungeonMapView extends View {
             return getResources().getDimensionPixelSize(R.dimen.drawTextLargeFontSize);
         }
     }
-
 
     protected void onDraw(Canvas canvas) {
         for (int i = 1; i < dungeonTiles.length - 1; i++) {
