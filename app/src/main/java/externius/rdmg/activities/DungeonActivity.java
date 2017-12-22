@@ -453,6 +453,9 @@ public class DungeonActivity extends AppCompatActivity {
             int xIndex = ((int) y / imgSize) + 1; // get the dungeonTile 2D array x index
             int yIndex = ((int) x / imgSize) + 1; // get the dungeonTile 2D array y index
             if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+                if (xIndex >= loadedDungeon.length || yIndex >= loadedDungeon[0].length) {
+                    return false;
+                }
                 Textures texture = loadedDungeon[xIndex][yIndex].getTexture();
                 switch (texture) {
                     case ROOM:
