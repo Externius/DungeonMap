@@ -24,26 +24,26 @@ final class Trap {
             {10, 18, 24}
     };
 
-    private static final String[][] trapKind = { // name, save, spot, disable, disableCheck, attackMod
-            {"Collapsing Roof", "Dexterity", "10", "15", "Dexterity", "false"},
-            {"Falling Net", "Strength", "10", "15", "Dexterity", "false"},
-            {"Fire-Breathing Statue", "Dexterity", "15", "13", "Dispel Magic", "false"},
-            {"Spiked Pit", "Constitution", "15", "15", "Intelligence", "false"}, //
-            {"Locking Pit", "Strength", "10", "15", "Intelligence", "false"}, //
-            {"Poison Darts", "Constitution", "15", "15", "Intelligence", "true"}, //
-            {"Poison Needle", "Constitution", "15", "15", "Dexterity", "false"},
-            {"Rolling Sphere", "Dexterity", "15", "15", " Intelligence", "false"}
+    private static final String[][] trapKind = { // name, save, spot, disable, disableCheck, attackMod, dmg type, special
+            {"Collapsing Roof", "Dexterity", "10", "15", "Dexterity", "false", "bludgeoning", ""},
+            {"Falling Net", "Strength", "10", "15", "Dexterity", "false", "", "restrained."},
+            {"Fire-Breathing Statue", "Dexterity", "15", "13", "Dispel Magic", "false", "fire", ""},
+            {"Spiked Pit", "Constitution", "15", "15", "Intelligence", "false", "piercing", ""},
+            {"Locking Pit", "Strength", "10", "15", "Intelligence", "false", "", "locked."},
+            {"Poison Darts", "Constitution", "15", "15", "Intelligence", "true", "poison", ""},
+            {"Poison Needle", "Constitution", "15", "15", "Dexterity", "false", "poison", ""},
+            {"Rolling Sphere", "Dexterity", "15", "15", "Intelligence", "false", "bludgeoning", ""}
     };
 
-    private static final String[][] trapDoorKind = { // name, save, spot, disable, disableCheck, attackMod
-            {"Fire trap", "Dexterity", "10", "15", "Intelligence", "false"},
-            {"Lock Covered in Dragon Bile", "Constitution", "10", "15", "Intelligence", "false"},
-            {"Hail of Needles", "Dexterity", "15", "13", "Dexterity", "false"},
-            {"Stone Blocks from Ceiling", "Dexterity", "15", "15", "Intelligence", "true"}, //
-            {"Doorknob Smeared with Contact Poison", "Constitution", "15", "10", "Intelligence", "false"}, //
-            {"Poison Darts", "Constitution", "15", "15", "Intelligence", "true"}, //
-            {"Poison Needle", "Constitution", "15", "15", "Dexterity", "false"},
-            {"Energy Drain", "Constitution", "15", "15", "Dispel Magic", "false"}
+    private static final String[][] trapDoorKind = { // name, save, spot, disable, disableCheck, attackMod. dmg type, special
+            {"Fire trap", "Dexterity", "10", "15", "Intelligence", "false", "fire", ""},
+            {"Lock Covered in Dragon Bile", "Constitution", "10", "15", "Intelligence", "false", "poison", ""},
+            {"Hail of Needles", "Dexterity", "15", "13", "Dexterity", "false", "piercing", ""},
+            {"Stone Blocks from Ceiling", "Dexterity", "15", "15", "Intelligence", "true", "bludgeoning", ""},
+            {"Doorknob Smeared with Contact Poison", "Constitution", "15", "10", "Intelligence", "false", "poison", ""},
+            {"Poison Darts", "Constitution", "15", "15", "Intelligence", "true", "poison", ""},
+            {"Poison Needle", "Constitution", "15", "15", "Dexterity", "false", "poison", ""},
+            {"Energy Drain", "Constitution", "15", "15", "Dispel Magic", "false", "necrotic", ""}
     };
 
     private static String[] currentTrap;
@@ -51,7 +51,6 @@ final class Trap {
     private Trap() {
 
     }
-
 
     private static String getTrapAttackBonus(int trapDanger) {
         if (Boolean.parseBoolean(currentTrap[5])) {
@@ -107,6 +106,10 @@ final class Trap {
         } else {
             currentTrap = trapKind[Utils.getRandomInt(0, trapKind.length)];
         }
-        return currentTrap[0] + " [" + trapSeverity[trapDanger] + "]: DC " + currentTrap[2] + " to spot, DC " + currentTrap[3] + " to disable (" + currentTrap[4] + "), DC " + getTrapSaveDC(trapDanger) + " " + currentTrap[1] + " save or take " + getTrapDamage(trapDanger) + "D10 damage" + getTrapAttackBonus(trapDanger);
+        if (currentTrap[6] != null && !currentTrap[6].isEmpty()) { // check dmg type
+            return currentTrap[0] + " [" + trapSeverity[trapDanger] + "]: DC " + currentTrap[2] + " to spot, DC " + currentTrap[3] + " to disable (" + currentTrap[4] + "), DC " + getTrapSaveDC(trapDanger) + " " + currentTrap[1] + " save or take " + getTrapDamage(trapDanger) + "D10 (" + currentTrap[6] + ") damage" + getTrapAttackBonus(trapDanger);
+        } else {
+            return currentTrap[0] + " [" + trapSeverity[trapDanger] + "]: DC " + currentTrap[2] + " to spot, DC " + currentTrap[3] + " to disable (" + currentTrap[4] + "), DC " + getTrapSaveDC(trapDanger) + " " + currentTrap[1] + " save or " + currentTrap[7];
+        }
     }
 }
