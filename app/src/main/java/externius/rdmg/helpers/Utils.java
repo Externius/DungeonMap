@@ -17,6 +17,8 @@ public final class Utils {
     private static int partyLevel;
     private static int partySize;
     private static int dungeonDifficulty;
+    private static double treasureValue;
+    private static int itemsRarity;
     private static String monsterType;
     private static List<Monster> monsterList;
     private static List<Treasures> treasureList;
@@ -136,5 +138,21 @@ public final class Utils {
 
     public static void setJsonTreasure(String jsonTreasure) {
         treasureList = Arrays.asList(gson.fromJson(jsonTreasure, Treasures[].class));
+    }
+
+    public static void setTreasureValue(double treasureValue) {
+        Utils.treasureValue = treasureValue;
+    }
+
+    public static void setItemsRarity(int itemsRarity) {
+        Utils.itemsRarity = itemsRarity;
+    }
+
+    static double getTreasureValue() {
+        return treasureValue;
+    }
+
+    static int getItemsRarity() {
+        return itemsRarity;
     }
 }

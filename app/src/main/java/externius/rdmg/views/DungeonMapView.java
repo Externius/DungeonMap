@@ -14,7 +14,6 @@ import java.util.List;
 import externius.rdmg.R;
 import externius.rdmg.core.Dungeon;
 import externius.rdmg.core.DungeonNoCorridor;
-import externius.rdmg.helpers.Treasure;
 import externius.rdmg.helpers.Utils;
 import externius.rdmg.models.DungeonTile;
 import externius.rdmg.models.RoomDescription;
@@ -97,8 +96,8 @@ public class DungeonMapView extends View {
         Utils.setMonsterType(monsterType);
         Utils.setJsonMonster(jsonMonster);
         Utils.setJsonTreasure(jsonTreasure);
-        Treasure.setTreasureValue(treasureValue);
-        Treasure.setItemsRarity(itemsRarity);
+        Utils.setTreasureValue(treasureValue);
+        Utils.setItemsRarity(itemsRarity);
     }
 
     private void setBitmaps(Boolean hasCorridor) {

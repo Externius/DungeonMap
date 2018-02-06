@@ -9,7 +9,6 @@ import org.junit.rules.TestName;
 import java.util.List;
 
 import externius.rdmg.core.Dungeon;
-import externius.rdmg.helpers.Treasure;
 import externius.rdmg.helpers.Utils;
 import externius.rdmg.models.DungeonTile;
 import externius.rdmg.models.Textures;
@@ -35,8 +34,8 @@ public class DungeonTest {
         Utils.setJsonMonster(UtilsTest.readJSON("monsters.json"));
         Utils.setJsonTreasure(UtilsTest.readJSON("treasures.json"));
         Utils.setMonsterType("any");
-        Treasure.setTreasureValue(1);
-        Treasure.setItemsRarity(3);
+        Utils.setTreasureValue(1);
+        Utils.setItemsRarity(3);
         dungeon.init();
     }
 

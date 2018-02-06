@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Scanner;
 
 import externius.rdmg.activities.MainActivity;
-import externius.rdmg.helpers.Treasure;
 import externius.rdmg.helpers.Utils;
 import externius.rdmg.models.DungeonTile;
 import externius.rdmg.models.RoomDescription;
@@ -37,8 +36,8 @@ public class UtilsTest {
         Utils.setJsonMonster(readJSON("monsters.json"));
         Utils.setJsonTreasure(UtilsTest.readJSON("treasures.json"));
         Utils.setMonsterType("any");
-        Treasure.setTreasureValue(1);
-        Treasure.setItemsRarity(3);
+        Utils.setTreasureValue(1);
+        Utils.setItemsRarity(3);
     }
 
     @Test

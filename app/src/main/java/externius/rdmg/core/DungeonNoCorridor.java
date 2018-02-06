@@ -10,9 +10,9 @@ import externius.rdmg.models.DungeonTile;
 import externius.rdmg.models.Textures;
 
 public class DungeonNoCorridor extends Dungeon {
-    private List<DungeonTile> openDoorList = new ArrayList<>();
-    private List<DungeonTile> edgeTileList = new ArrayList<>();
-    private List<DungeonTile> roomStart = new ArrayList<>();
+    private List<DungeonTile> openDoorList;
+    private List<DungeonTile> edgeTileList;
+    private List<DungeonTile> roomStart;
 
     public DungeonNoCorridor(int dungeonWidth, int dungeonHeight, int dungeonSize, int roomSizePercent) {
         this.dungeonWidth = dungeonWidth;

@@ -9,10 +9,8 @@ import java.util.Objects;
 
 import externius.rdmg.models.Treasures;
 
-public final class Treasure {
+final class Treasure {
 
-    private static double treasureValue;
-    private static int itemsRarity;
     private static int sumValue;
 
     private static final int[] treasureGP = {
@@ -33,13 +31,13 @@ public final class Treasure {
         List<Treasures> result = new ArrayList<>();
         if (Objects.equals(Utils.getMonsterType(), "any")) {
             for (Treasures treasure : treasures) {
-                if (treasure.getRarity() <= itemsRarity && treasure.getCost() < sumValue) {
+                if (treasure.getRarity() <= Utils.getItemsRarity() && treasure.getCost() < sumValue) {
                     result.add(treasure);
                 }
             }
         } else {
             for (Treasures treasure : treasures) {
-                if (treasure.getRarity() <= itemsRarity && treasure.getCost() < sumValue && treasure.getTypes().contains(Utils.getMonsterType())) {
+                if (treasure.getRarity() <= Utils.getItemsRarity() && treasure.getCost() < sumValue && treasure.getTypes().contains(Utils.getMonsterType())) {
                     result.add(treasure);
                 }
             }
@@ -107,15 +105,7 @@ public final class Treasure {
     }
 
     private static void getAllCost() {
-        sumValue = (int) (treasureGP[Utils.getPartyLevel()] * treasureValue);
-    }
-
-    public static void setTreasureValue(double treasureValue) {
-        Treasure.treasureValue = treasureValue;
-    }
-
-    public static void setItemsRarity(int itemsRarity) {
-        Treasure.itemsRarity = itemsRarity;
+        sumValue = (int) (treasureGP[Utils.getPartyLevel()] * Utils.getTreasureValue());
     }
 
 }

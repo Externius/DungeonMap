@@ -19,16 +19,16 @@ public class Dungeon {
     private static final int MOVEMENT = 10;
     final List<DungeonTile> rooms = new ArrayList<>();
     DungeonTile[][] dungeonTiles;
-    List<RoomDescription> roomDescription = new ArrayList<>();
+    List<RoomDescription> roomDescription;
     int dungeonWidth;
     int dungeonHeight;
     int dungeonSize;
     int roomSizePercent;
     int roomSize;
     List<DungeonTile> doors = new ArrayList<>();
-    private List<DungeonTile> result = new ArrayList<>();
-    private List<DungeonTile> corridors = new ArrayList<>();
-    private List<TrapDescription> trapDescription = new ArrayList<>();
+    private List<DungeonTile> result;
+    private List<DungeonTile> corridors;
+    private List<TrapDescription> trapDescription;
     private int roomDensity;
     private int trapPercent;
     private int trapCount;
@@ -103,7 +103,7 @@ public class Dungeon {
 
     public void addDeadEnds() {
         List<DungeonTile> deadEnds = generateDeadEnds();
-        DungeonTile firstDoor = doors.get(0); // get  first door
+        DungeonTile firstDoor = doors.get(0); // get first door
         for (DungeonTile end : deadEnds) {
             doors = new ArrayList<>(); // empty doors
             doors.add(firstDoor);
@@ -340,7 +340,7 @@ public class Dungeon {
     boolean checkDoor(int x, int y) {
         for (int i = x - 1; i < x + 2; i++) {
             for (int j = y - 1; j < y + 2; j++) {
-                if (dungeonTiles[i][j].getTexture() == Textures.DOOR || dungeonTiles[i][j].getTexture() == Textures.DOOR_LOCKED || dungeonTiles[i][j].getTexture() == Textures.DOOR_TRAPPED) { //check nearby doors
+                if (dungeonTiles[i][j].getTexture() == Textures.DOOR || dungeonTiles[i][j].getTexture() == Textures.DOOR_LOCKED || dungeonTiles[i][j].getTexture() == Textures.DOOR_TRAPPED) { // check nearby doors
                     return false;
                 }
             }
@@ -389,7 +389,7 @@ public class Dungeon {
             y = Utils.getRandomInt(3, max);
             right = Utils.getRandomInt(2, roomSize + 1);
             down = Utils.getRandomInt(2, roomSize + 1);
-            roomIsOk = checkTileGoodForRoom(x - 2, y - 2, right + 2, down + 2); // x&y-1 && roomSize +1 because i want min 2 tiles between rooms
+            roomIsOk = checkTileGoodForRoom(x - 2, y - 2, right + 2, down + 2); // -2/+2 because i want min 3 tiles between rooms
             failSafeCount--;
         }
         while (!roomIsOk && failSafeCount > 0);
