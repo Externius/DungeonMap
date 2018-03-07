@@ -13,6 +13,10 @@
     <string name="all_deleted">All saved dungeons deleted</string>
     <string name="selected_deleted">Dungeon deleted</string>
     <string name="loading_text">Loading…</string>
+    <string name="editDialogSave">Save</string>
+    <string name="editDialogCancel">Cancel</string>
+    <string name="editMonsters">Monsters:</string>
+    <string name="editTreasures">Treasures:</string>
     <string-array name="loading_screen_gen_array">
         <item>Generating…</item>
         <item>Work, work, work…</item>

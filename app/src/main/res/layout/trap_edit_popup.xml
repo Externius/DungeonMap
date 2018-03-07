@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <EditText
+            android:id="@+id/edit_trap"
+            android:labelFor="@+id/edit_trap"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textMultiLine"
+            android:maxLines="8"
+            android:maxLength="256"/>
+        <Button
+            android:id="@+id/editDialogSaveButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/editDialogSave"
+            android:layout_below="@+id/edit_trap"/>
+        <Button
+            android:id="@+id/editDialogCancelButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/editDialogCancel"
+            android:layout_below="@+id/editDialogSaveButton"/>
+    </RelativeLayout>
+</ScrollView>

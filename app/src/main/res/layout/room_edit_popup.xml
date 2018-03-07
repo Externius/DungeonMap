@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/edit_monster_text"
+            style="@style/EditTextView"
+            android:text="@string/editMonsters"/>
+        <EditText
+            android:id="@+id/edit_monster"
+            android:labelFor="@+id/edit_monster"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textMultiLine"
+            android:maxLines="4"
+            android:maxLength="256"
+            android:layout_below="@+id/edit_monster_text" />
+        <TextView
+            android:id="@+id/edit_treasure_text"
+            style="@style/EditTextView"
+            android:text="@string/editTreasures"
+            android:layout_below="@+id/edit_monster"/>
+        <EditText
+            android:id="@+id/edit_treasure"
+            android:labelFor="@+id/edit_treasure"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textMultiLine"
+            android:maxLines="4"
+            android:maxLength="256"
+            android:layout_below="@+id/edit_treasure_text"/>
+        <Button
+            android:id="@+id/editDialogSaveButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/editDialogSave"
+            android:layout_below="@+id/edit_treasure"/>
+        <Button
+            android:id="@+id/editDialogCancelButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/editDialogCancel"
+            android:layout_below="@+id/editDialogSaveButton"/>
+    </RelativeLayout>
+</ScrollView>
