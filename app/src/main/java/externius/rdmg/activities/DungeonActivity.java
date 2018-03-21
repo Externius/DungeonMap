@@ -787,6 +787,10 @@ public class DungeonActivity extends AppCompatActivity {
     }
 
     private static void export() {
+        if (exported) {
+            Toast.makeText(activity.get(), "You are already exported this dungeon", Toast.LENGTH_SHORT).show();
+            return;
+        }
         if (isExternalStorageWritableAndHasSpace()) {
             Bitmap dungeonBitmap = getBitmapFromView(activity.get().findViewById(R.id.dungeonMap_view));
             File directory = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
@@ -837,10 +841,6 @@ public class DungeonActivity extends AppCompatActivity {
     }
 
     private static void createFile(File directory, String filename, String html) {
-        if (exported) {
-            Toast.makeText(activity.get(), "You are already exported this dungeon", Toast.LENGTH_SHORT).show();
-            return;
-        }
         File file = new File(directory, filename);
         try (FileOutputStream outputStream = new FileOutputStream(file)) {
             outputStream.write(html.getBytes());

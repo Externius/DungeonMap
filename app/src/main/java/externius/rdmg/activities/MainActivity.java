@@ -30,6 +30,7 @@ import java.util.Objects;
 import externius.rdmg.R;
 import externius.rdmg.database.DBOpenHelper;
 import externius.rdmg.database.DungeonsProvider;
+import externius.rdmg.helpers.MultiSelectMonster;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
     private Spinner spinnerDifficulty;
@@ -42,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private Spinner spinnerRoomSize;
     private Spinner spinnerTraps;
     private Spinner spinnerCorridors;
-    private Spinner spinnerMonsterType;
+    private MultiSelectMonster spinnerMonsterType;
     private Spinner spinnerDeadEnds;
     private Spinner spinnerTheme;
     private Dialog loadDialog;
@@ -61,6 +62,15 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         setDefaultValues();
         addListeners();
         initDB();
+        if (savedInstanceState != null) {
+            spinnerMonsterType.setAllText(savedInstanceState.getString(DBOpenHelper.MONSTER_TYPE));
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(DBOpenHelper.MONSTER_TYPE, spinnerMonsterType.getAllText());
     }
 
     @NonNull
@@ -130,6 +140,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         super.onDestroy();
         if (loadDialog != null) {
             loadDialog.dismiss();
+        }
+        if (spinnerMonsterType.getDialog() != null) {
+            spinnerMonsterType.getDialog().dismiss();
         }
     }
 
@@ -254,7 +267,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         spinnerRoomSize.setSelection(getIndex(spinnerRoomSize, extras.getString(DBOpenHelper.ROOM_SIZE)));
         spinnerTraps.setSelection(getIndex(spinnerTraps, extras.getString(DBOpenHelper.TRAPS)));
         spinnerCorridors.setSelection(getIndex(spinnerCorridors, extras.getString(DBOpenHelper.CORRIDORS)));
-        spinnerMonsterType.setSelection(getIndex(spinnerMonsterType, extras.getString(DBOpenHelper.MONSTER_TYPE)));
+        spinnerMonsterType.setAllText(extras.getString(DBOpenHelper.MONSTER_TYPE));
         spinnerDeadEnds.setSelection(getIndex(spinnerDeadEnds, extras.getString(DBOpenHelper.DEAD_ENDS)));
     }
 
@@ -285,7 +298,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         extras.putString(DBOpenHelper.ROOM_SIZE, spinnerRoomSize.getSelectedItem().toString());
         extras.putString(DBOpenHelper.TRAPS, spinnerTraps.getSelectedItem().toString());
         extras.putString(DBOpenHelper.CORRIDORS, spinnerCorridors.getSelectedItem().toString());
-        extras.putString(DBOpenHelper.MONSTER_TYPE, spinnerMonsterType.getSelectedItem().toString());
+        extras.putString(DBOpenHelper.MONSTER_TYPE, spinnerMonsterType.getAllText());
         extras.putString(DBOpenHelper.DEAD_ENDS, spinnerDeadEnds.getSelectedItem().toString());
         extras.putString("THEME", spinnerTheme.getSelectedItem().toString());
         dungeon.putExtras(extras);

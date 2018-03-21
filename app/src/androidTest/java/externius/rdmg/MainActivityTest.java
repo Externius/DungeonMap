@@ -19,6 +19,7 @@ import org.junit.runner.RunWith;
 import java.io.File;
 
 import externius.rdmg.activities.MainActivity;
+import externius.rdmg.helpers.MultiSelectMonster;
 
 import static android.support.test.InstrumentationRegistry.getTargetContext;
 import static android.support.test.espresso.Espresso.onView;
@@ -103,7 +104,7 @@ public class MainActivityTest {
         Spinner partySize = activity.findViewById(R.id.party_size);
         Spinner roomDensity = activity.findViewById(R.id.room_density);
         Spinner roomSize = activity.findViewById(R.id.room_size);
-        Spinner monsterType = activity.findViewById(R.id.monster_type);
+        MultiSelectMonster monsterType = activity.findViewById(R.id.monster_type);
         Spinner traps = activity.findViewById(R.id.traps);
         Spinner deadEnds = activity.findViewById(R.id.dead_end);
         Spinner corridors = activity.findViewById(R.id.corridors);

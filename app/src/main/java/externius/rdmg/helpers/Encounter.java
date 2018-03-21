@@ -103,7 +103,7 @@ final class Encounter {
         } else {
             for (Monster monster : monsters) {
                 if (parse(monster.getChallengeRating()) <= Utils.getPartyLevel() + 2 && parse(monster.getChallengeRating()) >= Math.floor(Utils.getPartyLevel() / 4)
-                        && monster.getType().equals(Utils.getMonsterType())) {
+                        && Utils.getMonsterType().contains(monster.getType())) {
                     result.add(monster);
                 }
             }
@@ -169,7 +169,7 @@ final class Encounter {
     }
 
     static String getMonster() {
-        if (Math.floor(Math.random() * 100) > Utils.getMonsterPercentage()) {
+        if (Math.floor(Math.random() * 100) > Utils.getMonsterPercentage() || Utils.getMonsterType().equals("none")) {
             return "Monster: None";
         }
         setDifficulty();

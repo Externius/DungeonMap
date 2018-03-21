@@ -17,6 +17,8 @@
     <string name="editDialogCancel">Cancel</string>
     <string name="editMonsters">Monsters:</string>
     <string name="editTreasures">Treasures:</string>
+    <string name="ok_button_text">OK</string>
+    <string name="inverse_text">Inverse</string>
     <string-array name="loading_screen_gen_array">
         <item>Generating…</item>
         <item>Work, work, work…</item>
@@ -30,7 +32,6 @@
     <string name="title_activity_settings">Generated Dungeon</string>
     <string name="monster_type">Monster type: </string>
     <string-array name="monster_type_array">
-        <item>Any</item>
         <item>Aberration</item>
         <item>Beast</item>
         <item>Celestial</item>

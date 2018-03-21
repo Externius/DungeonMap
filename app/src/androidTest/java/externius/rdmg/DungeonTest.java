@@ -5,6 +5,7 @@ import android.content.pm.ActivityInfo;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -19,6 +20,7 @@ import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.action.ViewActions.scrollTo;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
+import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.core.IsAnything.anything;
 
 @RunWith(AndroidJUnit4.class)
@@ -146,6 +148,7 @@ public class DungeonTest {
         onView(withId(R.id.load_button)).perform(scrollTo());
         onView(withId(R.id.monster_type)).perform(click());
         onData(anything()).atPosition(3).perform(click());
+        onView(Matchers.allOf(withId(R.id.monster_ok), withText("OK"))).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testMonsterType");
     }

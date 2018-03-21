@@ -136,13 +136,13 @@
             android:layout_below="@+id/room_size_text"
             android:text="@string/monster_type" />
 
-        <Spinner
+        <externius.rdmg.helpers.MultiSelectMonster
             android:id="@+id/monster_type"
             style="@style/MainContentSpinner"
+            android:layout_marginStart="8dp"
             android:layout_alignBaseline="@+id/monster_type_text"
             android:layout_below="@+id/room_size"
-            android:layout_toEndOf="@+id/monster_type_text"
-            android:entries="@array/monster_type_array" />
+            android:layout_toEndOf="@+id/monster_type_text" />
 
         <TextView
             android:id="@+id/traps_text"
