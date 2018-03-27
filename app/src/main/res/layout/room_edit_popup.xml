@@ -15,6 +15,7 @@
         <EditText
             android:id="@+id/edit_monster"
             android:labelFor="@+id/edit_monster"
+            android:hint="@string/edit_monster_hint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textMultiLine"
@@ -28,6 +29,7 @@
             android:layout_below="@+id/edit_monster"/>
         <EditText
             android:id="@+id/edit_treasure"
+            android:hint="@string/edit_treasure_hint"
             android:labelFor="@+id/edit_treasure"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

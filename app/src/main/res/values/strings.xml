@@ -19,16 +19,21 @@
     <string name="editTreasures">Treasures:</string>
     <string name="ok_button_text">OK</string>
     <string name="inverse_text">Inverse</string>
+    <string name="edit_monster_hint">Add monster</string>
+    <string name="edit_treasure_hint">Add treasure</string>
+    <string name="edit_trap_hint">Add trap</string>
     <string-array name="loading_screen_gen_array">
         <item>Generating…</item>
         <item>Work, work, work…</item>
         <item>During the construction of your dungeon 3 dwarfs lost their job on account of automation…</item>
         <item>No goblins were harmed during the making of this dungeon…</item>
     </string-array>
-    <string name="about_content">Have an entire dungeon up your sleeve! Add parameters, generate with one click!\n\n
+    <string name="about_content">
+        This generator based on D&amp;D5th Edition SRD (released under OGL 1.0a license)\n
         You can find the source code at GitHub: \n https://github.com/externius/DungeonMap\n\n
         There is a Web version here: \n https://dungeonmap.info/\n\n
-        Please feel free to contact me if you have any recommendation at t.andras@outlook.com. </string>
+        Please feel free to contact me if you have any recommendation at t.andras@outlook.com.
+    </string>
     <string name="title_activity_settings">Generated Dungeon</string>
     <string name="monster_type">Monster type: </string>
     <string-array name="monster_type_array">

@@ -227,7 +227,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private void getSelectedDungeon(long id) {
         getUriAndFilter(id);
         Cursor cursor = getContentResolver().query(uri, DBOpenHelper.ALL_COLUMNS, filter, null, null);
-        loadDungeon(cursor);
+        if (cursor != null) {
+            loadDungeon(cursor);
+        }
     }
 
     private void getUriAndFilter(long id) {

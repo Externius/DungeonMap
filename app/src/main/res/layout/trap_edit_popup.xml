@@ -11,6 +11,7 @@
         <EditText
             android:id="@+id/edit_trap"
             android:labelFor="@+id/edit_trap"
+            android:hint="@string/edit_trap_hint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textMultiLine"
