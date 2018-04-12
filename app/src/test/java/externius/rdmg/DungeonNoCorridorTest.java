@@ -34,11 +34,11 @@ public class DungeonNoCorridorTest {
         Utils.setDungeonDifficulty(1);
         Utils.setPartySize(4);
         Utils.setPartyLevel(1);
-        Utils.setJsonMonster(UtilsTest.readJSON("monsters.json"));
-        Utils.setJsonTreasure(UtilsTest.readJSON("treasures.json"));
         Utils.setMonsterType("any");
         Utils.setTreasureValue(1);
         Utils.setItemsRarity(3);
+        Utils.setJsonMonster(UtilsTest.readJSON("monsters.json"));
+        Utils.setJsonTreasure(UtilsTest.readJSON("treasures.json"));
         dungeonNoCorridor.init();
     }
 

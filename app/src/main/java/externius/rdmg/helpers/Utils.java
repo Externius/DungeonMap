@@ -3,6 +3,7 @@ package externius.rdmg.helpers;
 
 import com.google.gson.Gson;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -100,6 +101,34 @@ public final class Utils {
         return "#ROOM" + x + "#";
     }
 
+    private static List<Monster> getMonsters(List<Monster> monsters) {
+        List<Monster> result = new ArrayList<>();
+        if (monsterType.equalsIgnoreCase("any")) {
+            for (Monster monster : monsters) {
+                if (parse(monster.getChallengeRating()) <= partyLevel + 2 && parse(monster.getChallengeRating()) >= Math.floor(partyLevel / 4)) {
+                    result.add(monster);
+                }
+            }
+        } else {
+            for (Monster monster : monsters) {
+                if (parse(monster.getChallengeRating()) <= partyLevel + 2 && parse(monster.getChallengeRating()) >= Math.floor(partyLevel / 4)
+                        && monsterType.contains(monster.getType())) {
+                    result.add(monster);
+                }
+            }
+        }
+        return result;
+    }
+
+    private static double parse(String ratio) {
+        if (ratio.contains("/")) {
+            String[] rat = ratio.split("/");
+            return Double.parseDouble(rat[0]) / Double.parseDouble(rat[1]);
+        } else {
+            return Double.parseDouble(ratio);
+        }
+    }
+
     static int getPartyLevel() {
         return partyLevel;
     }
@@ -125,7 +154,7 @@ public final class Utils {
     }
 
     public static void setJsonMonster(String jsonMonster) {
-        monsterList = Arrays.asList(gson.fromJson(jsonMonster, Monster[].class));
+        monsterList = getMonsters(Arrays.asList(gson.fromJson(jsonMonster, Monster[].class)));
     }
 
     static String getMonsterType() {

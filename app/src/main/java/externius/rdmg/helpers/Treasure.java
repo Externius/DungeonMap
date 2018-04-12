@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import externius.rdmg.models.Treasures;
 
@@ -29,7 +28,7 @@ final class Treasure {
 
     private static List<Treasures> getFiltered(List<Treasures> treasures) {
         List<Treasures> result = new ArrayList<>();
-        if (Objects.equals(Utils.getMonsterType(), "any")) {
+        if (Utils.getMonsterType().equalsIgnoreCase("any")) {
             for (Treasures treasure : treasures) {
                 if (treasure.getRarity() <= Utils.getItemsRarity() && treasure.getCost() < sumValue) {
                     result.add(treasure);

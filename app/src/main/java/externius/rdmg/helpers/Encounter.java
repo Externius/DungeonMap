@@ -4,7 +4,6 @@ package externius.rdmg.helpers;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 import externius.rdmg.models.Monster;
 
@@ -92,34 +91,6 @@ final class Encounter {
 
     }
 
-    private static List<Monster> getMonsters(List<Monster> monsters) {
-        List<Monster> result = new ArrayList<>();
-        if (Objects.equals(Utils.getMonsterType(), "any")) {
-            for (Monster monster : monsters) {
-                if (parse(monster.getChallengeRating()) <= Utils.getPartyLevel() + 2 && parse(monster.getChallengeRating()) >= Math.floor(Utils.getPartyLevel() / 4)) {
-                    result.add(monster);
-                }
-            }
-        } else {
-            for (Monster monster : monsters) {
-                if (parse(monster.getChallengeRating()) <= Utils.getPartyLevel() + 2 && parse(monster.getChallengeRating()) >= Math.floor(Utils.getPartyLevel() / 4)
-                        && Utils.getMonsterType().contains(monster.getType())) {
-                    result.add(monster);
-                }
-            }
-        }
-        return result;
-    }
-
-    private static double parse(String ratio) {
-        if (ratio.contains("/")) {
-            String[] rat = ratio.split("/");
-            return Double.parseDouble(rat[0]) / Double.parseDouble(rat[1]);
-        } else {
-            return Double.parseDouble(ratio);
-        }
-    }
-
     private static String addMonster(List<Monster> filteredMonsters, int currentXP) {
         int monsterCount = filteredMonsters.size();
         int monster = 0;
@@ -144,7 +115,7 @@ final class Encounter {
     }
 
     private static String calcEncounter() {
-        List<Monster> filteredMonsters = getMonsters(Utils.getMonsterList()); //get monsters for party level
+        List<Monster> filteredMonsters = Utils.getMonsterList(); //get monsters for party level
         int sumXP = difficulty[Utils.getDungeonDifficulty()];
         StringBuilder result = new StringBuilder();
         result.append("Monster: ");
@@ -169,7 +140,7 @@ final class Encounter {
     }
 
     static String getMonster() {
-        if (Math.floor(Math.random() * 100) > Utils.getMonsterPercentage() || Utils.getMonsterType().equals("none")) {
+        if (Math.floor(Math.random() * 100) > Utils.getMonsterPercentage() || Utils.getMonsterType().equalsIgnoreCase("none")) {
             return "Monster: None";
         }
         setDifficulty();
