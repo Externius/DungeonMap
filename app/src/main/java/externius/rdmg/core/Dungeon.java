@@ -10,6 +10,7 @@ import java.util.List;
 
 import externius.rdmg.helpers.Utils;
 import externius.rdmg.models.DungeonTile;
+import externius.rdmg.models.RoamingMonsterDescription;
 import externius.rdmg.models.RoomDescription;
 import externius.rdmg.models.Textures;
 import externius.rdmg.models.TrapDescription;
@@ -29,9 +30,12 @@ public class Dungeon {
     private List<DungeonTile> result;
     private List<DungeonTile> corridors;
     private List<TrapDescription> trapDescription;
+    private List<RoamingMonsterDescription> roamingMonsterDescriptions;
     private int roomDensity;
     private int trapPercent;
+    private int roamingPercent;
     private int trapCount;
+    private int roamingCount;
     private int roomCount;
     private boolean hasDeadEnds;
 
@@ -39,14 +43,19 @@ public class Dungeon {
 
     }
 
-    public Dungeon(int dungeonWidth, int dungeonHeight, int dungeonSize, int roomDensity, int roomSizePercent, int trapPercent, boolean hasDeadEnds) {
+    public Dungeon(int dungeonWidth, int dungeonHeight, int dungeonSize, int roomDensity, int roomSizePercent, int trapPercent, boolean hasDeadEnds, int roamingPercent) {
         this.dungeonWidth = dungeonWidth;
         this.dungeonHeight = dungeonHeight;
         this.dungeonSize = dungeonSize;
         this.roomDensity = roomDensity;
         this.roomSizePercent = roomSizePercent;
         this.trapPercent = trapPercent;
+        this.roamingPercent = roamingPercent;
         this.hasDeadEnds = hasDeadEnds;
+    }
+
+    public enum Item {
+        TRAP, ROAMING_MONSTER
     }
 
     public void generate() {
@@ -57,7 +66,8 @@ public class Dungeon {
         if (hasDeadEnds) {
             addDeadEnds();
         }
-        addRandomTrap();
+        addCorridorItem(trapCount, Item.TRAP);
+        addCorridorItem(roamingCount, Item.ROAMING_MONSTER);
     }
 
     public void init() {
@@ -68,7 +78,9 @@ public class Dungeon {
         roomSize = Math.round((float) (dungeonSize - Math.round(dungeonSize * 0.35)) / 100 * roomSizePercent);
         roomDescription = new ArrayList<>();
         trapDescription = new ArrayList<>();
+        roamingMonsterDescriptions = new ArrayList<>();
         trapCount = dungeonSize * trapPercent / 100;
+        roamingCount = dungeonSize * roamingPercent / 100;
         dungeonSize += 2; // because of boundaries
         dungeonTiles = new DungeonTile[dungeonSize][dungeonSize];
         for (int i = 0; i < dungeonSize; i++) {
@@ -83,22 +95,40 @@ public class Dungeon {
         }
     }
 
-    public void addRandomTrap() {
+    public void addCorridorItem(int inCount, Item item) {
         int count = 0;
-        while (trapCount > count) {
+        while (inCount > count) {
             int x = Utils.getRandomInt(0, corridors.size());
             int i = corridors.get(x).getI();
             int j = corridors.get(x).getJ();
             if (dungeonTiles[i][j].getTexture() == Textures.CORRIDOR) {
-                addTrap(i, j);
+                addItem(i, j, item);
                 count++;
             }
+        }
+    }
+
+    private void addItem(int x, int y, Item item) {
+        switch (item) {
+            case TRAP:
+                addTrap(x, y);
+                break;
+            case ROAMING_MONSTER:
+                addRoamingMonster(x, y);
+                break;
+            default:
+                break;
         }
     }
 
     private void addTrap(int x, int y) {
         dungeonTiles[x][y].setTexture(Textures.TRAP);
         Utils.addTrapDescription(dungeonTiles, x, y, trapDescription);
+    }
+
+    private void addRoamingMonster(int x, int y) {
+        dungeonTiles[x][y].setTexture(Textures.ROAMING_MONSTER);
+        Utils.addRoamingMonsterDescription(dungeonTiles, x, y, roamingMonsterDescriptions);
     }
 
     public void addDeadEnds() {
@@ -427,5 +457,9 @@ public class Dungeon {
 
     public DungeonTile[][] getDungeonTiles() {
         return dungeonTiles;
+    }
+
+    public List<RoamingMonsterDescription> getRoamingMonsterDescriptions() {
+        return roamingMonsterDescriptions;
     }
 }

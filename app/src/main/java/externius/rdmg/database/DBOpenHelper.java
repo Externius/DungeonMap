@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DBOpenHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "dungeons.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
     static final String TABLE_DUNGEONS = "dungeons";
     public static final String DUNGEON_ID = "_id";
@@ -15,6 +15,7 @@ public class DBOpenHelper extends SQLiteOpenHelper {
     public static final String LOADED_DUNGEON = "LOADED_DUNGEON";
     public static final String LOADED_ROOM_DESCRIPTION = "LOADED_ROOM_DESCRIPTION";
     public static final String LOADED_TRAP_DESCRIPTION = "LOADED_TRAP_DESCRIPTION";
+    public static final String LOADED_ROAMING_MONSTERS = "LOADED_ROAMING_MONSTERS";
     public static final String DUNGEON_DIFFICULTY = "DUNGEON_DIFFICULTY";
     public static final String PARTY_LEVEL = "PARTY_LEVEL";
     public static final String PARTY_SIZE = "PARTY_SIZE";
@@ -27,15 +28,16 @@ public class DBOpenHelper extends SQLiteOpenHelper {
     public static final String CORRIDORS = "CORRIDORS";
     public static final String MONSTER_TYPE = "MONSTER_TYPE";
     public static final String DEAD_ENDS = "DEAD_ENDS";
+    public static final String ROAMING_MONSTERS = "ROAMING_MONSTERS";
     static final String DUNGEON_CREATED = "DUNGEON_CREATED";
 
-    public static final String[] ALL_COLUMNS = {DUNGEON_ID, DUNGEON_NAME, LOADED_DUNGEON, LOADED_ROOM_DESCRIPTION, LOADED_TRAP_DESCRIPTION,
+    public static final String[] ALL_COLUMNS = {DUNGEON_ID, DUNGEON_NAME, LOADED_DUNGEON, LOADED_ROOM_DESCRIPTION, LOADED_TRAP_DESCRIPTION, LOADED_ROAMING_MONSTERS,
             DUNGEON_DIFFICULTY, PARTY_LEVEL, PARTY_SIZE, TREASURE_VALUE, ITEMS_RARITY, DUNGEON_SIZE, ROOM_DENSITY, ROOM_SIZE,
-            TRAPS, CORRIDORS, MONSTER_TYPE, DEAD_ENDS, DUNGEON_CREATED};
+            TRAPS, CORRIDORS, MONSTER_TYPE, DEAD_ENDS, ROAMING_MONSTERS, DUNGEON_CREATED};
 
     public static final String[] TO_BUNDLE = {
             DUNGEON_DIFFICULTY, PARTY_LEVEL, PARTY_SIZE, TREASURE_VALUE, ITEMS_RARITY, DUNGEON_SIZE, ROOM_DENSITY, ROOM_SIZE,
-            TRAPS, CORRIDORS, MONSTER_TYPE, DEAD_ENDS};
+            TRAPS, CORRIDORS, MONSTER_TYPE, DEAD_ENDS, ROAMING_MONSTERS};
 
     private static final String TABLE_CREATE =
             "CREATE TABLE " + TABLE_DUNGEONS + " (" +
@@ -44,6 +46,7 @@ public class DBOpenHelper extends SQLiteOpenHelper {
                     LOADED_DUNGEON + " TEXT NOT NULL UNIQUE, " +
                     LOADED_ROOM_DESCRIPTION + " TEXT, " +
                     LOADED_TRAP_DESCRIPTION + " TEXT, " +
+                    LOADED_ROAMING_MONSTERS + " TEXT, " +
                     DUNGEON_DIFFICULTY + " TEXT, " +
                     PARTY_LEVEL + " TEXT, " +
                     PARTY_SIZE + " TEXT, " +
@@ -56,8 +59,15 @@ public class DBOpenHelper extends SQLiteOpenHelper {
                     CORRIDORS + " TEXT, " +
                     MONSTER_TYPE + " TEXT, " +
                     DEAD_ENDS + " TEXT, " +
+                    ROAMING_MONSTERS + " TEXT, " +
                     DUNGEON_CREATED + " TEXT default CURRENT_TIMESTAMP" +
                     ")";
+
+    private static final String DATABASE_ALTER_1 = "ALTER TABLE " + TABLE_DUNGEONS
+            + " ADD COLUMN " + ROAMING_MONSTERS + " TEXT;";
+
+    private static final String DATABASE_ALTER_2 = "ALTER TABLE " + TABLE_DUNGEONS
+            + " ADD COLUMN " + LOADED_ROAMING_MONSTERS + " TEXT;";
 
     DBOpenHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -70,7 +80,13 @@ public class DBOpenHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + TABLE_DUNGEONS);
-        onCreate(sqLiteDatabase);
+        if (i == 1) {
+            sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + TABLE_DUNGEONS);
+            onCreate(sqLiteDatabase);
+        } else if (i == 2) {
+            sqLiteDatabase.execSQL(DATABASE_ALTER_1);
+            sqLiteDatabase.execSQL(DATABASE_ALTER_2);
+        }
+
     }
 }

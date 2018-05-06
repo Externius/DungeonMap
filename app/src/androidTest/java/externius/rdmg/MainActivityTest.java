@@ -52,6 +52,7 @@ public class MainActivityTest {
         TextView roomSizeText = activity.findViewById(R.id.room_size_text);
         TextView monsterTypeText = activity.findViewById(R.id.monster_type_text);
         TextView trapsText = activity.findViewById(R.id.traps_text);
+        TextView roamingMonstersText = activity.findViewById(R.id.roaming_monsters_text);
         TextView deadEndsText = activity.findViewById(R.id.dead_end_text);
         TextView corridorsText = activity.findViewById(R.id.corridors_text);
         TextView themeText = activity.findViewById(R.id.theme_text);
@@ -65,6 +66,7 @@ public class MainActivityTest {
         assertNotNull(roomSizeText);
         assertNotNull(monsterTypeText);
         assertNotNull(trapsText);
+        assertNotNull(roamingMonstersText);
         assertNotNull(deadEndsText);
         assertNotNull(corridorsText);
         assertNotNull(themeText);
@@ -78,6 +80,7 @@ public class MainActivityTest {
         assertTrue(roomSizeText.isShown());
         assertTrue(monsterTypeText.isShown());
         assertTrue(trapsText.isShown());
+        assertTrue(roamingMonstersText.isShown());
         assertTrue(deadEndsText.isShown());
         assertTrue(corridorsText.isShown());
         assertTrue(themeText.isShown());
@@ -91,6 +94,7 @@ public class MainActivityTest {
         assertEquals(getTargetContext().getString(R.string.room_size), roomSizeText.getText());
         assertEquals(getTargetContext().getString(R.string.monster_type), monsterTypeText.getText());
         assertEquals(getTargetContext().getString(R.string.traps), trapsText.getText());
+        assertEquals(getTargetContext().getString(R.string.roaming_monsters), roamingMonstersText.getText());
         assertEquals(getTargetContext().getString(R.string.dead_ends), deadEndsText.getText());
         assertEquals(getTargetContext().getString(R.string.corridors), corridorsText.getText());
         assertEquals(getTargetContext().getString(R.string.theme_value), themeText.getText());
@@ -106,6 +110,7 @@ public class MainActivityTest {
         Spinner roomSize = activity.findViewById(R.id.room_size);
         MultiSelectMonster monsterType = activity.findViewById(R.id.monster_type);
         Spinner traps = activity.findViewById(R.id.traps);
+        Spinner roamingMonsters = activity.findViewById(R.id.roaming_monsters);
         Spinner deadEnds = activity.findViewById(R.id.dead_end);
         Spinner corridors = activity.findViewById(R.id.corridors);
         Spinner theme = activity.findViewById(R.id.theme);
@@ -119,6 +124,7 @@ public class MainActivityTest {
         assertNotNull(roomSize);
         assertNotNull(monsterType);
         assertNotNull(traps);
+        assertNotNull(roamingMonsters);
         assertNotNull(deadEnds);
         assertNotNull(corridors);
         assertNotNull(theme);
@@ -132,6 +138,7 @@ public class MainActivityTest {
         assertTrue(roomSize.isShown());
         assertTrue(monsterType.isShown());
         assertTrue(traps.isShown());
+        assertTrue(roamingMonsters.isShown());
         assertTrue(deadEnds.isShown());
         assertTrue(corridors.isShown());
         assertTrue(theme.isShown());

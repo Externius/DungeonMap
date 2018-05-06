@@ -117,6 +117,12 @@
         <item>Few</item>
         <item>More</item>
     </string-array>
+    <string name="roaming_monsters">Roaming monsters:</string>
+    <string-array name="roaming_monsters_array">
+        <item>None</item>
+        <item>Few</item>
+        <item>More</item>
+    </string-array>
     <string name="dead_ends"> Dead ends: </string>
     <string-array name="dead_ends_array">
         <item>Yes</item>

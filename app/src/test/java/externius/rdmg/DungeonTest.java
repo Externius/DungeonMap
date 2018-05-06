@@ -21,7 +21,7 @@ import static org.junit.Assert.assertTrue;
 
 public class DungeonTest {
 
-    private final Dungeon dungeon = new Dungeon(800, 800, 15, 10, 15, 15, true);
+    private final Dungeon dungeon = new Dungeon(800, 800, 15, 10, 15, 15, true, 10);
 
     @Rule
     public final TestName name = new TestName();
@@ -88,16 +88,29 @@ public class DungeonTest {
     }
 
     @Test
-    public void testAddRandomTrap(){
+    public void testAddTrap(){
         dungeon.generateRoom();
         dungeon.addEntryPoint();
         dungeon.generateCorridors();
         dungeon.addDeadEnds();
-        dungeon.addRandomTrap();
+        dungeon.addCorridorItem(2, Dungeon.Item.TRAP);
         System.out.println(name.getMethodName());
         DrawTestDungeon.draw(dungeon.getDungeonTiles());
         List<DungeonTile> dungeonList = UtilsTest.twoDArrayToList(dungeon.getDungeonTiles());
         assertThat(dungeonList, hasItem(Matchers.<DungeonTile>hasProperty("texture", equalTo(Textures.TRAP))));
+    }
+
+    @Test
+    public void testAddRoamingMonster(){
+        dungeon.generateRoom();
+        dungeon.addEntryPoint();
+        dungeon.generateCorridors();
+        dungeon.addDeadEnds();
+        dungeon.addCorridorItem(2, Dungeon.Item.ROAMING_MONSTER);
+        System.out.println(name.getMethodName());
+        DrawTestDungeon.draw(dungeon.getDungeonTiles());
+        List<DungeonTile> dungeonList = UtilsTest.twoDArrayToList(dungeon.getDungeonTiles());
+        assertThat(dungeonList, hasItem(Matchers.<DungeonTile>hasProperty("texture", equalTo(Textures.ROAMING_MONSTER))));
     }
 
 }

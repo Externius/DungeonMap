@@ -62,6 +62,7 @@ import externius.rdmg.database.DBOpenHelper;
 import externius.rdmg.database.DungeonsProvider;
 import externius.rdmg.helpers.Export;
 import externius.rdmg.models.DungeonTile;
+import externius.rdmg.models.RoamingMonsterDescription;
 import externius.rdmg.models.RoomDescription;
 import externius.rdmg.models.Textures;
 import externius.rdmg.models.TrapDescription;
@@ -80,6 +81,7 @@ public class DungeonActivity extends AppCompatActivity {
     private static int roomDensity;
     private static int roomSize;
     private static int traps;
+    private static int roamingMonsters;
     private static boolean hasCorridor;
     private static boolean hasDeadEnds;
     private static String monsterType;
@@ -95,6 +97,7 @@ public class DungeonActivity extends AppCompatActivity {
     private static DungeonTile[][] loadedDungeon;
     private static List<RoomDescription> loadedRoomDescription;
     private static List<TrapDescription> loadedTrapDescription;
+    private static List<RoamingMonsterDescription> loadedRoamingMonsterDescription;
     private static Bundle extras = null;
     private static final Gson gson = new Gson();
     private static long mLastClickTime = 0;
@@ -332,6 +335,22 @@ public class DungeonActivity extends AppCompatActivity {
             return 0;
         }
 
+        private static int setRoamingMonsters(String rm) {
+            if (rm != null && !rm.isEmpty()) {
+                switch (rm) {
+                    case "None":
+                        return 0;
+                    case "Few":
+                        return 10;
+                    case "More":
+                        return 20;
+                    default:
+                        break;
+                }
+            }
+            return 0;
+        }
+
         private static double setTreasureValue(String tV) {
             if (tV != null && !tV.isEmpty()) {
                 switch (tV) {
@@ -375,6 +394,7 @@ public class DungeonActivity extends AppCompatActivity {
                 loadedDungeon = null;
                 loadedRoomDescription = null;
                 loadedTrapDescription = null;
+                loadedRoamingMonsterDescription = null;
                 filter = null;
             }
             String mt = extras.getString(DBOpenHelper.MONSTER_TYPE);
@@ -390,6 +410,7 @@ public class DungeonActivity extends AppCompatActivity {
             partyLevel = Integer.parseInt(extras.getString(DBOpenHelper.PARTY_LEVEL));
             treasureValue = setTreasureValue(extras.getString(DBOpenHelper.TREASURE_VALUE));
             itemsRarity = setItemsRarity(extras.getString(DBOpenHelper.ITEMS_RARITY));
+            roamingMonsters = setRoamingMonsters(extras.getString(DBOpenHelper.ROAMING_MONSTERS));
             if (mt != null && !mt.isEmpty()) {
                 monsterType = mt.toLowerCase();
             }
@@ -414,6 +435,9 @@ public class DungeonActivity extends AppCompatActivity {
             Type trapListType = new TypeToken<ArrayList<TrapDescription>>() {
             }.getType();
             loadedTrapDescription = gson.fromJson(cursor.getString(cursor.getColumnIndex(DBOpenHelper.LOADED_TRAP_DESCRIPTION)), trapListType);
+            Type monsterListType = new TypeToken<ArrayList<RoamingMonsterDescription>>() {
+            }.getType();
+            loadedRoamingMonsterDescription = gson.fromJson(cursor.getString(cursor.getColumnIndex(DBOpenHelper.LOADED_ROAMING_MONSTERS)), monsterListType);
             cursor.close();
         }
     }
@@ -426,21 +450,26 @@ public class DungeonActivity extends AppCompatActivity {
         }
         layout.addView(getDungeonView(false));
         addButtons(layout);
-        addDescription(layout, dungeonView.getRoomDescription(), dungeonView.getTrapDescription());
+        addDescription(layout, dungeonView.getRoomDescription(), dungeonView.getTrapDescription(), dungeonView.getRoamingMonsterDescription());
         addTouchListener();
         filter = null;
     }
 
     private static void addTouchListener() {
-        loadedTrapDescription = dungeonView.getTrapDescription();
-        loadedRoomDescription = dungeonView.getRoomDescription();
-        loadedDungeon = dungeonView.getDungeonTiles();
+        fillLoadedVariables();
         DungeonMapView view = activity.get().findViewById(R.id.dungeonMap_view);
         view.setOnTouchListener((v, event) -> {
             mGestureDetector.onTouchEvent(event);
             v.performClick();
             return true;
         });
+    }
+
+    private static void fillLoadedVariables() {
+        loadedTrapDescription = dungeonView.getTrapDescription();
+        loadedRoomDescription = dungeonView.getRoomDescription();
+        loadedRoamingMonsterDescription = dungeonView.getRoamingMonsterDescription();
+        loadedDungeon = dungeonView.getDungeonTiles();
     }
 
     class DungeonActivityGestureListener extends GestureDetector.SimpleOnGestureListener {
@@ -472,8 +501,8 @@ public class DungeonActivity extends AppCompatActivity {
         if (xIndex >= loadedDungeon.length || yIndex >= loadedDungeon[0].length) {
             return;
         }
+        Textures texture = loadedDungeon[xIndex][yIndex].getTexture();
         if (motionEvent.getAction() == MotionEvent.ACTION_UP) { // single tap
-            Textures texture = loadedDungeon[xIndex][yIndex].getTexture();
             switch (texture) {
                 case ROOM:
                     showRoomPopUp(loadedDungeon[xIndex][yIndex].getIndex());
@@ -492,40 +521,82 @@ public class DungeonActivity extends AppCompatActivity {
                 case ENTRY:
                     showEntryPopUp();
                     break;
+                case ROAMING_MONSTER:
+                    showRoamingMonsterPopUp(loadedDungeon[xIndex][yIndex].getIndex());
+                    break;
                 default:
                     break;
             }
         } else if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) { // long tap
-            Textures texture = loadedDungeon[xIndex][yIndex].getTexture();
             switch (texture) {
                 case ROOM:
-                    editRoomPopUp(loadedDungeon[xIndex][yIndex].getIndex());
-                    break;
                 case TRAP:
-                    editTrapPopUp(loadedDungeon[xIndex][yIndex].getIndex());
-                    break;
+                case ROAMING_MONSTER:
+                    editPopUp(loadedDungeon[xIndex][yIndex].getIndex(), texture);
                 default:
                     break;
             }
         }
     }
 
-    private static void editTrapPopUp(int index) {
-        TrapDescription trap = loadedTrapDescription.get(index);
+    private static void editPopUp(int index, Textures texture) {
         dialog = new Dialog(activity.get(), R.style.Dialog);
-        dialog.setContentView(R.layout.trap_edit_popup);
-        dialog.setTitle(trap.getName());
-        EditText description = dialog.findViewById(R.id.edit_trap);
-        description.setText(trap.getDescription());
-        setTextStyle(description);
-        Button saveButton = dialog.findViewById(R.id.editDialogSaveButton);
-        saveButton.setOnClickListener(v -> {
-            TrapDescription newTrap = new TrapDescription(trap.getName(), description.getText().toString());
-            loadedTrapDescription.set(index, newTrap);
-            drawDungeon(null);
-            dialog.dismiss();
-        });
-        Button cancelButton = dialog.findViewById(R.id.editDialogCancelButton);
+        EditText description;
+        Button saveButton;
+        Button cancelButton;
+        switch (texture) {
+            case ROOM:
+                RoomDescription room = loadedRoomDescription.get(index);
+                dialog.setContentView(R.layout.room_edit_popup);
+                dialog.setTitle(room.getName());
+                EditText monsters = dialog.findViewById(R.id.edit_monster);
+                monsters.setText(room.getMonster().substring(9)); // Monster:
+                setTextStyle(monsters);
+                EditText treasures = dialog.findViewById(R.id.edit_treasure);
+                treasures.setText(room.getTreasure().substring(11)); // Treasures:
+                setTextStyle(treasures);
+                saveButton = dialog.findViewById(R.id.editDialogSaveButton);
+                saveButton.setOnClickListener(v -> {
+                    RoomDescription newRoom = new RoomDescription(room.getName(), "Treasures: " + treasures.getText().toString(), "Monster: " + monsters.getText().toString(), room.getDoors());
+                    loadedRoomDescription.set(index, newRoom);
+                    drawDungeon(null);
+                    dialog.dismiss();
+                });
+                break;
+            case TRAP:
+                TrapDescription trap = loadedTrapDescription.get(index);
+                dialog.setContentView(R.layout.trap_edit_popup);
+                dialog.setTitle(trap.getName());
+                description = dialog.findViewById(R.id.edit_trap);
+                description.setText(trap.getDescription());
+                setTextStyle(description);
+                saveButton = dialog.findViewById(R.id.editDialogSaveButton);
+                saveButton.setOnClickListener(v -> {
+                    TrapDescription newTrap = new TrapDescription(trap.getName(), description.getText().toString());
+                    loadedTrapDescription.set(index, newTrap);
+                    drawDungeon(null);
+                    dialog.dismiss();
+                });
+                break;
+            case ROAMING_MONSTER:
+                RoamingMonsterDescription monster = loadedRoamingMonsterDescription.get(index);
+                dialog.setContentView(R.layout.trap_edit_popup);
+                dialog.setTitle(monster.getName());
+                description = dialog.findViewById(R.id.edit_trap);
+                description.setText(monster.getDescription());
+                setTextStyle(description);
+                saveButton = dialog.findViewById(R.id.editDialogSaveButton);
+                saveButton.setOnClickListener(v -> {
+                    RoamingMonsterDescription newMonster = new RoamingMonsterDescription(monster.getName(), description.getText().toString());
+                    loadedRoamingMonsterDescription.set(index, newMonster);
+                    drawDungeon(null);
+                    dialog.dismiss();
+                });
+                break;
+            default:
+                break;
+        }
+        cancelButton = dialog.findViewById(R.id.editDialogCancelButton);
         cancelButton.setOnClickListener(v -> dialog.dismiss());
         dialog.show();
     }
@@ -551,6 +622,14 @@ public class DungeonActivity extends AppCompatActivity {
         createDialog(trap.getName(), details);
     }
 
+    private static void showRoamingMonsterPopUp(int index) {
+        RoamingMonsterDescription monster = loadedRoamingMonsterDescription.get(index);
+        TextView details = new TextView(activity.get());
+        details.setText(monster.getDescription());
+        setTextStyle(details);
+        createDialog(monster.getName(), details);
+    }
+
     private static void showRoomPopUp(int index) {
         RoomDescription room = loadedRoomDescription.get(index);
         TextView details = new TextView(activity.get());
@@ -558,29 +637,6 @@ public class DungeonActivity extends AppCompatActivity {
         details.setText(text);
         setTextStyle(details);
         createDialog(room.getName(), details);
-    }
-
-    private static void editRoomPopUp(int index) {
-        RoomDescription room = loadedRoomDescription.get(index);
-        dialog = new Dialog(activity.get(), R.style.Dialog);
-        dialog.setContentView(R.layout.room_edit_popup);
-        dialog.setTitle(room.getName());
-        EditText monsters = dialog.findViewById(R.id.edit_monster);
-        monsters.setText(room.getMonster().substring(9)); // Monster:
-        setTextStyle(monsters);
-        EditText treasures = dialog.findViewById(R.id.edit_treasure);
-        treasures.setText(room.getTreasure().substring(11)); // Treasures:
-        setTextStyle(treasures);
-        Button saveButton = dialog.findViewById(R.id.editDialogSaveButton);
-        saveButton.setOnClickListener(v -> {
-            RoomDescription newRoom = new RoomDescription(room.getName(), "Treasures: " + treasures.getText().toString(), "Monster: " + monsters.getText().toString(), room.getDoors());
-            loadedRoomDescription.set(index, newRoom);
-            drawDungeon(null);
-            dialog.dismiss();
-        });
-        Button cancelButton = dialog.findViewById(R.id.editDialogCancelButton);
-        cancelButton.setOnClickListener(v -> dialog.dismiss());
-        dialog.show();
     }
 
     private static void createDialog(String title, View view) {
@@ -623,11 +679,11 @@ public class DungeonActivity extends AppCompatActivity {
         if (result != null) { // not a loaded dungeon
             layout.addView((View) result);
             addButtons(layout);
-            addDescription(layout, dungeonView.getRoomDescription(), dungeonView.getTrapDescription());
+            addDescription(layout, dungeonView.getRoomDescription(), dungeonView.getTrapDescription(), dungeonView.getRoamingMonsterDescription());
         } else if (loadedDungeon != null) { // its a loaded dungeon
             layout.addView(getDungeonView(true));
             addButtons(layout);
-            addDescription(layout, loadedRoomDescription, loadedTrapDescription);
+            addDescription(layout, loadedRoomDescription, loadedTrapDescription, loadedRoamingMonsterDescription);
         }
         addTouchListener();
     }
@@ -648,6 +704,7 @@ public class DungeonActivity extends AppCompatActivity {
         ContentValues values = new ContentValues();
         values.put(DBOpenHelper.LOADED_ROOM_DESCRIPTION, gson.toJson(loadedRoomDescription));
         values.put(DBOpenHelper.LOADED_TRAP_DESCRIPTION, gson.toJson(loadedTrapDescription));
+        values.put(DBOpenHelper.LOADED_ROAMING_MONSTERS, gson.toJson(loadedRoamingMonsterDescription));
         return values;
     }
 
@@ -658,6 +715,7 @@ public class DungeonActivity extends AppCompatActivity {
         values.put(DBOpenHelper.LOADED_DUNGEON, gson.toJson(dungeonView.getDungeonTiles()));
         values.put(DBOpenHelper.LOADED_ROOM_DESCRIPTION, gson.toJson(dungeonView.getRoomDescription()));
         values.put(DBOpenHelper.LOADED_TRAP_DESCRIPTION, gson.toJson(dungeonView.getTrapDescription()));
+        values.put(DBOpenHelper.LOADED_ROAMING_MONSTERS, gson.toJson(dungeonView.getRoamingMonsterDescription()));
         values.put(DBOpenHelper.DUNGEON_DIFFICULTY, extras.getString(DBOpenHelper.DUNGEON_DIFFICULTY));
         values.put(DBOpenHelper.PARTY_LEVEL, extras.getString(DBOpenHelper.PARTY_LEVEL));
         values.put(DBOpenHelper.PARTY_SIZE, extras.getString(DBOpenHelper.PARTY_SIZE));
@@ -670,6 +728,7 @@ public class DungeonActivity extends AppCompatActivity {
         values.put(DBOpenHelper.CORRIDORS, extras.getString(DBOpenHelper.CORRIDORS));
         values.put(DBOpenHelper.MONSTER_TYPE, extras.getString(DBOpenHelper.MONSTER_TYPE));
         values.put(DBOpenHelper.DEAD_ENDS, extras.getString(DBOpenHelper.DEAD_ENDS));
+        values.put(DBOpenHelper.ROAMING_MONSTERS, extras.getString(DBOpenHelper.ROAMING_MONSTERS));
         return values;
     }
 
@@ -795,7 +854,7 @@ public class DungeonActivity extends AppCompatActivity {
             Bitmap dungeonBitmap = getBitmapFromView(activity.get().findViewById(R.id.dungeonMap_view));
             File directory = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
                     + "/DungeonMaps/");
-            String html = Export.generateHTML(dungeonBitmap, dungeonView.getRoomDescription(), dungeonView.getTrapDescription());
+            String html = Export.generateHTML(dungeonBitmap, dungeonView.getRoomDescription(), dungeonView.getTrapDescription(), dungeonView.getRoamingMonsterDescription());
             if (!directory.exists()) {
                 if (directory.mkdirs()) {
                     createFile(directory, getFilename(directory), html);
@@ -858,7 +917,7 @@ public class DungeonActivity extends AppCompatActivity {
         dungeonView = new DungeonMapView(activity.get());
         setDungeonParameters();
         if (load) {
-            dungeonView.loadDungeon(loadedDungeon, loadedRoomDescription, loadedTrapDescription, hasCorridor);
+            dungeonView.loadDungeon(loadedDungeon, loadedRoomDescription, loadedTrapDescription, hasCorridor, loadedRoamingMonsterDescription);
         } else {
             dungeonView.generateDungeon();
         }
@@ -875,6 +934,7 @@ public class DungeonActivity extends AppCompatActivity {
         dungeonView.setRoomDensity(roomDensity);
         dungeonView.setRoomSizePercent(roomSize);
         dungeonView.setTrapPercent(traps);
+        dungeonView.setRoamingPercent(roamingMonsters);
         dungeonView.setPartyLevel(partyLevel);
         dungeonView.setItemsRarity(itemsRarity);
         dungeonView.setTreasureValue(treasureValue);
@@ -889,7 +949,7 @@ public class DungeonActivity extends AppCompatActivity {
         dungeonView.setId(R.id.dungeonMap_view);
     }
 
-    private static void addDescription(RelativeLayout layout, List<RoomDescription> roomDescription, List<TrapDescription> trapDescription) {
+    private static void addDescription(RelativeLayout layout, List<RoomDescription> roomDescription, List<TrapDescription> trapDescription, List<RoamingMonsterDescription> roamingMonsterDescription) {
         List<TextView> rooms = getRoomTextViews(layout, roomDescription);
         for (int i = 4; i < rooms.size(); i += 4) { // 4 because the first 4 manually added
             addViewToLayout(layout, rooms.get(i), rooms.get(i - 3), true, rooms.get(i - 1));
@@ -897,7 +957,7 @@ public class DungeonActivity extends AppCompatActivity {
             addViewToLayout(layout, rooms.get(i + 2), rooms.get(i + 1), false, rooms.get(i));
             addViewToLayout(layout, rooms.get(i + 3), rooms.get(i + 2), false, rooms.get(i));
         }
-        if (!trapDescription.isEmpty()) {
+        if (trapDescription != null && !trapDescription.isEmpty()) {
             List<TextView> trapsD = getTrapTextViews(trapDescription);
             addViewToLayout(layout, trapsD.get(0), null, true, rooms.get(rooms.size() - 1));
             addViewToLayout(layout, trapsD.get(1), rooms.get(rooms.size() - 1), false, trapsD.get(0));
@@ -905,25 +965,53 @@ public class DungeonActivity extends AppCompatActivity {
                 addViewToLayout(layout, trapsD.get(i), null, true, trapsD.get(i - 1));
                 addViewToLayout(layout, trapsD.get(i + 1), trapsD.get(i - 1), false, trapsD.get(i));
             }
+            addMonstersDescription(layout, roamingMonsterDescription, trapsD);
+        } else {
+            addMonstersDescription(layout, roamingMonsterDescription, rooms);
+        }
+    }
+
+    private static void addMonstersDescription(RelativeLayout layout, List<RoamingMonsterDescription> roamingMonsterDescription, List<TextView> parent) {
+        if (roamingMonsterDescription != null && !roamingMonsterDescription.isEmpty()) {
+            List<TextView> roamingD = getMonsterTextViews(roamingMonsterDescription);
+            addViewToLayout(layout, roamingD.get(0), null, true, parent.get(parent.size() - 1));
+            addViewToLayout(layout, roamingD.get(1), parent.get(parent.size() - 1), false, roamingD.get(0));
+            for (int i = 2; i < roamingD.size(); i += 2) { // 2 because the first 2 manually added
+                addViewToLayout(layout, roamingD.get(i), null, true, roamingD.get(i - 1));
+                addViewToLayout(layout, roamingD.get(i + 1), roamingD.get(i - 1), false, roamingD.get(i));
+            }
         }
     }
 
     @NonNull
-    private static List<TextView> getTrapTextViews(List<TrapDescription> trapDescription) {
-        List<TextView> trapsD = new ArrayList<>();
-        for (TrapDescription trap : trapDescription) { // generate traps TextViews
-            TextView trapName = new TextView(activity.get());
-            TextView trapDes = new TextView(activity.get());
-            trapName.setText(trap.getName());
-            trapName.setId(View.generateViewId());
-            trapDes.setText(trap.getDescription());
-            trapDes.setId(View.generateViewId());
-            setTextStyle(trapName);
-            setTextStyle(trapDes);
-            trapsD.add(trapName);
-            trapsD.add(trapDes);
+    private static List<TextView> getMonsterTextViews(List<RoamingMonsterDescription> roamingMonsterDescription) {
+        List<TextView> result = new ArrayList<>();
+        for (RoamingMonsterDescription monster : roamingMonsterDescription) { // generate monster TextViews
+            addToTextViewList(result, monster.getName(), monster.getDescription());
         }
-        return trapsD;
+        return result;
+    }
+
+    @NonNull
+    private static List<TextView> getTrapTextViews(List<TrapDescription> trapDescription) {
+        List<TextView> result = new ArrayList<>();
+        for (TrapDescription trap : trapDescription) { // generate traps TextViews
+            addToTextViewList(result, trap.getName(), trap.getDescription());
+        }
+        return result;
+    }
+
+    private static void addToTextViewList(List<TextView> list, String name, String description) {
+        TextView itemName = new TextView(activity.get());
+        TextView itemDescription = new TextView(activity.get());
+        itemName.setText(name);
+        itemName.setId(View.generateViewId());
+        itemDescription.setText(description);
+        itemDescription.setId(View.generateViewId());
+        setTextStyle(itemName);
+        setTextStyle(itemDescription);
+        list.add(itemName);
+        list.add(itemDescription);
     }
 
     @NonNull

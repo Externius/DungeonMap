@@ -48,6 +48,9 @@ final class DrawTestDungeon {
                 case TRAP:
                     System.out.print("T");
                     break;
+                case ROAMING_MONSTER:
+                    System.out.print("M");
+                    break;
                 default:
                     break;
             }

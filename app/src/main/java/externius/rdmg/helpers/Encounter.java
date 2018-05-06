@@ -8,6 +8,8 @@ import java.util.List;
 import externius.rdmg.models.Monster;
 
 final class Encounter {
+    private static List<Monster> filteredMonsters;
+    private static int sumXP;
     private static final int[] challengeRatingXP = {
             10,
             25,
@@ -91,7 +93,11 @@ final class Encounter {
 
     }
 
-    private static String addMonster(List<Monster> filteredMonsters, int currentXP) {
+    private static int getMonsterXP(Monster monster) {
+        return challengeRatingXP[challengeRating.indexOf(monster.getChallengeRating())];
+    }
+
+    private static String addMonster(int currentXP) {
         int monsterCount = filteredMonsters.size();
         int monster = 0;
         int count;
@@ -99,7 +105,7 @@ final class Encounter {
         while (monster < monsterCount) {
             Monster currentMonster = filteredMonsters.get(Utils.getRandomInt(0, filteredMonsters.size())); // get random monster
             filteredMonsters.remove(currentMonster);
-            int monsterXP = challengeRatingXP[challengeRating.indexOf(currentMonster.getChallengeRating())]; // get monster xp
+            int monsterXP = getMonsterXP(currentMonster);
             for (int i = multipliers.length - 1; i > -1; i--) {
                 count = (int) multipliers[i][0];
                 allXP = monsterXP * count * multipliers[i][1];
@@ -114,17 +120,24 @@ final class Encounter {
         return "None";
     }
 
+    private static boolean checkPossible() {
+        for (Monster monster : filteredMonsters) {
+            if (sumXP > getMonsterXP(monster)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static String calcEncounter() {
-        List<Monster> filteredMonsters = Utils.getMonsterList(); //get monsters for party level
-        int sumXP = difficulty[Utils.getDungeonDifficulty()];
         StringBuilder result = new StringBuilder();
         result.append("Monster: ");
         if (Math.floor(Math.random() * 100) > 50) {
-            result.append(addMonster(filteredMonsters, sumXP));
+            result.append(addMonster(sumXP));
         } else {
             int x = Utils.getRandomInt(2, Utils.getDungeonDifficulty() + 3);
             for (int i = 0; i < x; i++) {
-                result.append(addMonster(filteredMonsters, sumXP / x));
+                result.append(addMonster(sumXP / x));
                 result.append(", ");
             }
             result.setLength(result.length() - 2);
@@ -132,18 +145,40 @@ final class Encounter {
         return result.toString().replaceAll(", None", "");
     }
 
-    private static void setDifficulty() {
+    private static void init() {
         difficulty[0] = thresholds[Utils.getPartyLevel()][0] * Utils.getPartySize();
         difficulty[1] = thresholds[Utils.getPartyLevel()][1] * Utils.getPartySize();
         difficulty[2] = thresholds[Utils.getPartyLevel()][2] * Utils.getPartySize();
         difficulty[3] = thresholds[Utils.getPartyLevel()][3] * Utils.getPartySize();
+        filteredMonsters = Utils.getMonsterList(); // get monsters for party level
+        sumXP = difficulty[Utils.getDungeonDifficulty()];
     }
 
     static String getMonster() {
-        if (Math.floor(Math.random() * 100) > Utils.getMonsterPercentage() || Utils.getMonsterType().equalsIgnoreCase("none")) {
+        if (Utils.getMonsterType().equalsIgnoreCase("none")) {
             return "Monster: None";
         }
-        setDifficulty();
-        return calcEncounter();
+        init();
+        boolean checkResult = checkPossible();
+        if (checkResult && Math.floor(Math.random() * 100) <= Utils.getMonsterPercentage()) {
+            return calcEncounter();
+        } else if (!checkResult) {
+            return "Monster: No suitable monsters with this settings";
+        } else {
+            return "Monster: None";
+        }
+    }
+
+    static String getRoamingName(int count) {
+        return "ROAMING MONSTERS " + count + "# ";
+    }
+
+    static String getRoamingMonster() {
+        init();
+        if (checkPossible()) {
+            return calcEncounter().substring(9); // remove "Monster: "
+        } else {
+            return "No suitable monsters with this settings";
+        }
     }
 }

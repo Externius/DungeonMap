@@ -16,6 +16,7 @@ import externius.rdmg.core.Dungeon;
 import externius.rdmg.core.DungeonNoCorridor;
 import externius.rdmg.helpers.Utils;
 import externius.rdmg.models.DungeonTile;
+import externius.rdmg.models.RoamingMonsterDescription;
 import externius.rdmg.models.RoomDescription;
 import externius.rdmg.models.Textures;
 import externius.rdmg.models.TrapDescription;
@@ -29,6 +30,7 @@ public class DungeonMapView extends View {
     private Bitmap room;
     private Bitmap entry;
     private Bitmap trap;
+    private Bitmap roamingMonster;
     private Bitmap ncDoor;
     private Bitmap ncDoorLocked;
     private Bitmap ncDoorTrapped;
@@ -39,6 +41,7 @@ public class DungeonMapView extends View {
     private final Paint paint = new Paint();
     private List<RoomDescription> roomDescription = new ArrayList<>();
     private List<TrapDescription> trapDescription = new ArrayList<>();
+    private List<RoamingMonsterDescription> roamingMonsterDescription = new ArrayList<>();
     private String jsonMonster;
     private String jsonTreasure;
     private int dungeonWidth;
@@ -47,6 +50,7 @@ public class DungeonMapView extends View {
     private int roomDensity;
     private int roomSizePercent;
     private int trapPercent;
+    private int roamingPercent;
     private int partyLevel;
     private boolean hasCorridor;
     private boolean hasDeadEnds;
@@ -59,10 +63,11 @@ public class DungeonMapView extends View {
         super(context);
     }
 
-    public void loadDungeon(DungeonTile[][] dungeonTiles, List<RoomDescription> roomDescription, List<TrapDescription> trapDescription, boolean hasCorridor) {
+    public void loadDungeon(DungeonTile[][] dungeonTiles, List<RoomDescription> roomDescription, List<TrapDescription> trapDescription, boolean hasCorridor, List<RoamingMonsterDescription> roamingMonsterDescription) {
         this.dungeonTiles = dungeonTiles;
         this.roomDescription = roomDescription;
         this.trapDescription = trapDescription;
+        this.roamingMonsterDescription = roamingMonsterDescription;
         setBitmaps(hasCorridor);
         setPaint();
     }
@@ -72,10 +77,11 @@ public class DungeonMapView extends View {
         setPaint();
         setBitmaps(hasCorridor);
         if (hasCorridor) {
-            Dungeon dungeon = new Dungeon(dungeonWidth, dungeonHeight, dungeonSize, roomDensity, roomSizePercent, trapPercent, hasDeadEnds);
+            Dungeon dungeon = new Dungeon(dungeonWidth, dungeonHeight, dungeonSize, roomDensity, roomSizePercent, trapPercent, hasDeadEnds, roamingPercent);
             dungeon.generate();
             roomDescription = dungeon.getRoomDescription();
             trapDescription = dungeon.getTrapDescription();
+            roamingMonsterDescription = dungeon.getRoamingMonsterDescriptions();
             dungeonTiles = dungeon.getDungeonTiles();
         } else {
             DungeonNoCorridor dungeonNoCorridor = new DungeonNoCorridor(dungeonWidth, dungeonHeight, dungeonSize, roomSizePercent);
@@ -106,6 +112,7 @@ public class DungeonMapView extends View {
         doorLocked = BitmapFactory.decodeResource(getResources(), R.drawable.door_locked_dark);
         doorTrapped = BitmapFactory.decodeResource(getResources(), R.drawable.door_trapped_dark);
         trap = BitmapFactory.decodeResource(getResources(), R.drawable.trap_dark);
+        roamingMonster = BitmapFactory.decodeResource(getResources(), R.drawable.monster_dark);
         entry = BitmapFactory.decodeResource(getResources(), R.drawable.entry_dark);
         switch (theme) {
             case "dark":
@@ -176,7 +183,11 @@ public class DungeonMapView extends View {
                         break;
                     case TRAP:
                         canvas.drawBitmap(scaleBitmap(trap, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                        canvas.drawText(dungeonTiles[i][j].getDescription(), Math.round(dungeonTiles[i][j].getX() + dungeonTiles[i][j].getWidth() * 0.1), Math.round(dungeonTiles[i][j].getY() + dungeonTiles[i][j].getHeight() * 0.50), paint);
+                        canvas.drawText(dungeonTiles[i][j].getDescription(), Math.round(dungeonTiles[i][j].getX() + dungeonTiles[i][j].getWidth() * 0.1), Math.round(dungeonTiles[i][j].getY() + dungeonTiles[i][j].getHeight() * 0.5), paint);
+                        break;
+                    case ROAMING_MONSTER:
+                        canvas.drawBitmap(scaleBitmap(roamingMonster, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
+                        canvas.drawText(dungeonTiles[i][j].getDescription(), Math.round(dungeonTiles[i][j].getX() + dungeonTiles[i][j].getWidth() * 0.1), Math.round(dungeonTiles[i][j].getY() + dungeonTiles[i][j].getHeight() * 0.4), paint);
                         break;
                     case NO_CORRIDOR_DOOR:
                         canvas.drawBitmap(scaleBitmap(rotateBitmap(ncDoor, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
@@ -307,5 +318,13 @@ public class DungeonMapView extends View {
 
     public void setTheme(String theme) {
         this.theme = theme;
+    }
+
+    public void setRoamingPercent(int roamingPercent) {
+        this.roamingPercent = roamingPercent;
+    }
+
+    public List<RoamingMonsterDescription> getRoamingMonsterDescription() {
+        return roamingMonsterDescription;
     }
 }

@@ -163,6 +163,15 @@ public class DungeonTest {
     }
 
     @Test
+    public void testWithRoamingMonsters() {
+        onView(withId(R.id.load_button)).perform(scrollTo());
+        onView(withId(R.id.roaming_monsters)).perform(click());
+        onData(anything()).atPosition(1).perform(click());
+        MainActivityTest.generateDungeon();
+        MainActivityTest.checkDungeonUI(this.getClass().getName(), "testWithRoamingMonsters");
+    }
+
+    @Test
     public void testWithoutDeadEnds() {
         onView(withId(R.id.load_button)).perform(scrollTo());
         onView(withId(R.id.dead_end)).perform(click());

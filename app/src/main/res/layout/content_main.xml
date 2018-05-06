@@ -187,16 +187,30 @@
             android:entries="@array/corridors_array" />
 
         <TextView
-            android:id="@+id/theme_text"
+            android:id="@+id/roaming_monsters_text"
             style="@style/MainContentText"
             android:layout_below="@+id/corridors_text"
+            android:text="@string/roaming_monsters" />
+
+        <Spinner
+            android:id="@+id/roaming_monsters"
+            style="@style/MainContentSpinner"
+            android:layout_alignBaseline="@+id/roaming_monsters_text"
+            android:layout_below="@+id/corridors"
+            android:layout_toEndOf="@+id/roaming_monsters_text"
+            android:entries="@array/roaming_monsters_array" />
+
+        <TextView
+            android:id="@+id/theme_text"
+            style="@style/MainContentText"
+            android:layout_below="@+id/roaming_monsters_text"
             android:text="@string/theme_value" />
 
         <Spinner
             android:id="@+id/theme"
             style="@style/MainContentSpinner"
             android:layout_alignBaseline="@+id/theme_text"
-            android:layout_below="@+id/corridors"
+            android:layout_below="@+id/roaming_monsters"
             android:layout_toEndOf="@+id/theme_text"
             android:entries="@array/theme_value_array" />
 

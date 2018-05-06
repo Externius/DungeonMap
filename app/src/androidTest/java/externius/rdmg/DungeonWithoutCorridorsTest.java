@@ -157,11 +157,12 @@ public class DungeonWithoutCorridorsTest {
 
     @Test
     public void testTheme() {
-        mainActivityTestRule.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         onView(withId(R.id.load_button)).perform(scrollTo());
+        setCorridors();
         onView(withId(R.id.theme)).perform(click());
         onData(anything()).atPosition(2).perform(click());
-        setCorridors();
+        mainActivityTestRule.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        onView(withId(R.id.load_button)).perform(scrollTo());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testTheme");
     }

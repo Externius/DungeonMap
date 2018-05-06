@@ -10,6 +10,7 @@ import java.util.Random;
 
 import externius.rdmg.models.DungeonTile;
 import externius.rdmg.models.Monster;
+import externius.rdmg.models.RoamingMonsterDescription;
 import externius.rdmg.models.RoomDescription;
 import externius.rdmg.models.TrapDescription;
 import externius.rdmg.models.Treasures;
@@ -66,6 +67,12 @@ public final class Utils {
             default:
                 return 0;
         }
+    }
+
+    public static void addRoamingMonsterDescription(DungeonTile[][] dungeon, int x, int y, List<RoamingMonsterDescription> roamingMonsterDescription) {
+        dungeon[x][y].setIndex(roamingMonsterDescription.size());
+        roamingMonsterDescription.add(new RoamingMonsterDescription(Encounter.getRoamingName(roamingMonsterDescription.size() + 1), Encounter.getRoamingMonster()));
+        dungeon[x][y].setDescription(String.valueOf(roamingMonsterDescription.size()));
     }
 
     public static void addTrapDescription(DungeonTile[][] dungeon, int x, int y, List<TrapDescription> trapDescription) {

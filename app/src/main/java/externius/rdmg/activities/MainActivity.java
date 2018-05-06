@@ -14,6 +14,8 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,8 +26,6 @@ import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 import android.widget.Toast;
-
-import java.util.Objects;
 
 import externius.rdmg.R;
 import externius.rdmg.database.DBOpenHelper;
@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private Spinner spinnerRoomSize;
     private Spinner spinnerTraps;
     private Spinner spinnerCorridors;
+    private Spinner spinnerRoamingMonsters;
     private MultiSelectMonster spinnerMonsterType;
     private Spinner spinnerDeadEnds;
     private Spinner spinnerTheme;
@@ -78,14 +79,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         return new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                if (Objects.equals(spinnerCorridors.getSelectedItem().toString(), "No")) {
+                if (spinnerCorridors.getSelectedItem().toString().equalsIgnoreCase("no")) {
                     spinnerTraps.setEnabled(false);
                     spinnerRoomDens.setEnabled(false);
                     spinnerDeadEnds.setEnabled(false);
+                    spinnerRoamingMonsters.setEnabled(false);
                 } else {
                     spinnerTraps.setEnabled(true);
                     spinnerRoomDens.setEnabled(true);
                     spinnerDeadEnds.setEnabled(true);
+                    checkMonsterType();
                 }
             }
 
@@ -105,10 +108,35 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     private void addListeners() {
         spinnerCorridors.setOnItemSelectedListener(getCorridorItemSelectedListener());
+        spinnerMonsterType.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                checkMonsterType();
+            }
+        });
         final Button generateButton = findViewById(R.id.generate_button);
         generateButton.setOnClickListener(v -> generateDungeon());
         final Button loadButton = findViewById(R.id.load_button);
         loadButton.setOnClickListener(loadListener());
+    }
+
+    private void checkMonsterType() {
+        if (spinnerMonsterType.getAllText().equalsIgnoreCase("none")) {
+            spinnerRoamingMonsters.setEnabled(false);
+            spinnerRoamingMonsters.setSelection(0);
+        } else if (spinnerCorridors.getSelectedItem().toString().equalsIgnoreCase("yes")) {
+            spinnerRoamingMonsters.setEnabled(true);
+        }
     }
 
     private void setDefaultValues() {
@@ -133,6 +161,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         spinnerMonsterType = findViewById(R.id.monster_type);
         spinnerDeadEnds = findViewById(R.id.dead_end);
         spinnerTheme = findViewById(R.id.theme);
+        spinnerRoamingMonsters = findViewById(R.id.roaming_monsters);
     }
 
     @Override
@@ -271,6 +300,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         spinnerCorridors.setSelection(getIndex(spinnerCorridors, extras.getString(DBOpenHelper.CORRIDORS)));
         spinnerMonsterType.setAllText(extras.getString(DBOpenHelper.MONSTER_TYPE));
         spinnerDeadEnds.setSelection(getIndex(spinnerDeadEnds, extras.getString(DBOpenHelper.DEAD_ENDS)));
+        spinnerRoamingMonsters.setSelection(getIndex(spinnerRoamingMonsters, extras.getString(DBOpenHelper.ROAMING_MONSTERS)));
     }
 
     private int getIndex(Spinner spinner, String myString) {
@@ -290,6 +320,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         extras.putString(DBOpenHelper.LOADED_DUNGEON, null);
         extras.putString(DBOpenHelper.LOADED_ROOM_DESCRIPTION, null);
         extras.putString(DBOpenHelper.LOADED_TRAP_DESCRIPTION, null);
+        extras.putString(DBOpenHelper.LOADED_ROAMING_MONSTERS, null);
         extras.putString(DBOpenHelper.DUNGEON_DIFFICULTY, spinnerDifficulty.getSelectedItem().toString());
         extras.putString(DBOpenHelper.PARTY_LEVEL, spinnerPartyLevel.getSelectedItem().toString());
         extras.putString(DBOpenHelper.PARTY_SIZE, spinnerPartySize.getSelectedItem().toString());
@@ -302,6 +333,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         extras.putString(DBOpenHelper.CORRIDORS, spinnerCorridors.getSelectedItem().toString());
         extras.putString(DBOpenHelper.MONSTER_TYPE, spinnerMonsterType.getAllText());
         extras.putString(DBOpenHelper.DEAD_ENDS, spinnerDeadEnds.getSelectedItem().toString());
+        extras.putString(DBOpenHelper.ROAMING_MONSTERS, spinnerRoamingMonsters.getSelectedItem().toString());
         extras.putString("THEME", spinnerTheme.getSelectedItem().toString());
         dungeon.putExtras(extras);
         startActivity(dungeon);
