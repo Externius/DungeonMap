@@ -155,7 +155,7 @@ public class MainActivityTest {
     }
 
     public static void generateDungeon() {
-        onView(withId(R.id.generate_button)).perform(scrollTo(), click());
+        onView(withId(R.id.generate_button)).perform(click());
         onView(withId(R.id.dungeon_activity_generate_button)).perform(scrollTo(), click());
     }
 

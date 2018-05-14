@@ -3,8 +3,10 @@ package externius.rdmg.helpers;
 
 import android.graphics.Bitmap;
 import android.util.Base64;
+import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
 
 import externius.rdmg.models.RoomDescription;
@@ -59,7 +61,7 @@ public final class Export {
     }
 
     private static void addTrapDescription(List<TrapDescription> trapDescription, StringBuilder stringBuilder) {
-        if (trapDescription != null && !trapDescription.isEmpty()){
+        if (trapDescription != null && !trapDescription.isEmpty()) {
             for (TrapDescription trap : trapDescription) {
                 appendToStringBuilder(stringBuilder, trap.getName(), trap.getDescription());
             }
@@ -67,7 +69,7 @@ public final class Export {
     }
 
     private static void addRoamingMonsters(List<RoamingMonsterDescription> roamingMonsterDescription, StringBuilder stringBuilder) {
-        if (roamingMonsterDescription != null && !roamingMonsterDescription.isEmpty()){
+        if (roamingMonsterDescription != null && !roamingMonsterDescription.isEmpty()) {
             for (RoamingMonsterDescription monster : roamingMonsterDescription) {
                 appendToStringBuilder(stringBuilder, monster.getName(), monster.getDescription());
             }
@@ -84,10 +86,14 @@ public final class Export {
     }
 
     private static String bitmapToBase64String(Bitmap bmp) {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        bmp.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
-        byte[] bytes = byteArrayOutputStream.toByteArray();
-        return Base64.encodeToString(bytes, Base64.NO_WRAP);
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+            bmp.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+            byte[] bytes = byteArrayOutputStream.toByteArray();
+            return Base64.encodeToString(bytes, Base64.NO_WRAP);
+        } catch (IOException e) {
+            Log.e("Export", "Bitmap to string failed: " + e.toString());
+        }
+        return "";
     }
 
 }

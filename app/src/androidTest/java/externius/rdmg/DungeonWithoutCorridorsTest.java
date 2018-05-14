@@ -44,132 +44,125 @@ public class DungeonWithoutCorridorsTest {
 
     @Test
     public void testMediumSize() {
-        onView(withId(R.id.dungeon_size)).perform(click());
-        onData(anything()).atPosition(1).perform(click());
         setCorridors();
+        onView(withId(R.id.dungeon_size)).perform(scrollTo(), click());
+        onData(anything()).atPosition(1).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testMediumSize");
     }
 
     @Test
     public void testLargeSize() {
-        onView(withId(R.id.dungeon_size)).perform(click());
-        onData(anything()).atPosition(2).perform(click());
         setCorridors();
+        onView(withId(R.id.dungeon_size)).perform(scrollTo(), click());
+        onData(anything()).atPosition(2).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testLargeSize");
     }
 
     @Test
     public void testEasyDifficulty() {
-        onView(withId(R.id.dungeon_difficulty)).perform(click());
-        onData(anything()).atPosition(0).perform(click());
         setCorridors();
+        onView(withId(R.id.dungeon_difficulty)).perform(scrollTo(), click());
+        onData(anything()).atPosition(0).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testEasyDifficulty");
     }
 
     @Test
     public void testHardDifficulty() {
-        onView(withId(R.id.dungeon_difficulty)).perform(click());
-        onData(anything()).atPosition(2).perform(click());
         setCorridors();
+        onView(withId(R.id.dungeon_difficulty)).perform(scrollTo(), click());
+        onData(anything()).atPosition(2).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testHardDifficulty");
     }
 
     @Test
     public void testDeadlyDifficulty() {
-        onView(withId(R.id.dungeon_difficulty)).perform(click());
-        onData(anything()).atPosition(3).perform(click());
         setCorridors();
+        onView(withId(R.id.dungeon_difficulty)).perform(scrollTo(), click());
+        onData(anything()).atPosition(3).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testDeadlyDifficulty");
     }
 
     @Test
     public void testPartyLevel() {
-        onView(withId(R.id.party_level)).perform(click());
-        onData(anything()).atPosition(3).perform(click());
         setCorridors();
+        onView(withId(R.id.party_level)).perform(scrollTo(), click());
+        onData(anything()).atPosition(3).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testPartyLevel");
     }
 
     @Test
     public void testPartySize() {
-        onView(withId(R.id.party_size)).perform(click());
-        onData(anything()).atPosition(2).perform(click());
         setCorridors();
+        onView(withId(R.id.party_size)).perform(scrollTo(), click());
+        onData(anything()).atPosition(2).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testPartySize");
     }
 
     @Test
     public void testTreasureValue() {
-        onView(withId(R.id.treasure_value)).perform(click());
-        onData(anything()).atPosition(2).perform(click());
         setCorridors();
+        onView(withId(R.id.treasure_value)).perform(scrollTo(), click());
+        onData(anything()).atPosition(2).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testTreasureValue");
     }
 
     @Test
     public void testItemsMaxRarity() {
-        onView(withId(R.id.theme)).perform(scrollTo());
-        onView(withId(R.id.items_rarity)).perform(click());
-        onData(anything()).atPosition(2).perform(click());
         setCorridors();
+        onView(withId(R.id.items_rarity)).perform(scrollTo(), click());
+        onData(anything()).atPosition(2).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testItemsMaxRarity");
     }
 
     @Test
     public void testRoomSizeMedium() {
-        onView(withId(R.id.theme)).perform(scrollTo());
-        onView(withId(R.id.room_size)).perform(click());
-        onData(anything()).atPosition(1).perform(click());
         setCorridors();
+        onView(withId(R.id.room_size)).perform(scrollTo(), click());
+        onData(anything()).atPosition(1).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testRoomSizeMedium");
     }
 
     @Test
     public void testRoomSizeLarge() {
-        onView(withId(R.id.theme)).perform(scrollTo());
-        onView(withId(R.id.room_size)).perform(click());
-        onData(anything()).atPosition(2).perform(click());
         setCorridors();
+        onView(withId(R.id.room_size)).perform(scrollTo(), click());
+        onData(anything()).atPosition(2).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testRoomSizeLarge");
     }
 
     @Test
     public void testMonsterType() {
-        onView(withId(R.id.load_button)).perform(scrollTo());
-        onView(withId(R.id.monster_type)).perform(click());
+        setCorridors();
+        onView(withId(R.id.monster_type)).perform(scrollTo(), click());
         onData(anything()).atPosition(1).perform(click());
         onView(Matchers.allOf(withId(R.id.monster_ok), withText("OK"))).perform(click());
-        setCorridors();
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testMonsterType");
     }
 
     @Test
     public void testTheme() {
-        onView(withId(R.id.load_button)).perform(scrollTo());
         setCorridors();
-        onView(withId(R.id.theme)).perform(click());
+        onView(withId(R.id.theme)).perform(scrollTo(), click());
         onData(anything()).atPosition(2).perform(click());
-        mainActivityTestRule.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        onView(withId(R.id.load_button)).perform(scrollTo());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testTheme");
     }
 
     private void setCorridors() {
-        onView(withId(R.id.load_button)).perform(scrollTo());
-        onView(withId(R.id.corridors)).perform(click());
+        mainActivityTestRule.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        onView(withId(R.id.corridors)).perform(scrollTo(), click());
         onData(anything()).atPosition(1).perform(click());
     }
 }

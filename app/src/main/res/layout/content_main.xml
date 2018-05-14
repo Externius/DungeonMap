@@ -1,226 +1,239 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="externius.rdmg.activities.MainActivity"
-    tools:layout_editor_absoluteX="0dp"
-    tools:layout_editor_absoluteY="81dp"
-    tools:showIn="@layout/activity_main"
-    android:id="@+id/main_scrollview">
+    tools:showIn="@layout/activity_main">
+
+    <ScrollView
+        android:id="@+id/main_scrollview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/bottom_container"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:fadeScrollbars="false"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/dungeon_size_text"
+                style="@style/MainContentText"
+                android:text="@string/dungeon_size" />
+
+            <Spinner
+                android:id="@+id/dungeon_size"
+                style="@style/MainContentSpinner"
+                android:layout_alignBaseline="@+id/dungeon_size_text"
+                android:layout_toEndOf="@+id/dungeon_size_text"
+                android:entries="@array/dungeon_size_array" />
+
+            <TextView
+                android:id="@+id/dungeon_difficulty_text"
+                style="@style/MainContentText"
+                android:layout_below="@+id/dungeon_size_text"
+                android:text="@string/dungeon_difficulty" />
+
+            <Spinner
+                android:id="@+id/dungeon_difficulty"
+                style="@style/MainContentSpinner"
+                android:layout_alignBaseline="@+id/dungeon_difficulty_text"
+                android:layout_below="@+id/dungeon_size"
+                android:layout_toEndOf="@+id/dungeon_difficulty_text"
+                android:entries="@array/dungeon_difficulty_array" />
+
+            <TextView
+                android:id="@+id/party_level_text"
+                style="@style/MainContentText"
+                android:layout_below="@+id/dungeon_difficulty_text"
+                android:text="@string/party_level" />
+
+            <Spinner
+                android:id="@+id/party_level"
+                style="@style/MainContentSpinner"
+                android:layout_alignBaseline="@+id/party_level_text"
+                android:layout_below="@+id/dungeon_difficulty"
+                android:layout_toEndOf="@+id/party_level_text"
+                android:entries="@array/party_level_array" />
+
+            <TextView
+                android:id="@+id/party_size_text"
+                style="@style/MainContentText"
+                android:layout_below="@+id/party_level_text"
+                android:text="@string/party_size" />
+
+            <Spinner
+                android:id="@+id/party_size"
+                style="@style/MainContentSpinner"
+                android:layout_alignBaseline="@+id/party_size_text"
+                android:layout_below="@+id/party_level"
+                android:layout_toEndOf="@+id/party_size_text"
+                android:entries="@array/party_size_array" />
+
+            <TextView
+                android:id="@+id/treasure_value_text"
+                style="@style/MainContentText"
+                android:layout_below="@+id/party_size_text"
+                android:text="@string/treasure_value" />
+
+            <Spinner
+                android:id="@+id/treasure_value"
+                style="@style/MainContentSpinner"
+                android:layout_alignBaseline="@+id/treasure_value_text"
+                android:layout_below="@+id/party_size"
+                android:layout_toEndOf="@id/treasure_value_text"
+                android:entries="@array/treasure_value_array" />
+
+            <TextView
+                android:id="@+id/items_rarity_text"
+                style="@style/MainContentText"
+                android:layout_below="@+id/treasure_value_text"
+                android:text="@string/items_rarity" />
+
+            <Spinner
+                android:id="@+id/items_rarity"
+                style="@style/MainContentSpinner"
+                android:layout_alignBaseline="@+id/items_rarity_text"
+                android:layout_below="@+id/treasure_value"
+                android:layout_toEndOf="@id/items_rarity_text"
+                android:entries="@array/items_rarity_array" />
+
+            <TextView
+                android:id="@+id/room_density_text"
+                style="@style/MainContentText"
+                android:layout_below="@+id/items_rarity_text"
+                android:text="@string/room_density" />
+
+            <Spinner
+                android:id="@+id/room_density"
+                style="@style/MainContentSpinner"
+                android:layout_alignBaseline="@+id/room_density_text"
+                android:layout_below="@+id/items_rarity"
+                android:layout_toEndOf="@id/room_density_text"
+                android:entries="@array/room_density_array" />
 
 
-    <RelativeLayout
+            <TextView
+                android:id="@+id/room_size_text"
+                style="@style/MainContentText"
+                android:layout_below="@+id/room_density_text"
+                android:text="@string/room_size" />
+
+            <Spinner
+                android:id="@+id/room_size"
+                style="@style/MainContentSpinner"
+                android:layout_alignBaseline="@+id/room_size_text"
+                android:layout_below="@+id/room_density"
+                android:layout_toEndOf="@+id/room_size_text"
+                android:entries="@array/room_size_array" />
+
+            <TextView
+                android:id="@+id/monster_type_text"
+                style="@style/MainContentText"
+                android:layout_below="@+id/room_size_text"
+                android:text="@string/monster_type" />
+
+            <externius.rdmg.helpers.MultiSelectMonster
+                android:id="@+id/monster_type"
+                style="@style/MainContentSpinner"
+                android:layout_alignBaseline="@+id/monster_type_text"
+                android:layout_below="@+id/room_size"
+                android:layout_marginStart="8dp"
+                android:layout_toEndOf="@+id/monster_type_text" />
+
+            <TextView
+                android:id="@+id/traps_text"
+                style="@style/MainContentText"
+                android:layout_below="@+id/monster_type_text"
+                android:text="@string/traps" />
+
+            <Spinner
+                android:id="@+id/traps"
+                style="@style/MainContentSpinner"
+                android:layout_alignBaseline="@+id/traps_text"
+                android:layout_below="@+id/monster_type"
+                android:layout_toEndOf="@+id/traps_text"
+                android:entries="@array/traps_array" />
+
+            <TextView
+                android:id="@+id/dead_end_text"
+                style="@style/MainContentText"
+                android:layout_below="@+id/traps_text"
+                android:text="@string/dead_ends" />
+
+            <Spinner
+                android:id="@+id/dead_end"
+                style="@style/MainContentSpinner"
+                android:layout_alignBaseline="@+id/dead_end_text"
+                android:layout_below="@+id/traps"
+                android:layout_toEndOf="@+id/dead_end_text"
+                android:entries="@array/dead_ends_array" />
+
+            <TextView
+                android:id="@+id/corridors_text"
+                style="@style/MainContentText"
+                android:layout_below="@+id/dead_end_text"
+                android:text="@string/corridors" />
+
+            <Spinner
+                android:id="@+id/corridors"
+                style="@style/MainContentSpinner"
+                android:layout_alignBaseline="@+id/corridors_text"
+                android:layout_below="@+id/dead_end"
+                android:layout_toEndOf="@+id/corridors_text"
+                android:entries="@array/corridors_array" />
+
+            <TextView
+                android:id="@+id/roaming_monsters_text"
+                style="@style/MainContentText"
+                android:layout_below="@+id/corridors_text"
+                android:text="@string/roaming_monsters" />
+
+            <Spinner
+                android:id="@+id/roaming_monsters"
+                style="@style/MainContentSpinner"
+                android:layout_alignBaseline="@+id/roaming_monsters_text"
+                android:layout_below="@+id/corridors"
+                android:layout_toEndOf="@+id/roaming_monsters_text"
+                android:entries="@array/roaming_monsters_array" />
+
+            <TextView
+                android:id="@+id/theme_text"
+                style="@style/MainContentText"
+                android:layout_below="@+id/roaming_monsters_text"
+                android:text="@string/theme_value" />
+
+            <Spinner
+                android:id="@+id/theme"
+                style="@style/MainContentSpinner"
+                android:layout_alignBaseline="@+id/theme_text"
+                android:layout_below="@+id/roaming_monsters"
+                android:layout_toEndOf="@+id/theme_text"
+                android:entries="@array/theme_value_array" />
+
+        </RelativeLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/bottom_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/dungeon_size_text"
-            style="@style/MainContentText"
-            android:text="@string/dungeon_size" />
-
-        <Spinner
-            android:id="@+id/dungeon_size"
-            style="@style/MainContentSpinner"
-            android:layout_alignBaseline="@+id/dungeon_size_text"
-            android:layout_toEndOf="@+id/dungeon_size_text"
-            android:entries="@array/dungeon_size_array" />
-
-        <TextView
-            android:id="@+id/dungeon_difficulty_text"
-            style="@style/MainContentText"
-            android:layout_below="@+id/dungeon_size_text"
-            android:text="@string/dungeon_difficulty" />
-
-        <Spinner
-            android:id="@+id/dungeon_difficulty"
-            style="@style/MainContentSpinner"
-            android:layout_alignBaseline="@+id/dungeon_difficulty_text"
-            android:layout_below="@+id/dungeon_size"
-            android:layout_toEndOf="@+id/dungeon_difficulty_text"
-            android:entries="@array/dungeon_difficulty_array" />
-
-        <TextView
-            android:id="@+id/party_level_text"
-            style="@style/MainContentText"
-            android:layout_below="@+id/dungeon_difficulty_text"
-            android:text="@string/party_level" />
-
-        <Spinner
-            android:id="@+id/party_level"
-            style="@style/MainContentSpinner"
-            android:layout_alignBaseline="@+id/party_level_text"
-            android:layout_below="@+id/dungeon_difficulty"
-            android:layout_toEndOf="@+id/party_level_text"
-            android:entries="@array/party_level_array" />
-
-        <TextView
-            android:id="@+id/party_size_text"
-            style="@style/MainContentText"
-            android:layout_below="@+id/party_level_text"
-            android:text="@string/party_size" />
-
-        <Spinner
-            android:id="@+id/party_size"
-            style="@style/MainContentSpinner"
-            android:layout_alignBaseline="@+id/party_size_text"
-            android:layout_below="@+id/party_level"
-            android:layout_toEndOf="@+id/party_size_text"
-            android:entries="@array/party_size_array" />
-
-        <TextView
-            android:id="@+id/treasure_value_text"
-            style="@style/MainContentText"
-            android:layout_below="@+id/party_size_text"
-            android:text="@string/treasure_value" />
-
-        <Spinner
-            android:id="@+id/treasure_value"
-            style="@style/MainContentSpinner"
-            android:layout_alignBaseline="@+id/treasure_value_text"
-            android:layout_below="@+id/party_size"
-            android:layout_toEndOf="@id/treasure_value_text"
-            android:entries="@array/treasure_value_array" />
-
-        <TextView
-            android:id="@+id/items_rarity_text"
-            style="@style/MainContentText"
-            android:layout_below="@+id/treasure_value_text"
-            android:text="@string/items_rarity" />
-
-        <Spinner
-            android:id="@+id/items_rarity"
-            style="@style/MainContentSpinner"
-            android:layout_alignBaseline="@+id/items_rarity_text"
-            android:layout_below="@+id/treasure_value"
-            android:layout_toEndOf="@id/items_rarity_text"
-            android:entries="@array/items_rarity_array" />
-
-        <TextView
-            android:id="@+id/room_density_text"
-            style="@style/MainContentText"
-            android:layout_below="@+id/items_rarity_text"
-            android:text="@string/room_density" />
-
-        <Spinner
-            android:id="@+id/room_density"
-            style="@style/MainContentSpinner"
-            android:layout_alignBaseline="@+id/room_density_text"
-            android:layout_below="@+id/items_rarity"
-            android:layout_toEndOf="@id/room_density_text"
-            android:entries="@array/room_density_array" />
-
-
-        <TextView
-            android:id="@+id/room_size_text"
-            style="@style/MainContentText"
-            android:layout_below="@+id/room_density_text"
-            android:text="@string/room_size" />
-
-        <Spinner
-            android:id="@+id/room_size"
-            style="@style/MainContentSpinner"
-            android:layout_alignBaseline="@+id/room_size_text"
-            android:layout_below="@+id/room_density"
-            android:layout_toEndOf="@+id/room_size_text"
-            android:entries="@array/room_size_array" />
-
-        <TextView
-            android:id="@+id/monster_type_text"
-            style="@style/MainContentText"
-            android:layout_below="@+id/room_size_text"
-            android:text="@string/monster_type" />
-
-        <externius.rdmg.helpers.MultiSelectMonster
-            android:id="@+id/monster_type"
-            style="@style/MainContentSpinner"
-            android:layout_marginStart="8dp"
-            android:layout_alignBaseline="@+id/monster_type_text"
-            android:layout_below="@+id/room_size"
-            android:layout_toEndOf="@+id/monster_type_text" />
-
-        <TextView
-            android:id="@+id/traps_text"
-            style="@style/MainContentText"
-            android:layout_below="@+id/monster_type_text"
-            android:text="@string/traps" />
-
-        <Spinner
-            android:id="@+id/traps"
-            style="@style/MainContentSpinner"
-            android:layout_alignBaseline="@+id/traps_text"
-            android:layout_below="@+id/monster_type"
-            android:layout_toEndOf="@+id/traps_text"
-            android:entries="@array/traps_array" />
-
-        <TextView
-            android:id="@+id/dead_end_text"
-            style="@style/MainContentText"
-            android:layout_below="@+id/traps_text"
-            android:text="@string/dead_ends" />
-
-        <Spinner
-            android:id="@+id/dead_end"
-            style="@style/MainContentSpinner"
-            android:layout_alignBaseline="@+id/dead_end_text"
-            android:layout_below="@+id/traps"
-            android:layout_toEndOf="@+id/dead_end_text"
-            android:entries="@array/dead_ends_array" />
-
-        <TextView
-            android:id="@+id/corridors_text"
-            style="@style/MainContentText"
-            android:layout_below="@+id/dead_end_text"
-            android:text="@string/corridors" />
-
-        <Spinner
-            android:id="@+id/corridors"
-            style="@style/MainContentSpinner"
-            android:layout_alignBaseline="@+id/corridors_text"
-            android:layout_below="@+id/dead_end"
-            android:layout_toEndOf="@+id/corridors_text"
-            android:entries="@array/corridors_array" />
-
-        <TextView
-            android:id="@+id/roaming_monsters_text"
-            style="@style/MainContentText"
-            android:layout_below="@+id/corridors_text"
-            android:text="@string/roaming_monsters" />
-
-        <Spinner
-            android:id="@+id/roaming_monsters"
-            style="@style/MainContentSpinner"
-            android:layout_alignBaseline="@+id/roaming_monsters_text"
-            android:layout_below="@+id/corridors"
-            android:layout_toEndOf="@+id/roaming_monsters_text"
-            android:entries="@array/roaming_monsters_array" />
-
-        <TextView
-            android:id="@+id/theme_text"
-            style="@style/MainContentText"
-            android:layout_below="@+id/roaming_monsters_text"
-            android:text="@string/theme_value" />
-
-        <Spinner
-            android:id="@+id/theme"
-            style="@style/MainContentSpinner"
-            android:layout_alignBaseline="@+id/theme_text"
-            android:layout_below="@+id/roaming_monsters"
-            android:layout_toEndOf="@+id/theme_text"
-            android:entries="@array/theme_value_array" />
+        android:layout_alignParentBottom="true"
+        android:background="@color/primaryDivider"
+        android:orientation="vertical">
 
         <Button
             android:id="@+id/generate_button"
             style="@style/Widget.AppCompat.Button.Colored"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/button_margin"
-            android:layout_below="@+id/theme_text"
             android:text="@string/generate_button_text" />
 
         <Button
@@ -228,9 +241,7 @@
             style="@style/Widget.AppCompat.Button.Colored"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/button_margin"
-            android:layout_below="@+id/generate_button"
             android:text="@string/load_button_text" />
-    </RelativeLayout>
 
-</ScrollView>
+    </LinearLayout>
+</RelativeLayout>

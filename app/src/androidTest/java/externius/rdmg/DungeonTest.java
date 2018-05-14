@@ -45,7 +45,7 @@ public class DungeonTest {
 
     @Test
     public void testMediumSize() {
-        onView(withId(R.id.dungeon_size)).perform(click());
+        onView(withId(R.id.dungeon_size)).perform(scrollTo(), click());
         onData(anything()).atPosition(1).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testMediumSize");
@@ -53,7 +53,7 @@ public class DungeonTest {
 
     @Test
     public void testLargeSize() {
-        onView(withId(R.id.dungeon_size)).perform(click());
+        onView(withId(R.id.dungeon_size)).perform(scrollTo(), click());
         onData(anything()).atPosition(2).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testLargeSize");
@@ -61,7 +61,7 @@ public class DungeonTest {
 
     @Test
     public void testEasyDifficulty() {
-        onView(withId(R.id.dungeon_difficulty)).perform(click());
+        onView(withId(R.id.dungeon_difficulty)).perform(scrollTo(), click());
         onData(anything()).atPosition(0).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testEasyDifficulty");
@@ -69,7 +69,7 @@ public class DungeonTest {
 
     @Test
     public void testHardDifficulty() {
-        onView(withId(R.id.dungeon_difficulty)).perform(click());
+        onView(withId(R.id.dungeon_difficulty)).perform(scrollTo(), click());
         onData(anything()).atPosition(2).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testHardDifficulty");
@@ -77,7 +77,7 @@ public class DungeonTest {
 
     @Test
     public void testDeadlyDifficulty() {
-        onView(withId(R.id.dungeon_difficulty)).perform(click());
+        onView(withId(R.id.dungeon_difficulty)).perform(scrollTo(), click());
         onData(anything()).atPosition(3).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testDeadlyDifficulty");
@@ -85,7 +85,7 @@ public class DungeonTest {
 
     @Test
     public void testPartyLevel() {
-        onView(withId(R.id.party_level)).perform(click());
+        onView(withId(R.id.party_level)).perform(scrollTo(), click());
         onData(anything()).atPosition(2).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testPartyLevel");
@@ -93,7 +93,7 @@ public class DungeonTest {
 
     @Test
     public void testPartySize() {
-        onView(withId(R.id.party_size)).perform(click());
+        onView(withId(R.id.party_size)).perform(scrollTo(), click());
         onData(anything()).atPosition(0).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testPartySize");
@@ -101,7 +101,7 @@ public class DungeonTest {
 
     @Test
     public void testTreasureValue() {
-        onView(withId(R.id.treasure_value)).perform(click());
+        onView(withId(R.id.treasure_value)).perform(scrollTo(), click());
         onData(anything()).atPosition(0).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testTreasureValue");
@@ -109,8 +109,7 @@ public class DungeonTest {
 
     @Test
     public void testItemsMaxRarity() {
-        onView(withId(R.id.theme)).perform(scrollTo());
-        onView(withId(R.id.items_rarity)).perform(click());
+        onView(withId(R.id.items_rarity)).perform(scrollTo(), click());
         onData(anything()).atPosition(0).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testItemsMaxRarity");
@@ -118,8 +117,8 @@ public class DungeonTest {
 
     @Test
     public void testRoomDensity() {
-        onView(withId(R.id.theme)).perform(scrollTo());
-        onView(withId(R.id.room_density)).perform(click());
+        mainActivityTestRule.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        onView(withId(R.id.room_density)).perform(scrollTo(), click());
         onData(anything()).atPosition(1).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testRoomDensity");
@@ -127,8 +126,8 @@ public class DungeonTest {
 
     @Test
     public void testRoomSizeMedium() {
-        onView(withId(R.id.theme)).perform(scrollTo());
-        onView(withId(R.id.room_size)).perform(click());
+        mainActivityTestRule.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        onView(withId(R.id.room_size)).perform(scrollTo(), click());
         onData(anything()).atPosition(1).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testRoomSizeMedium");
@@ -136,8 +135,8 @@ public class DungeonTest {
 
     @Test
     public void testRoomSizeLarge() {
-        onView(withId(R.id.theme)).perform(scrollTo());
-        onView(withId(R.id.room_size)).perform(click());
+        mainActivityTestRule.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        onView(withId(R.id.room_size)).perform(scrollTo(), click());
         onData(anything()).atPosition(2).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testRoomSizeLarge");
@@ -145,8 +144,7 @@ public class DungeonTest {
 
     @Test
     public void testMonsterType() {
-        onView(withId(R.id.load_button)).perform(scrollTo());
-        onView(withId(R.id.monster_type)).perform(click());
+        onView(withId(R.id.monster_type)).perform(scrollTo(), click());
         onData(anything()).atPosition(3).perform(click());
         onView(Matchers.allOf(withId(R.id.monster_ok), withText("OK"))).perform(click());
         MainActivityTest.generateDungeon();
@@ -155,8 +153,8 @@ public class DungeonTest {
 
     @Test
     public void testWithOutTraps() {
-        onView(withId(R.id.load_button)).perform(scrollTo());
-        onView(withId(R.id.traps)).perform(click());
+        mainActivityTestRule.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        onView(withId(R.id.traps)).perform(scrollTo(), click());
         onData(anything()).atPosition(0).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testWithOutTraps");
@@ -164,8 +162,8 @@ public class DungeonTest {
 
     @Test
     public void testWithRoamingMonsters() {
-        onView(withId(R.id.load_button)).perform(scrollTo());
-        onView(withId(R.id.roaming_monsters)).perform(click());
+        mainActivityTestRule.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        onView(withId(R.id.roaming_monsters)).perform(scrollTo(), click());
         onData(anything()).atPosition(1).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testWithRoamingMonsters");
@@ -173,8 +171,8 @@ public class DungeonTest {
 
     @Test
     public void testWithoutDeadEnds() {
-        onView(withId(R.id.load_button)).perform(scrollTo());
-        onView(withId(R.id.dead_end)).perform(click());
+        mainActivityTestRule.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        onView(withId(R.id.dead_end)).perform(scrollTo(), click());
         onData(anything()).atPosition(1).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testWithoutDeadEnds");
@@ -183,8 +181,7 @@ public class DungeonTest {
     @Test
     public void testTheme() {
         mainActivityTestRule.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        onView(withId(R.id.load_button)).perform(scrollTo());
-        onView(withId(R.id.theme)).perform(click());
+        onView(withId(R.id.theme)).perform(scrollTo(), click());
         onData(anything()).atPosition(1).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testTheme");

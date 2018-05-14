@@ -42,6 +42,7 @@
         <item name="android:textColor">@color/primaryText</item>
         <item name="android:textColorSecondary">@color/primarySecondaryText</item>
         <item name="android:divider">@color/primaryDivider</item>
+        <item name="android:layout_marginEnd">@dimen/spinner_margin</item>
     </style>
 
     <style name="Dialog" parent="Theme.AppCompat.Dialog">

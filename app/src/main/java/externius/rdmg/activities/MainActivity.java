@@ -10,8 +10,10 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.AppBarLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -57,8 +59,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        setToolbar();
         getSpinners();
         setDefaultValues();
         addListeners();
@@ -66,6 +67,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         if (savedInstanceState != null) {
             spinnerMonsterType.setAllText(savedInstanceState.getString(DBOpenHelper.MONSTER_TYPE));
         }
+    }
+
+    private void setToolbar() {
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        if (Build.VERSION.SDK_INT <= 23) {
+            AppBarLayout.LayoutParams layout = new AppBarLayout.LayoutParams(AppBarLayout.LayoutParams.MATCH_PARENT, AppBarLayout.LayoutParams.MATCH_PARENT);
+            layout.setMarginEnd(0);
+            toolbar.setLayoutParams(layout);
+        }
+        setSupportActionBar(toolbar);
     }
 
     @Override
