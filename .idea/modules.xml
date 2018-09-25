@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/RDMG.iml" filepath="$PROJECT_DIR$/RDMG.iml" />
+      <module fileurl="file://$PROJECT_DIR$/DungeonMap.iml" filepath="$PROJECT_DIR$/DungeonMap.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>

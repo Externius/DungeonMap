@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -14,14 +15,14 @@
             android:text="@string/editMonsters"/>
         <EditText
             android:id="@+id/edit_monster"
-            android:labelFor="@+id/edit_monster"
             android:hint="@string/edit_monster_hint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textMultiLine"
             android:maxLines="4"
             android:maxLength="256"
-            android:layout_below="@+id/edit_monster_text" />
+            android:layout_below="@+id/edit_monster_text"
+            tools:ignore="Autofill" />
         <TextView
             android:id="@+id/edit_treasure_text"
             style="@style/EditTextView"
@@ -30,13 +31,13 @@
         <EditText
             android:id="@+id/edit_treasure"
             android:hint="@string/edit_treasure_hint"
-            android:labelFor="@+id/edit_treasure"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textMultiLine"
             android:maxLines="4"
             android:maxLength="256"
-            android:layout_below="@+id/edit_treasure_text"/>
+            android:layout_below="@+id/edit_treasure_text"
+            tools:ignore="Autofill" />
         <Button
             android:id="@+id/editDialogSaveButton"
             android:layout_width="match_parent"

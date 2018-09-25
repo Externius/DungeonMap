@@ -16,6 +16,7 @@ import externius.rdmg.models.Textures;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 
@@ -51,7 +52,7 @@ public class DungeonTest {
         dungeon.generateRoom();
         System.out.println(name.getMethodName());
         DrawTestDungeon.draw(dungeon.getDungeonTiles());
-        assertTrue(dungeon.getRoomDescription().size() == 2);
+        assertEquals(2, dungeon.getRoomDescription().size());
     }
 
     @Test

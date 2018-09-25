@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.lessThan;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class DungeonNoCorridorTest {
@@ -55,7 +56,7 @@ public class DungeonNoCorridorTest {
         System.out.println(name.getMethodName());
         DrawTestDungeon.draw(dungeonNoCorridor.getDungeonTiles());
         assertTrue(dungeonNoCorridor.getRoomDescription().isEmpty());
-        assertTrue(dungeonNoCorridor.getOpenDoorList().size() == 2);
+        assertEquals(2, dungeonNoCorridor.getOpenDoorList().size());
     }
 
     @Test
@@ -64,7 +65,7 @@ public class DungeonNoCorridorTest {
         dungeonNoCorridor.fillRoomToDoor();
         System.out.println(name.getMethodName());
         DrawTestDungeon.draw(dungeonNoCorridor.getDungeonTiles());
-        assertTrue(dungeonNoCorridor.getOpenDoorList().size() == 0);
+        assertEquals(0, dungeonNoCorridor.getOpenDoorList().size());
     }
 
     @Test

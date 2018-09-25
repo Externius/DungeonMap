@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -10,13 +11,13 @@
         android:orientation="vertical">
         <EditText
             android:id="@+id/edit_trap"
-            android:labelFor="@+id/edit_trap"
             android:hint="@string/edit_trap_hint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textMultiLine"
             android:maxLines="8"
-            android:maxLength="256"/>
+            android:maxLength="256"
+            tools:ignore="Autofill" />
         <Button
             android:id="@+id/editDialogSaveButton"
             android:layout_width="match_parent"
