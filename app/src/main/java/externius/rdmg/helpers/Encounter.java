@@ -8,6 +8,9 @@ import java.util.List;
 import externius.rdmg.models.Monster;
 
 final class Encounter {
+    private static final String base = "Monsters: ";
+    private static final String none = "None";
+    private static final String notSuitable = "No suitable monsters with this settings";
     private static List<Monster> filteredMonsters;
     private static int sumXP;
     private static final int[] challengeRatingXP = {
@@ -117,7 +120,7 @@ final class Encounter {
             }
             monster++;
         }
-        return "None";
+        return none;
     }
 
     private static boolean checkPossible() {
@@ -131,7 +134,7 @@ final class Encounter {
 
     private static String calcEncounter() {
         StringBuilder result = new StringBuilder();
-        result.append("Monster: ");
+        result.append(base);
         if (Math.floor(Math.random() * 100) > 50) {
             result.append(addMonster(sumXP));
         } else {
@@ -142,7 +145,7 @@ final class Encounter {
             }
             result.setLength(result.length() - 2);
         }
-        return result.toString().replaceAll(", None", "");
+        return result.toString().replaceAll(", " + none, "");
     }
 
     private static void init() {
@@ -156,16 +159,16 @@ final class Encounter {
 
     static String getMonster() {
         if (Utils.getMonsterType().equalsIgnoreCase("none")) {
-            return "Monster: None";
+            return base + none;
         }
         init();
         boolean checkResult = checkPossible();
         if (checkResult && Math.floor(Math.random() * 100) <= Utils.getMonsterPercentage()) {
             return calcEncounter();
         } else if (!checkResult) {
-            return "Monster: No suitable monsters with this settings";
+            return base + notSuitable;
         } else {
-            return "Monster: None";
+            return base + none;
         }
     }
 
@@ -176,9 +179,9 @@ final class Encounter {
     static String getRoamingMonster() {
         init();
         if (checkPossible()) {
-            return calcEncounter().substring(9); // remove "Monster: "
+            return calcEncounter().substring(10); // remove "Monsters: "
         } else {
-            return "No suitable monsters with this settings";
+            return notSuitable;
         }
     }
 }

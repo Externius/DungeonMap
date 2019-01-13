@@ -2,13 +2,13 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 28
-    buildToolsVersion '28.0.2'
+    buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "externius.rdmg"
         minSdkVersion 19
         targetSdkVersion 28
-        versionCode 26
-        versionName '1.0.22'
+        versionCode 27
+        versionName '1.0.23'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

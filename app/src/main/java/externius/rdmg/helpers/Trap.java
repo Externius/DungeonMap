@@ -56,7 +56,7 @@ final class Trap {
         if (Boolean.parseBoolean(currentTrap[5])) {
             int min = trapAttackBonus[trapDanger];
             int max = trapAttackBonus[trapDanger + 1];
-            return ",\n (attack bonus +" + Utils.getRandomInt(min, max) + ").";
+            return ", (attack bonus +" + Utils.getRandomInt(min, max) + ").";
         } else {
 
             return ".";

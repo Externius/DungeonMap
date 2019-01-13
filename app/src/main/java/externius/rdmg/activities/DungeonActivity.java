@@ -25,6 +25,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
 import android.util.Log;
 import android.view.Display;
 import android.view.GestureDetector;
@@ -406,8 +407,8 @@ public class DungeonActivity extends AppCompatActivity {
             traps = setTraps(extras.getString(DBOpenHelper.TRAPS));
             hasDeadEnds = setBooleans(extras.getString(DBOpenHelper.DEAD_ENDS));
             hasCorridor = setBooleans(extras.getString(DBOpenHelper.CORRIDORS));
-            partySize = Integer.parseInt(extras.getString(DBOpenHelper.PARTY_SIZE));
-            partyLevel = Integer.parseInt(extras.getString(DBOpenHelper.PARTY_LEVEL));
+            partySize = Integer.parseInt(Objects.requireNonNull(extras.getString(DBOpenHelper.PARTY_SIZE)));
+            partyLevel = Integer.parseInt(Objects.requireNonNull(extras.getString(DBOpenHelper.PARTY_LEVEL)));
             treasureValue = setTreasureValue(extras.getString(DBOpenHelper.TREASURE_VALUE));
             itemsRarity = setItemsRarity(extras.getString(DBOpenHelper.ITEMS_RARITY));
             roamingMonsters = setRoamingMonsters(extras.getString(DBOpenHelper.ROAMING_MONSTERS));
@@ -550,14 +551,14 @@ public class DungeonActivity extends AppCompatActivity {
                 dialog.setContentView(R.layout.room_edit_popup);
                 dialog.setTitle(room.getName());
                 EditText monsters = dialog.findViewById(R.id.edit_monster);
-                monsters.setText(room.getMonster().substring(9)); // Monster:
-                setTextStyle(monsters);
+                monsters.setText(room.getMonster().substring(10)); // Monsters:
+                setTextStyle(monsters, false);
                 EditText treasures = dialog.findViewById(R.id.edit_treasure);
                 treasures.setText(room.getTreasure().substring(11)); // Treasures:
-                setTextStyle(treasures);
+                setTextStyle(treasures, false);
                 saveButton = dialog.findViewById(R.id.editDialogSaveButton);
                 saveButton.setOnClickListener(v -> {
-                    RoomDescription newRoom = new RoomDescription(room.getName(), "Treasures: " + treasures.getText().toString(), "Monster: " + monsters.getText().toString(), room.getDoors());
+                    RoomDescription newRoom = new RoomDescription(room.getName(), "Treasures: " + treasures.getText().toString(), "Monsters: " + monsters.getText().toString(), room.getDoors());
                     loadedRoomDescription.set(index, newRoom);
                     drawDungeon(null);
                     dialog.dismiss();
@@ -569,7 +570,7 @@ public class DungeonActivity extends AppCompatActivity {
                 dialog.setTitle(trap.getName());
                 description = dialog.findViewById(R.id.edit_trap);
                 description.setText(trap.getDescription());
-                setTextStyle(description);
+                setTextStyle(description, false);
                 saveButton = dialog.findViewById(R.id.editDialogSaveButton);
                 saveButton.setOnClickListener(v -> {
                     TrapDescription newTrap = new TrapDescription(trap.getName(), description.getText().toString());
@@ -584,7 +585,7 @@ public class DungeonActivity extends AppCompatActivity {
                 dialog.setTitle(monster.getName());
                 description = dialog.findViewById(R.id.edit_trap);
                 description.setText(monster.getDescription());
-                setTextStyle(description);
+                setTextStyle(description, false);
                 saveButton = dialog.findViewById(R.id.editDialogSaveButton);
                 saveButton.setOnClickListener(v -> {
                     RoamingMonsterDescription newMonster = new RoamingMonsterDescription(monster.getName(), description.getText().toString());
@@ -610,7 +611,7 @@ public class DungeonActivity extends AppCompatActivity {
         int end = description.indexOf('(');
         TextView details = new TextView(activity.get());
         details.setText(description.substring(end));
-        setTextStyle(details);
+        setTextStyle(details, false);
         createDialog(description.substring(start + 1, end), details);
     }
 
@@ -618,7 +619,7 @@ public class DungeonActivity extends AppCompatActivity {
         TrapDescription trap = loadedTrapDescription.get(index);
         TextView details = new TextView(activity.get());
         details.setText(trap.getDescription());
-        setTextStyle(details);
+        setTextStyle(details, false);
         createDialog(trap.getName(), details);
     }
 
@@ -626,7 +627,7 @@ public class DungeonActivity extends AppCompatActivity {
         RoamingMonsterDescription monster = loadedRoamingMonsterDescription.get(index);
         TextView details = new TextView(activity.get());
         details.setText(monster.getDescription());
-        setTextStyle(details);
+        setTextStyle(details, false);
         createDialog(monster.getName(), details);
     }
 
@@ -635,7 +636,7 @@ public class DungeonActivity extends AppCompatActivity {
         TextView details = new TextView(activity.get());
         String text = room.getMonster() + "\n" + room.getTreasure();
         details.setText(text);
-        setTextStyle(details);
+        setTextStyle(details, false);
         createDialog(room.getName(), details);
     }
 
@@ -952,18 +953,18 @@ public class DungeonActivity extends AppCompatActivity {
     private static void addDescription(RelativeLayout layout, List<RoomDescription> roomDescription, List<TrapDescription> trapDescription, List<RoamingMonsterDescription> roamingMonsterDescription) {
         List<TextView> rooms = getRoomTextViews(layout, roomDescription);
         for (int i = 4; i < rooms.size(); i += 4) { // 4 because the first 4 manually added
-            addViewToLayout(layout, rooms.get(i), rooms.get(i - 3), true, rooms.get(i - 1));
-            addViewToLayout(layout, rooms.get(i + 1), rooms.get(i - 1), false, rooms.get(i));
-            addViewToLayout(layout, rooms.get(i + 2), rooms.get(i + 1), false, rooms.get(i));
-            addViewToLayout(layout, rooms.get(i + 3), rooms.get(i + 2), false, rooms.get(i));
+            addViewToLayout(layout, rooms.get(i), rooms.get(i - 1), true);
+            addViewToLayout(layout, rooms.get(i + 1), rooms.get(i), false);
+            addViewToLayout(layout, rooms.get(i + 2), rooms.get(i + 1), false);
+            addViewToLayout(layout, rooms.get(i + 3), rooms.get(i + 2), false);
         }
         if (trapDescription != null && !trapDescription.isEmpty()) {
             List<TextView> trapsD = getTrapTextViews(trapDescription);
-            addViewToLayout(layout, trapsD.get(0), null, true, rooms.get(rooms.size() - 1));
-            addViewToLayout(layout, trapsD.get(1), rooms.get(rooms.size() - 1), false, trapsD.get(0));
+            addViewToLayout(layout, trapsD.get(0), rooms.get(rooms.size() - 1), true);
+            addViewToLayout(layout, trapsD.get(1), trapsD.get(0), false);
             for (int i = 2; i < trapsD.size(); i += 2) { // 2 because the first 2 manually added
-                addViewToLayout(layout, trapsD.get(i), null, true, trapsD.get(i - 1));
-                addViewToLayout(layout, trapsD.get(i + 1), trapsD.get(i - 1), false, trapsD.get(i));
+                addViewToLayout(layout, trapsD.get(i), trapsD.get(i - 1), true);
+                addViewToLayout(layout, trapsD.get(i + 1), trapsD.get(i), false);
             }
             addMonstersDescription(layout, roamingMonsterDescription, trapsD);
         } else {
@@ -974,11 +975,11 @@ public class DungeonActivity extends AppCompatActivity {
     private static void addMonstersDescription(RelativeLayout layout, List<RoamingMonsterDescription> roamingMonsterDescription, List<TextView> parent) {
         if (roamingMonsterDescription != null && !roamingMonsterDescription.isEmpty()) {
             List<TextView> roamingD = getMonsterTextViews(roamingMonsterDescription);
-            addViewToLayout(layout, roamingD.get(0), null, true, parent.get(parent.size() - 1));
-            addViewToLayout(layout, roamingD.get(1), parent.get(parent.size() - 1), false, roamingD.get(0));
+            addViewToLayout(layout, roamingD.get(0), parent.get(parent.size() - 1), true);
+            addViewToLayout(layout, roamingD.get(1), roamingD.get(0), false);
             for (int i = 2; i < roamingD.size(); i += 2) { // 2 because the first 2 manually added
-                addViewToLayout(layout, roamingD.get(i), null, true, roamingD.get(i - 1));
-                addViewToLayout(layout, roamingD.get(i + 1), roamingD.get(i - 1), false, roamingD.get(i));
+                addViewToLayout(layout, roamingD.get(i), roamingD.get(i - 1), true);
+                addViewToLayout(layout, roamingD.get(i + 1), roamingD.get(i), false);
             }
         }
     }
@@ -996,7 +997,7 @@ public class DungeonActivity extends AppCompatActivity {
     private static List<TextView> getTrapTextViews(List<TrapDescription> trapDescription) {
         List<TextView> result = new ArrayList<>();
         for (TrapDescription trap : trapDescription) { // generate traps TextViews
-            addToTextViewList(result, trap.getName(), trap.getDescription());
+            addToTextViewList(result, trap.getName(), trap.getDescription().replace("\n", "")); // cleanup if it's an old saved dungeon
         }
         return result;
     }
@@ -1004,12 +1005,12 @@ public class DungeonActivity extends AppCompatActivity {
     private static void addToTextViewList(List<TextView> list, String name, String description) {
         TextView itemName = new TextView(activity.get());
         TextView itemDescription = new TextView(activity.get());
-        itemName.setText(name);
+        itemName.setText(Html.fromHtml("<b>" + name + "</b>"));
         itemName.setId(View.generateViewId());
         itemDescription.setText(description);
         itemDescription.setId(View.generateViewId());
-        setTextStyle(itemName);
-        setTextStyle(itemDescription);
+        setTextStyle(itemName, true);
+        setTextStyle(itemDescription, false);
         list.add(itemName);
         list.add(itemDescription);
     }
@@ -1022,47 +1023,67 @@ public class DungeonActivity extends AppCompatActivity {
             TextView monster = new TextView(activity.get());
             TextView treasure = new TextView(activity.get());
             TextView doors = new TextView(activity.get());
-            roomName.setText(room.getName());
+            roomName.setText(Html.fromHtml("<b>" + room.getName() + "</b>"));
             roomName.setId(View.generateViewId());
-            monster.setText(room.getMonster());
+            setRoomTexts(room.getMonster(), monster);
             monster.setId(View.generateViewId());
-            treasure.setText(room.getTreasure());
+            setRoomTexts(room.getTreasure(), treasure);
             treasure.setId(View.generateViewId());
-            doors.setText(room.getDoors());
+            setRoomTexts(room.getDoors(), doors);
             doors.setId(View.generateViewId());
-            setTextStyle(roomName);
-            setTextStyle(monster);
-            setTextStyle(treasure);
-            setTextStyle(doors);
+            setTextStyle(roomName, true);
+            setTextStyle(monster, false);
+            setTextStyle(treasure, false);
+            setTextStyle(doors, false);
             rooms.add(roomName);
             rooms.add(monster);
             rooms.add(treasure);
             rooms.add(doors);
         }
-        addViewToLayout(layout, rooms.get(0), null, true, activity.get().findViewById(R.id.dungeon_activity_export_button));
-        addViewToLayout(layout, rooms.get(1), activity.get().findViewById(R.id.dungeon_activity_export_button), false, rooms.get(0));
-        addViewToLayout(layout, rooms.get(2), rooms.get(1), false, rooms.get(0));
-        addViewToLayout(layout, rooms.get(3), rooms.get(2), false, rooms.get(0));
+        addViewToLayout(layout, rooms.get(0), activity.get().findViewById(R.id.dungeon_activity_export_button), true);
+        addViewToLayout(layout, rooms.get(1), rooms.get(0), false);
+        addViewToLayout(layout, rooms.get(2), rooms.get(1), false);
+        addViewToLayout(layout, rooms.get(3), rooms.get(2), false);
         return rooms;
     }
 
-    private static void setTextStyle(TextView textView) {
+    private static void setRoomTexts(String text, TextView view) {
+        text = text.replaceAll(",\n", ""); // cleanup if it's an old save
+        text = text.replaceAll("\n", "<br>");
+        if (text.contains("Entry #") && !text.contains("Monsters") && !text.contains("Treasures")) {
+            text = text.replaceAll("West Entry #", "<b>West Entry #");
+            text = text.replaceAll("South Entry #", "<b>South Entry #");
+            text = text.replaceAll("East Entry #", "<b>East Entry #");
+            text = text.replaceAll("North Entry #", "<b>North Entry #");
+            text = text.replaceAll(":", "</b>:");
+        } else {
+            text = "<b>" + text;
+            int index = text.indexOf(":");
+            text = text.substring(0, index) + "</b>" + text.substring(index, text.length());
+        }
+        view.setText(Html.fromHtml(text));
+    }
+
+    private static void setTextStyle(TextView textView, boolean stripe) {
         if (Build.VERSION.SDK_INT < 23) {
             textView.setTextColor(activity.get().getResources().getColor(R.color.primaryText));
+            if (stripe)
+                textView.setBackgroundColor(activity.get().getResources().getColor(R.color.striped));
         } else {
             textView.setTextColor(activity.get().getResources().getColor(R.color.primaryText, null));
+            if (stripe) {
+                textView.setBackgroundColor(activity.get().getResources().getColor(R.color.striped, null));
+            }
         }
     }
 
-    private static void addViewToLayout(RelativeLayout relativeLayout, View view, View parent, boolean root, View end) {
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+    private static void addViewToLayout(RelativeLayout relativeLayout, View view, View parent, boolean root) {
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+        params.addRule(RelativeLayout.BELOW, parent.getId());
         if (root) {
-            params.addRule(RelativeLayout.BELOW, end.getId());
-            params.addRule(RelativeLayout.ALIGN_PARENT_START);
+            view.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
         } else {
-            params.width = RelativeLayout.LayoutParams.MATCH_PARENT;
-            params.addRule(RelativeLayout.END_OF, end.getId());
-            params.addRule(RelativeLayout.BELOW, parent.getId());
+            params.addRule(RelativeLayout.ALIGN_PARENT_START);
         }
         relativeLayout.addView(view, params);
     }

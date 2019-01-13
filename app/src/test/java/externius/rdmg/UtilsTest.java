@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 
 import externius.rdmg.activities.MainActivity;
@@ -110,7 +111,7 @@ public class UtilsTest {
 
     static String readJSON(String resource) {
         String result;
-        try (InputStream is = MainActivity.class.getClassLoader().getResourceAsStream(resource)) {
+        try (InputStream is = Objects.requireNonNull(MainActivity.class.getClassLoader()).getResourceAsStream(resource)) {
             Scanner scanner = new Scanner(is);
             StringBuilder sb = new StringBuilder();
             while (scanner.hasNextLine()) {

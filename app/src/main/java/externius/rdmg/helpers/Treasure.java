@@ -9,6 +9,7 @@ import java.util.Map;
 import externius.rdmg.models.Treasures;
 
 final class Treasure {
+    private static final String base = "Treasures: ";
 
     private static int sumValue;
 
@@ -46,11 +47,11 @@ final class Treasure {
 
     static String getTreasure() {
         if (Math.floor(Math.random() * 100) > Utils.getTreasurePercentage()) {
-            return "Treasures: Empty";
+            return base + "Empty";
         }
         getAllCost();
         List<Treasures> filteredTreasures = getFiltered(Utils.getTreasureList());
-        return "Treasures: " + calcTreasure(filteredTreasures);
+        return base + calcTreasure(filteredTreasures);
     }
 
     private static String calcTreasure(List<Treasures> filteredTreasures) {
