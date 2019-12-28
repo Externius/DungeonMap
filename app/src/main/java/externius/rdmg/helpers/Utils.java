@@ -112,13 +112,15 @@ public final class Utils {
         List<Monster> result = new ArrayList<>();
         if (monsterType.equalsIgnoreCase("any")) {
             for (Monster monster : monsters) {
-                if (parse(monster.getChallengeRating()) <= partyLevel + 2 && parse(monster.getChallengeRating()) >= Math.floor(partyLevel / 4)) {
+                if (parse(monster.getChallengeRating()) <= partyLevel + 2
+                        && parse(monster.getChallengeRating()) >= Math.floor((double)(partyLevel / 4))) {
                     result.add(monster);
                 }
             }
         } else {
             for (Monster monster : monsters) {
-                if (parse(monster.getChallengeRating()) <= partyLevel + 2 && parse(monster.getChallengeRating()) >= Math.floor(partyLevel / 4)
+                if (parse(monster.getChallengeRating()) <= partyLevel + 2
+                        && parse(monster.getChallengeRating()) >= Math.floor((double)(partyLevel / 4))
                         && monsterType.contains(monster.getType())) {
                     result.add(monster);
                 }

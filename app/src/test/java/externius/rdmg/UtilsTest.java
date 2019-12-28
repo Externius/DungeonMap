@@ -119,7 +119,7 @@ public class UtilsTest {
             }
             result = sb.toString();
         } catch (Exception ex) {
-            Log.e("readJSON", ex.getMessage());
+            Log.e("readJSON", Objects.requireNonNull(ex.getMessage()));
             return null;
         }
         return result;

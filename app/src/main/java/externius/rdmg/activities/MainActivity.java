@@ -12,10 +12,10 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.AppBarLayout;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.NonNull;
+import com.google.android.material.appbar.AppBarLayout;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Menu;
@@ -28,6 +28,8 @@ import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 import android.widget.Toast;
+
+import java.util.Objects;
 
 import externius.rdmg.R;
 import externius.rdmg.database.DBOpenHelper;
@@ -65,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         addListeners();
         initDB();
         if (savedInstanceState != null) {
-            spinnerMonsterType.setAllText(savedInstanceState.getString(DBOpenHelper.MONSTER_TYPE));
+            spinnerMonsterType.setAllText(Objects.requireNonNull(savedInstanceState.getString(DBOpenHelper.MONSTER_TYPE)));
         }
     }
 
@@ -80,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(DBOpenHelper.MONSTER_TYPE, spinnerMonsterType.getAllText());
     }
@@ -309,7 +311,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         spinnerRoomSize.setSelection(getIndex(spinnerRoomSize, extras.getString(DBOpenHelper.ROOM_SIZE)));
         spinnerTraps.setSelection(getIndex(spinnerTraps, extras.getString(DBOpenHelper.TRAPS)));
         spinnerCorridors.setSelection(getIndex(spinnerCorridors, extras.getString(DBOpenHelper.CORRIDORS)));
-        spinnerMonsterType.setAllText(extras.getString(DBOpenHelper.MONSTER_TYPE));
+        spinnerMonsterType.setAllText(Objects.requireNonNull(extras.getString(DBOpenHelper.MONSTER_TYPE)));
         spinnerDeadEnds.setSelection(getIndex(spinnerDeadEnds, extras.getString(DBOpenHelper.DEAD_ENDS)));
         spinnerRoamingMonsters.setSelection(getIndex(spinnerRoamingMonsters, extras.getString(DBOpenHelper.ROAMING_MONSTERS)));
     }

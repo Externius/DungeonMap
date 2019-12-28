@@ -1,15 +1,17 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
     buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "externius.rdmg"
         minSdkVersion 19
-        targetSdkVersion 28
-        versionCode 27
-        versionName '1.0.23'
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        targetSdkVersion 29
+        versionCode 28
+        versionName '1.0.24'
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        proguardFiles 'proguard-rules.pro'
+        multiDexEnabled = false
     }
     buildTypes {
         release {
@@ -29,22 +31,25 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    packagingOptions { exclude 'README.txt' }
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    androidTestImplementation 'com.android.support:support-annotations:28.0.0'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test:rules:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-intents:3.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-    androidTestImplementation 'com.android.support.test.uiautomator:uiautomator-v18:2.1.3'
-    implementation 'com.android.support:appcompat-v7:28.0.0'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
-    implementation 'com.android.support:design:28.0.0'
+    implementation 'androidx.annotation:annotation:1.1.0'
+    androidTestImplementation 'androidx.annotation:annotation:1.1.0'
+    androidTestImplementation 'androidx.test:runner:1.2.0'
+    androidTestImplementation 'androidx.test:rules:1.2.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.2.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    androidTestImplementation 'androidx.test.uiautomator:uiautomator:2.2.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'com.google.android.material:material:1.0.0'
     testImplementation 'junit:junit:4.12'
-    implementation 'org.hamcrest:hamcrest-library:1.3'
-    implementation 'com.google.code.gson:gson:2.8.2'
+    implementation 'org.hamcrest:hamcrest-library:2.2'
+    implementation 'com.google.code.gson:gson:2.8.6'
 }
 
 

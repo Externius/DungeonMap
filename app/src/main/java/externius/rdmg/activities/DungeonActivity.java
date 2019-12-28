@@ -19,12 +19,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.SystemClock;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.res.ResourcesCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.text.Html;
 import android.util.Log;
 import android.view.Display;
@@ -190,13 +190,11 @@ public class DungeonActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                onBackPressed();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            return true;
         }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -853,7 +851,7 @@ public class DungeonActivity extends AppCompatActivity {
         }
         if (isExternalStorageWritableAndHasSpace()) {
             Bitmap dungeonBitmap = getBitmapFromView(activity.get().findViewById(R.id.dungeonMap_view));
-            File directory = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
+            File directory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
                     + "/DungeonMaps/");
             String html = Export.generateHTML(dungeonBitmap, dungeonView.getRoomDescription(), dungeonView.getTrapDescription(), dungeonView.getRoamingMonsterDescription());
             if (!directory.exists()) {
@@ -868,7 +866,7 @@ public class DungeonActivity extends AppCompatActivity {
 
     private static String getFilename(File directory) {
         File[] files = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".html"));
-        if (files.length > 0) {
+        if (Objects.requireNonNull(files).length > 0) {
             return "dungeon" + files.length + ".html";
         } else {
             return "dungeon.html";
@@ -1059,7 +1057,7 @@ public class DungeonActivity extends AppCompatActivity {
         } else {
             text = "<b>" + text;
             int index = text.indexOf(":");
-            text = text.substring(0, index) + "</b>" + text.substring(index, text.length());
+            text = text.substring(0, index) + "</b>" + text.substring(index);
         }
         view.setText(Html.fromHtml(text));
     }

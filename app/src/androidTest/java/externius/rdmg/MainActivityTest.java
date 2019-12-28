@@ -3,10 +3,10 @@ package externius.rdmg;
 
 import android.app.Activity;
 import android.os.Environment;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.rule.ActivityTestRule;
-import android.support.test.runner.AndroidJUnit4;
-import android.support.test.uiautomator.UiDevice;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.rule.ActivityTestRule;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.uiautomator.UiDevice;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -21,14 +21,14 @@ import java.io.File;
 import externius.rdmg.activities.MainActivity;
 import externius.rdmg.helpers.MultiSelectMonster;
 
-import static android.support.test.InstrumentationRegistry.getTargetContext;
-import static android.support.test.espresso.Espresso.onView;
-import static android.support.test.espresso.action.ViewActions.click;
-import static android.support.test.espresso.action.ViewActions.scrollTo;
-import static android.support.test.espresso.assertion.ViewAssertions.matches;
-import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
-import static android.support.test.espresso.matcher.ViewMatchers.withId;
-import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static androidx.test.core.app.ApplicationProvider.getApplicationContext;
+import static androidx.test.espresso.Espresso.onView;
+import static androidx.test.espresso.action.ViewActions.click;
+import static androidx.test.espresso.action.ViewActions.scrollTo;
+import static androidx.test.espresso.assertion.ViewAssertions.matches;
+import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static androidx.test.espresso.matcher.ViewMatchers.withId;
+import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -86,20 +86,20 @@ public class MainActivityTest {
         assertTrue(themeText.isShown());
         assertTrue(treasureValueText.isShown());
         assertTrue(itemsRarityText.isShown());
-        assertEquals(getTargetContext().getString(R.string.dungeon_size), dungeonSizeText.getText());
-        assertEquals(getTargetContext().getString(R.string.dungeon_difficulty), dungeonDifficultyText.getText());
-        assertEquals(getTargetContext().getString(R.string.party_level), partyLevelText.getText());
-        assertEquals(getTargetContext().getString(R.string.party_size), partySizeText.getText());
-        assertEquals(getTargetContext().getString(R.string.room_density), roomDensityText.getText());
-        assertEquals(getTargetContext().getString(R.string.room_size), roomSizeText.getText());
-        assertEquals(getTargetContext().getString(R.string.monster_type), monsterTypeText.getText());
-        assertEquals(getTargetContext().getString(R.string.traps), trapsText.getText());
-        assertEquals(getTargetContext().getString(R.string.roaming_monsters), roamingMonstersText.getText());
-        assertEquals(getTargetContext().getString(R.string.dead_ends), deadEndsText.getText());
-        assertEquals(getTargetContext().getString(R.string.corridors), corridorsText.getText());
-        assertEquals(getTargetContext().getString(R.string.theme_value), themeText.getText());
-        assertEquals(getTargetContext().getString(R.string.treasure_value), treasureValueText.getText());
-        assertEquals(getTargetContext().getString(R.string.items_rarity), itemsRarityText.getText());
+        assertEquals(getApplicationContext().getString(R.string.dungeon_size), dungeonSizeText.getText());
+        assertEquals(getApplicationContext().getString(R.string.dungeon_difficulty), dungeonDifficultyText.getText());
+        assertEquals(getApplicationContext().getString(R.string.party_level), partyLevelText.getText());
+        assertEquals(getApplicationContext().getString(R.string.party_size), partySizeText.getText());
+        assertEquals(getApplicationContext().getString(R.string.room_density), roomDensityText.getText());
+        assertEquals(getApplicationContext().getString(R.string.room_size), roomSizeText.getText());
+        assertEquals(getApplicationContext().getString(R.string.monster_type), monsterTypeText.getText());
+        assertEquals(getApplicationContext().getString(R.string.traps), trapsText.getText());
+        assertEquals(getApplicationContext().getString(R.string.roaming_monsters), roamingMonstersText.getText());
+        assertEquals(getApplicationContext().getString(R.string.dead_ends), deadEndsText.getText());
+        assertEquals(getApplicationContext().getString(R.string.corridors), corridorsText.getText());
+        assertEquals(getApplicationContext().getString(R.string.theme_value), themeText.getText());
+        assertEquals(getApplicationContext().getString(R.string.treasure_value), treasureValueText.getText());
+        assertEquals(getApplicationContext().getString(R.string.items_rarity), itemsRarityText.getText());
 
         //spinners
         Spinner dungeonSize = activity.findViewById(R.id.dungeon_size);
@@ -174,7 +174,7 @@ public class MainActivityTest {
     public static void takeScreenshot(Description description) {
         // Save to external storage (usually /sdcard/screenshots)
         File path = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
-                + "/screenshots/" + getTargetContext().getPackageName());
+                + "/screenshots/" + getApplicationContext().getPackageName());
         if (!path.exists()) {
             if (path.mkdirs()) {
                 takeIt(path, description);

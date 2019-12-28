@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    app:layout_behavior="android.support.design.widget.AppBarLayout$ScrollingViewBehavior"
+    app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
     tools:context="externius.rdmg.activities.DungeonActivity"
     tools:showIn="@layout/activity_dungeon"
     android:fillViewport="true">

@@ -17,7 +17,7 @@ import externius.rdmg.R;
 
 import static android.content.res.Resources.getSystem;
 
-public class MultiSelectMonster extends android.support.v7.widget.AppCompatTextView {
+public class MultiSelectMonster extends androidx.appcompat.widget.AppCompatTextView {
     private static final String ANY = "Any";
     private static final String NONE = "None";
     private ArrayAdapter mAdapter;

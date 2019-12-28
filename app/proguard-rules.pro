@@ -45,3 +45,6 @@
 -keep class org.hamcrest.** {
    *;
 }
+#For design support library
+-keep class android.support.design.widget.** { *; }
+-keep interface android.support.design.widget.** { *; }
