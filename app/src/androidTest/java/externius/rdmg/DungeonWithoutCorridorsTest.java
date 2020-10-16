@@ -1,7 +1,6 @@
 package externius.rdmg;
 
-import android.content.pm.ActivityInfo;
-import androidx.test.rule.ActivityTestRule;
+import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.hamcrest.Matchers;
@@ -25,7 +24,7 @@ import static org.hamcrest.core.IsAnything.anything;
 @RunWith(AndroidJUnit4.class)
 public class DungeonWithoutCorridorsTest {
     @Rule
-    public final ActivityTestRule<MainActivity> mainActivityTestRule = new ActivityTestRule<>(MainActivity.class);
+    public final ActivityScenarioRule<MainActivity> mainActivityTestRule = new ActivityScenarioRule<>(MainActivity.class);
 
     @Rule
     public TestRule watcher = new TestWatcher() {
@@ -161,7 +160,6 @@ public class DungeonWithoutCorridorsTest {
     }
 
     private void setCorridors() {
-        mainActivityTestRule.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         onView(withId(R.id.corridors)).perform(scrollTo(), click());
         onData(anything()).atPosition(1).perform(click());
     }

@@ -378,8 +378,8 @@ public class DungeonNoCorridor extends Dungeon {
     }
 
     private int[] getDownRight(int vertical, int horizontal) {
-        int down = Utils.getRandomInt(2, (Math.abs(vertical)) > roomSize ? roomSize : Math.abs(vertical));
-        int right = Utils.getRandomInt(2, (Math.abs(horizontal)) > roomSize ? roomSize : Math.abs(horizontal));
+        int down = Utils.getRandomInt(2, Math.min((Math.abs(vertical)), roomSize));
+        int right = Utils.getRandomInt(2, Math.min((Math.abs(horizontal)), roomSize));
         if (vertical < 0) {
             down = -down;
         }

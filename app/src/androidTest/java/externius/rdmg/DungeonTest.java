@@ -1,8 +1,6 @@
 package externius.rdmg;
 
-
-import android.content.pm.ActivityInfo;
-import androidx.test.rule.ActivityTestRule;
+import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.hamcrest.Matchers;
@@ -27,7 +25,7 @@ import static org.hamcrest.core.IsAnything.anything;
 public class DungeonTest {
 
     @Rule
-    public final ActivityTestRule<MainActivity> mainActivityTestRule = new ActivityTestRule<>(MainActivity.class);
+    public final ActivityScenarioRule<MainActivity> mainActivityTestRule = new ActivityScenarioRule<>(MainActivity.class);
 
     @Rule
     public TestRule watcher = new TestWatcher() {
@@ -117,7 +115,6 @@ public class DungeonTest {
 
     @Test
     public void testRoomDensity() {
-        mainActivityTestRule.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         onView(withId(R.id.room_density)).perform(scrollTo(), click());
         onData(anything()).atPosition(1).perform(click());
         MainActivityTest.generateDungeon();
@@ -126,7 +123,6 @@ public class DungeonTest {
 
     @Test
     public void testRoomSizeMedium() {
-        mainActivityTestRule.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         onView(withId(R.id.room_size)).perform(scrollTo(), click());
         onData(anything()).atPosition(1).perform(click());
         MainActivityTest.generateDungeon();
@@ -135,7 +131,6 @@ public class DungeonTest {
 
     @Test
     public void testRoomSizeLarge() {
-        mainActivityTestRule.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         onView(withId(R.id.room_size)).perform(scrollTo(), click());
         onData(anything()).atPosition(2).perform(click());
         MainActivityTest.generateDungeon();
@@ -153,7 +148,6 @@ public class DungeonTest {
 
     @Test
     public void testWithOutTraps() {
-        mainActivityTestRule.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         onView(withId(R.id.traps)).perform(scrollTo(), click());
         onData(anything()).atPosition(0).perform(click());
         MainActivityTest.generateDungeon();
@@ -162,7 +156,6 @@ public class DungeonTest {
 
     @Test
     public void testWithRoamingMonsters() {
-        mainActivityTestRule.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         onView(withId(R.id.roaming_monsters)).perform(scrollTo(), click());
         onData(anything()).atPosition(1).perform(click());
         MainActivityTest.generateDungeon();
@@ -171,7 +164,6 @@ public class DungeonTest {
 
     @Test
     public void testWithoutDeadEnds() {
-        mainActivityTestRule.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         onView(withId(R.id.dead_end)).perform(scrollTo(), click());
         onData(anything()).atPosition(1).perform(click());
         MainActivityTest.generateDungeon();
@@ -180,7 +172,6 @@ public class DungeonTest {
 
     @Test
     public void testTheme() {
-        mainActivityTestRule.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         onView(withId(R.id.theme)).perform(scrollTo(), click());
         onData(anything()).atPosition(1).perform(click());
         MainActivityTest.generateDungeon();

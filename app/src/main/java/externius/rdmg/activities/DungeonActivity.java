@@ -1,9 +1,9 @@
 package externius.rdmg.activities;
 
-import android.Manifest;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.ContentValues;
-import android.content.pm.PackageManager;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteConstraintException;
 import android.graphics.Bitmap;
@@ -18,13 +18,8 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.ParcelFileDescriptor;
 import android.os.SystemClock;
-import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.res.ResourcesCompat;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import android.text.Html;
 import android.util.Log;
 import android.view.Display;
@@ -40,10 +35,14 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.res.ResourcesCompat;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -70,7 +69,7 @@ import externius.rdmg.models.TrapDescription;
 import externius.rdmg.views.DungeonMapView;
 
 public class DungeonActivity extends AppCompatActivity {
-    private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 1;
+    private static final int CREATE_FILE = 1;
     private static boolean exported = false;
     private static final String SMALL = "Small";
     private static final String MEDIUM = "Medium";
@@ -152,11 +151,7 @@ public class DungeonActivity extends AppCompatActivity {
     }
 
     private void setArea(Point size) {
-        if (size.x > size.y) {
-            area = size.y;
-        } else {
-            area = size.x;
-        }
+        area = Math.min(size.x, size.y);
     }
 
     private void setScreenText(TextView screenText) {
@@ -754,7 +749,7 @@ public class DungeonActivity extends AppCompatActivity {
             if (checkMassClick()) {
                 return;
             }
-            checkPermission();
+            export(activity.get());
         });
         buttonStyle(button);
         layout.addView(button);
@@ -816,60 +811,47 @@ public class DungeonActivity extends AppCompatActivity {
         button.setBackground(drawable);
     }
 
-    private static void checkPermission() {
-        if (ContextCompat.checkSelfPermission(activity.get(),
-                Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(activity.get(),
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                Toast.makeText(activity.get(), "To save the dungeon, the app needs write permission", Toast.LENGTH_LONG).show();
-            } else {
-                ActivityCompat.requestPermissions(activity.get(),
-                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        REQUEST_WRITE_EXTERNAL_STORAGE);
-            }
-        } else {
-            export();
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_WRITE_EXTERNAL_STORAGE && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            export();
-        } else {
-            Toast.makeText(DungeonActivity.this, "Write files permission is denied", Toast.LENGTH_LONG).show();
-        }
-    }
-
-    private static void export() {
+    private static void export(DungeonActivity self) {
         if (exported) {
             Toast.makeText(activity.get(), "You are already exported this dungeon", Toast.LENGTH_SHORT).show();
             return;
         }
         if (isExternalStorageWritableAndHasSpace()) {
-            Bitmap dungeonBitmap = getBitmapFromView(activity.get().findViewById(R.id.dungeonMap_view));
-            File directory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-                    + "/DungeonMaps/");
-            String html = Export.generateHTML(dungeonBitmap, dungeonView.getRoomDescription(), dungeonView.getTrapDescription(), dungeonView.getRoamingMonsterDescription());
-            if (!directory.exists()) {
-                if (directory.mkdirs()) {
-                    createFile(directory, getFilename(directory), html);
-                }
-            } else {
-                createFile(directory, getFilename(directory), html);
-            }
+              self.popUpForSave();
         }
     }
 
-    private static String getFilename(File directory) {
-        File[] files = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".html"));
-        if (Objects.requireNonNull(files).length > 0) {
-            return "dungeon" + files.length + ".html";
-        } else {
-            return "dungeon.html";
+    private void popUpForSave() {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("text/html");
+        intent.putExtra(Intent.EXTRA_TITLE, "dungeon.html");
+        startActivityForResult(intent, CREATE_FILE);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
+        super.onActivityResult(requestCode, resultCode, resultData);
+        if (requestCode == CREATE_FILE && resultCode == Activity.RESULT_OK && resultData != null) {
+            Uri uri = resultData.getData();
+            Bitmap dungeonBitmap = getBitmapFromView(activity.get().findViewById(R.id.dungeonMap_view));
+            String html = Export.generateHTML(dungeonBitmap, dungeonView.getRoomDescription(), dungeonView.getTrapDescription(), dungeonView.getRoamingMonsterDescription());
+            writeDocument(uri, html);
+            exported = true;
+        }
+    }
+
+    private void writeDocument(Uri uri, String html) {
+        try {
+            ParcelFileDescriptor pfd = this.getApplicationContext().getContentResolver().
+                    openFileDescriptor(uri, "w");
+            FileOutputStream fileOutputStream =
+                    new FileOutputStream(pfd.getFileDescriptor());
+            fileOutputStream.write(html.getBytes());
+            fileOutputStream.close();
+            pfd.close();
+        } catch (IOException e) {
+            Log.e("DungeonActivity", "File write failed: " + e.toString());
         }
     }
 
@@ -896,17 +878,6 @@ public class DungeonActivity extends AppCompatActivity {
         String state = Environment.getExternalStorageState();
         long space = Environment.getExternalStorageDirectory().getFreeSpace() / 1024 / 1024;
         return Environment.MEDIA_MOUNTED.equals(state) && space > 1;
-    }
-
-    private static void createFile(File directory, String filename, String html) {
-        File file = new File(directory, filename);
-        try (FileOutputStream outputStream = new FileOutputStream(file)) {
-            outputStream.write(html.getBytes());
-        } catch (IOException e) {
-            Log.e("DungeonActivity", "File write failed: " + e.toString());
-        }
-        Toast.makeText(activity.get(), filename + " saved at: " + directory.getPath(), Toast.LENGTH_LONG).show();
-        exported = true;
     }
 
     private static DungeonMapView getDungeonView(Boolean load) {

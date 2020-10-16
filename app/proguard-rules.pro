@@ -36,15 +36,15 @@
 -dontwarn com.squareup.**
 -dontwarn com.google.android.**
 
--keep class com.google.android.** {
+-keep class com.google.android.* {
    *;
 }
--keep class com.google.common.** {
+-keep class com.google.common.* {
    *;
 }
--keep class org.hamcrest.** {
+-keep class org.hamcrest.* {
    *;
 }
 #For design support library
--keep class android.support.design.widget.** { *; }
--keep interface android.support.design.widget.** { *; }
+-keep class android.support.design.widget.* { *; }
+-keep interface android.support.design.widget.* { *; }

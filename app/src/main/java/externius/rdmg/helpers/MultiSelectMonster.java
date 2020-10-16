@@ -20,7 +20,7 @@ import static android.content.res.Resources.getSystem;
 public class MultiSelectMonster extends androidx.appcompat.widget.AppCompatTextView {
     private static final String ANY = "Any";
     private static final String NONE = "None";
-    private ArrayAdapter mAdapter;
+    private ArrayAdapter<String> mAdapter;
     private boolean[] mOldSelection;
     private boolean[] mSelected;
     private String mAllText;
@@ -111,7 +111,7 @@ public class MultiSelectMonster extends androidx.appcompat.widget.AppCompatTextV
         }
     };
 
-    private void setAdapter(ArrayAdapter adapter) {
+    private void setAdapter(ArrayAdapter<String> adapter) {
         setOnClickListener(null);
         mAdapter = adapter;
         mAdapter.registerDataSetObserver(dataSetObserver);
@@ -124,9 +124,7 @@ public class MultiSelectMonster extends androidx.appcompat.widget.AppCompatTextV
     private void selectAll(boolean isSelected) {
         mOldSelection = new boolean[mAdapter.getCount()];
         mSelected = new boolean[mAdapter.getCount()];
-        for (int i = 0; i < mSelected.length; i++) {
-            mSelected[i] = isSelected;
-        }
+        Arrays.fill(mSelected, isSelected);
     }
 
     private void refreshSpinnerText() {
@@ -203,10 +201,8 @@ public class MultiSelectMonster extends androidx.appcompat.widget.AppCompatTextV
         float w = getSystem().getDisplayMetrics().widthPixels / (density * 12);
         if (Text.length() > w && w != 0) {
             Text = Text.substring(0, (int) w) + "...";
-            setText(Text);
-        } else {
-            setText(Text);
         }
+        setText(Text);
         setTextSize(15);
     }
 
