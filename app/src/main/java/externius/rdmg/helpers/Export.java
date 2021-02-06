@@ -25,9 +25,10 @@ public final class Export {
         stringBuilder.append("<html>\n" +
                 "<head>\n" +
                 "<title>DungeonMap</title>\n" +
-                "<style>table, th, td {border-collapse: collapse;} th, td {padding: 8px; text-align: left; border-bottom: 1px solid #ddd;} .wrap {white-space: pre-wrap;}</style>\n" +
+                "<style>table, th, td {vertical-align: middle;} .wrap {white-space: pre-wrap;} .root {background-color: lightgray; text-align: center; font-weight: bold;}</style>\n" +
                 "</head>\n" +
                 "<body>\n" +
+                "<div>\n" +
                 "<img src=\"data:image/png;base64,");
         stringBuilder.append(bitmapToBase64String(bmp));
         stringBuilder.append("\">\n" +
@@ -36,6 +37,7 @@ public final class Export {
         addTrapDescription(trapDescription, stringBuilder);
         addRoamingMonsters(roamingMonsterDescription, stringBuilder);
         stringBuilder.append("</table>\n" +
+                "</div>\n" +
                 "</body>\n" +
                 "</html>");
         return stringBuilder.toString();
@@ -43,18 +45,13 @@ public final class Export {
 
     private static void addRoomDescription(List<RoomDescription> roomDescription, StringBuilder stringBuilder) {
         for (RoomDescription room : roomDescription) {
-            stringBuilder.append("<tr>\n" +
-                    "<td rowspan=\"3\">");
+            stringBuilder.append("<tr><td colspan=\"5\" class=\"root\">");
             stringBuilder.append(room.getName());
-            stringBuilder.append("</td>\n" +
-                    "<td>");
+            stringBuilder.append("</td></tr>\n <tr><td>");
             stringBuilder.append(room.getMonster());
-            stringBuilder.append("</td>\n" +
-                    "</tr>\n" +
-                    "<tr><td>");
+            stringBuilder.append("</td></tr>\n <tr><td>");
             stringBuilder.append(room.getTreasure());
-            stringBuilder.append("</td></tr>");
-            stringBuilder.append("<tr><td>");
+            stringBuilder.append("</td></tr>\n <tr><td>");
             stringBuilder.append(room.getDoors());
             stringBuilder.append("</td></tr>");
         }
@@ -77,10 +74,9 @@ public final class Export {
     }
 
     private static void appendToStringBuilder(StringBuilder stringBuilder, String name, String description) {
-        stringBuilder.append("<tr><td rowspan=\"2\" class=\"room\">");
+        stringBuilder.append("<tr><td colspan=\"5\" class=\"root\">");
         stringBuilder.append(name);
-        stringBuilder.append("</td></tr>\n" +
-                "<tr><td>");
+        stringBuilder.append("</td></tr>\n <tr><td>");
         stringBuilder.append(description);
         stringBuilder.append("</td></tr>");
     }

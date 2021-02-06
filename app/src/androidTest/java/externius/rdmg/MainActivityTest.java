@@ -7,6 +7,8 @@ import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.uiautomator.UiDevice;
+
+import android.os.SystemClock;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -158,6 +160,7 @@ public class MainActivityTest {
 
     public static void generateDungeon() {
         onView(withId(R.id.generate_button)).perform(click());
+        SystemClock.sleep(1000); // quick and dirty TODO change this
         onView(withId(R.id.dungeon_activity_generate_button)).perform(scrollTo(), click());
     }
 

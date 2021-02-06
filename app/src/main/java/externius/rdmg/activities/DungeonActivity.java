@@ -14,7 +14,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -46,7 +45,6 @@ import com.google.gson.reflect.TypeToken;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -69,43 +67,40 @@ import externius.rdmg.models.TrapDescription;
 import externius.rdmg.views.DungeonMapView;
 
 public class DungeonActivity extends AppCompatActivity {
-    private static final int CREATE_FILE = 1;
-    private static boolean exported = false;
-    private static final String SMALL = "Small";
-    private static final String MEDIUM = "Medium";
-    private static final String LARGE = "Large";
-    private static int dungeonDifficulty;
-    private static int partyLevel;
-    private static int partySize;
-    private static int dungeonSize;
-    private static int roomDensity;
-    private static int roomSize;
-    private static int traps;
-    private static int roamingMonsters;
-    private static boolean hasCorridor;
-    private static boolean hasDeadEnds;
-    private static String monsterType;
-    private static DungeonMapView dungeonView;
-    private static String jsonMonster;
-    private static String jsonTreasure;
-    private static String theme;
-    private static String filter;
-    private static double treasureValue;
-    private static int itemsRarity;
-    private static WeakReference<DungeonActivity> activity;
-    private static CreateDungeon createDungeonTask = null;
-    private static DungeonTile[][] loadedDungeon;
-    private static List<RoomDescription> loadedRoomDescription;
-    private static List<TrapDescription> loadedTrapDescription;
-    private static List<RoamingMonsterDescription> loadedRoamingMonsterDescription;
-    private static Bundle extras = null;
-    private static final Gson gson = new Gson();
-    private static long mLastClickTime = 0;
-    private static int area;
-    private static Dialog dialog;
-    private static GestureDetector mGestureDetector;
+    private final int CREATE_FILE = 1;
+    private boolean exported = false;
+    private final String SMALL = "Small";
+    private final String MEDIUM = "Medium";
+    private final String LARGE = "Large";
+    private int dungeonDifficulty;
+    private int partyLevel;
+    private int partySize;
+    private int dungeonSize;
+    private int roomDensity;
+    private int roomSize;
+    private int traps;
+    private int roamingMonsters;
+    private boolean hasCorridor;
+    private boolean hasDeadEnds;
+    private String monsterType;
+    private DungeonMapView dungeonView;
+    private String jsonMonster;
+    private String jsonTreasure;
+    private String theme;
+    private String filter;
+    private double treasureValue;
+    private int itemsRarity;
+    private DungeonTile[][] loadedDungeon;
+    private List<RoomDescription> loadedRoomDescription;
+    private List<TrapDescription> loadedTrapDescription;
+    private List<RoamingMonsterDescription> loadedRoamingMonsterDescription;
+    private Bundle extras = null;
+    private final Gson gson = new Gson();
+    private long mLastClickTime = 0;
+    private int area;
+    private Dialog dialog;
+    private GestureDetector mGestureDetector;
     private RelativeLayout layout;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -115,8 +110,14 @@ public class DungeonActivity extends AppCompatActivity {
         addLoadingScreen();
         addScreenText();
         mGestureDetector = new GestureDetector(this, new DungeonActivityGestureListener());
-        createDungeonTask = new CreateDungeon(this);
-        createDungeonTask.execute();
+        new Thread(() -> {
+            extras = getIntent().getExtras();
+            setParameters();
+            jsonMonster = readJSON(R.raw.monsters);
+            jsonTreasure = readJSON(R.raw.treasures);
+            dungeonView = getDungeonView(loadedDungeon != null);
+            runOnUiThread(() -> drawDungeon(dungeonView));
+        }).start();
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
@@ -194,232 +195,200 @@ public class DungeonActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (createDungeonTask != null) {
-            createDungeonTask.cancel(true);
-        }
         this.finish();
     }
 
-    static class CreateDungeon extends AsyncTask<Void, Void, Object> {
-
-        CreateDungeon(DungeonActivity activity) {
-            DungeonActivity.activity = new WeakReference<>(activity);
+    private void setParameters() {
+        if (extras.getString("URI") != null) {
+            getLoadedColumns();
+        } else {
+            loadedDungeon = null;
+            loadedRoomDescription = null;
+            loadedTrapDescription = null;
+            loadedRoamingMonsterDescription = null;
+            filter = null;
         }
-
-        @Override
-        protected void onPreExecute() {
-            extras = activity.get().getIntent().getExtras(); // get extra parameters
-            setParameters(); //set parameters from parent activity
+        String mt = extras.getString(DBOpenHelper.MONSTER_TYPE);
+        String th = extras.getString("THEME");
+        dungeonDifficulty = setDungeonDifficulty(extras.getString(DBOpenHelper.DUNGEON_DIFFICULTY));
+        dungeonSize = setDungeonSize(extras.getString(DBOpenHelper.DUNGEON_SIZE));
+        roomDensity = setRoomDensity(extras.getString(DBOpenHelper.ROOM_DENSITY));
+        roomSize = setRoomSize(extras.getString(DBOpenHelper.ROOM_SIZE));
+        traps = setTraps(extras.getString(DBOpenHelper.TRAPS));
+        hasDeadEnds = setBooleans(extras.getString(DBOpenHelper.DEAD_ENDS));
+        hasCorridor = setBooleans(extras.getString(DBOpenHelper.CORRIDORS));
+        partySize = Integer.parseInt(Objects.requireNonNull(extras.getString(DBOpenHelper.PARTY_SIZE)));
+        partyLevel = Integer.parseInt(Objects.requireNonNull(extras.getString(DBOpenHelper.PARTY_LEVEL)));
+        treasureValue = setTreasureValue(extras.getString(DBOpenHelper.TREASURE_VALUE));
+        itemsRarity = setItemsRarity(extras.getString(DBOpenHelper.ITEMS_RARITY));
+        roamingMonsters = setRoamingMonsters(extras.getString(DBOpenHelper.ROAMING_MONSTERS));
+        if (mt != null && !mt.isEmpty()) {
+            monsterType = mt.toLowerCase();
         }
-
-        @Override
-        protected Object doInBackground(Void... args) {
-            jsonMonster = readJSON(R.raw.monsters);
-            jsonTreasure = readJSON(R.raw.treasures);
-            return loadedDungeon == null ? getDungeonView(false) : null;
+        if (th != null && !th.isEmpty()) {
+            theme = th.toLowerCase();
         }
-
-        @Override
-        protected void onPostExecute(Object result) {
-            drawDungeon(result);
-        }
-
-        private static String readJSON(int id) {
-            if (activity.get() == null) {
-                return null;
-            }
-            String result;
-            try (InputStream is = activity.get().getResources().openRawResource(id)) {
-                Scanner scanner = new Scanner(is);
-                StringBuilder sb = new StringBuilder();
-                while (scanner.hasNextLine()) {
-                    sb.append(scanner.nextLine());
-                }
-                result = sb.toString();
-            } catch (Exception ex) {
-                Log.e("DungeonActivity", "Read JSON file failed: " + ex.toString());
-                return null;
-            }
-            return result;
-        }
-
-        private static Boolean setBooleans(String input) {
-            return input != null && !input.isEmpty() && Objects.equals(input.toUpperCase(), "YES");
-        }
-
-        private static int setDungeonDifficulty(String dd) {
-            if (dd != null && !dd.isEmpty()) {
-                switch (dd) {
-                    case "Easy":
-                        return 0;
-                    case MEDIUM:
-                        return 1;
-                    case "Hard":
-                        return 2;
-                    case "Deadly":
-                        return 3;
-                    default:
-                        break;
-                }
-            }
-            return 0;
-        }
-
-        private static int setDungeonSize(String ds) {
-            if (ds != null && !ds.isEmpty()) {
-                switch (ds) {
-                    case SMALL:
-                        return 15;
-                    case MEDIUM:
-                        return 20;
-                    case LARGE:
-                        return 25;
-                    default:
-                        break;
-                }
-            }
-            return 15;
-        }
-
-        private static int setRoomDensity(String rd) {
-            if (rd != null && !rd.isEmpty()) {
-                switch (rd) {
-                    case "Low":
-                        return 20;
-                    case MEDIUM:
-                        return 30;
-                    case "High":
-                        return 40;
-                    default:
-                        break;
-                }
-            }
-            return 20;
-        }
-
-        private static int setRoomSize(String rs) {
-            if (rs != null && !rs.isEmpty()) {
-                switch (rs) {
-                    case SMALL:
-                        return 20;
-                    case MEDIUM:
-                        return 25;
-                    case LARGE:
-                        return 30;
-                    default:
-                        break;
-                }
-            }
-            return 20;
-        }
-
-        private static int setTraps(String tr) {
-            if (tr != null && !tr.isEmpty()) {
-                switch (tr) {
-                    case "None":
-                        return 0;
-                    case "Few":
-                        return 15;
-                    case "More":
-                        return 30;
-                    default:
-                        break;
-                }
-            }
-            return 0;
-        }
-
-        private static int setRoamingMonsters(String rm) {
-            if (rm != null && !rm.isEmpty()) {
-                switch (rm) {
-                    case "None":
-                        return 0;
-                    case "Few":
-                        return 10;
-                    case "More":
-                        return 20;
-                    default:
-                        break;
-                }
-            }
-            return 0;
-        }
-
-        private static double setTreasureValue(String tV) {
-            if (tV != null && !tV.isEmpty()) {
-                switch (tV) {
-                    case "Low":
-                        return 0.5;
-                    case "Standard":
-                        return 1;
-                    case "High":
-                        return 1.5;
-                    default:
-                        break;
-                }
-            }
-            return 0;
-        }
-
-        private static int setItemsRarity(String iR) {
-            if (iR != null && !iR.isEmpty()) {
-                switch (iR) {
-                    case "Common":
-                        return 0;
-                    case "Uncommon":
-                        return 1;
-                    case "Rare":
-                        return 2;
-                    case "Very Rare":
-                        return 3;
-                    case "Legendary":
-                        return 4;
-                    default:
-                        break;
-                }
-            }
-            return 0;
-        }
-
-        private static void setParameters() {
-            if (extras.getString("URI") != null) {
-                getLoadedColumns();
-            } else {
-                loadedDungeon = null;
-                loadedRoomDescription = null;
-                loadedTrapDescription = null;
-                loadedRoamingMonsterDescription = null;
-                filter = null;
-            }
-            String mt = extras.getString(DBOpenHelper.MONSTER_TYPE);
-            String th = extras.getString("THEME");
-            dungeonDifficulty = setDungeonDifficulty(extras.getString(DBOpenHelper.DUNGEON_DIFFICULTY));
-            dungeonSize = setDungeonSize(extras.getString(DBOpenHelper.DUNGEON_SIZE));
-            roomDensity = setRoomDensity(extras.getString(DBOpenHelper.ROOM_DENSITY));
-            roomSize = setRoomSize(extras.getString(DBOpenHelper.ROOM_SIZE));
-            traps = setTraps(extras.getString(DBOpenHelper.TRAPS));
-            hasDeadEnds = setBooleans(extras.getString(DBOpenHelper.DEAD_ENDS));
-            hasCorridor = setBooleans(extras.getString(DBOpenHelper.CORRIDORS));
-            partySize = Integer.parseInt(Objects.requireNonNull(extras.getString(DBOpenHelper.PARTY_SIZE)));
-            partyLevel = Integer.parseInt(Objects.requireNonNull(extras.getString(DBOpenHelper.PARTY_LEVEL)));
-            treasureValue = setTreasureValue(extras.getString(DBOpenHelper.TREASURE_VALUE));
-            itemsRarity = setItemsRarity(extras.getString(DBOpenHelper.ITEMS_RARITY));
-            roamingMonsters = setRoamingMonsters(extras.getString(DBOpenHelper.ROAMING_MONSTERS));
-            if (mt != null && !mt.isEmpty()) {
-                monsterType = mt.toLowerCase();
-            }
-            if (th != null && !th.isEmpty()) {
-                theme = th.toLowerCase();
-            }
-            exported = false;
-        }
-
+        exported = false;
     }
 
-    private static void getLoadedColumns() {
+    private String readJSON(int id) {
+        String result;
+        try (InputStream is = getResources().openRawResource(id)) {
+            Scanner scanner = new Scanner(is);
+            StringBuilder sb = new StringBuilder();
+            while (scanner.hasNextLine()) {
+                sb.append(scanner.nextLine());
+            }
+            result = sb.toString();
+        } catch (Exception ex) {
+            Log.e("DungeonActivity", "Read JSON file failed: " + ex.toString());
+            return null;
+        }
+        return result;
+    }
+
+    private Boolean setBooleans(String input) {
+        return input != null && !input.isEmpty() && Objects.equals(input.toUpperCase(), "YES");
+    }
+
+    private int setDungeonDifficulty(String dd) {
+        if (dd != null && !dd.isEmpty()) {
+            switch (dd) {
+                case "Easy":
+                    return 0;
+                case MEDIUM:
+                    return 1;
+                case "Hard":
+                    return 2;
+                case "Deadly":
+                    return 3;
+                default:
+                    break;
+            }
+        }
+        return 0;
+    }
+
+    private int setDungeonSize(String ds) {
+        if (ds != null && !ds.isEmpty()) {
+            switch (ds) {
+                case SMALL:
+                    return 15;
+                case MEDIUM:
+                    return 20;
+                case LARGE:
+                    return 25;
+                default:
+                    break;
+            }
+        }
+        return 15;
+    }
+
+    private int setRoomDensity(String rd) {
+        if (rd != null && !rd.isEmpty()) {
+            switch (rd) {
+                case "Low":
+                    return 20;
+                case MEDIUM:
+                    return 30;
+                case "High":
+                    return 40;
+                default:
+                    break;
+            }
+        }
+        return 20;
+    }
+
+    private int setRoomSize(String rs) {
+        if (rs != null && !rs.isEmpty()) {
+            switch (rs) {
+                case SMALL:
+                    return 20;
+                case MEDIUM:
+                    return 25;
+                case LARGE:
+                    return 30;
+                default:
+                    break;
+            }
+        }
+        return 20;
+    }
+
+    private int setTraps(String tr) {
+        if (tr != null && !tr.isEmpty()) {
+            switch (tr) {
+                case "None":
+                    return 0;
+                case "Few":
+                    return 15;
+                case "More":
+                    return 30;
+                default:
+                    break;
+            }
+        }
+        return 0;
+    }
+
+    private int setRoamingMonsters(String rm) {
+        if (rm != null && !rm.isEmpty()) {
+            switch (rm) {
+                case "None":
+                    return 0;
+                case "Few":
+                    return 10;
+                case "More":
+                    return 20;
+                default:
+                    break;
+            }
+        }
+        return 0;
+    }
+
+    private double setTreasureValue(String tV) {
+        if (tV != null && !tV.isEmpty()) {
+            switch (tV) {
+                case "Low":
+                    return 0.5;
+                case "Standard":
+                    return 1;
+                case "High":
+                    return 1.5;
+                default:
+                    break;
+            }
+        }
+        return 0;
+    }
+
+    private int setItemsRarity(String iR) {
+        if (iR != null && !iR.isEmpty()) {
+            switch (iR) {
+                case "Common":
+                    return 0;
+                case "Uncommon":
+                    return 1;
+                case "Rare":
+                    return 2;
+                case "Very Rare":
+                    return 3;
+                case "Legendary":
+                    return 4;
+                default:
+                    break;
+            }
+        }
+        return 0;
+    }
+
+    private void getLoadedColumns() {
         Uri uri = Uri.parse(extras.getString("URI"));
         filter = extras.getString("FILTER");
-        Cursor cursor = activity.get().getContentResolver().query(uri, DBOpenHelper.ALL_COLUMNS, filter, null, null);
+        Cursor cursor = getContentResolver().query(uri, DBOpenHelper.ALL_COLUMNS, filter, null, null);
         if (cursor != null) {
             cursor.moveToFirst();
             loadedDungeon = gson.fromJson(cursor.getString(cursor.getColumnIndex(DBOpenHelper.LOADED_DUNGEON)), DungeonTile[][].class);
@@ -436,9 +405,9 @@ public class DungeonActivity extends AppCompatActivity {
         }
     }
 
-    private static void generateDungeon() {
-        RelativeLayout layout = activity.get().findViewById(R.id.dungeon_layout);
-        if (activity.get().findViewById(R.id.dungeonMap_view) != null) {
+    private void generateDungeon() {
+        RelativeLayout layout = findViewById(R.id.dungeon_layout);
+        if (findViewById(R.id.dungeonMap_view) != null) {
             layout.removeAllViews();
             exported = false;
         }
@@ -449,9 +418,9 @@ public class DungeonActivity extends AppCompatActivity {
         filter = null;
     }
 
-    private static void addTouchListener() {
+    private void addTouchListener() {
         fillLoadedVariables();
-        DungeonMapView view = activity.get().findViewById(R.id.dungeonMap_view);
+        DungeonMapView view = findViewById(R.id.dungeonMap_view);
         view.setOnTouchListener((v, event) -> {
             mGestureDetector.onTouchEvent(event);
             v.performClick();
@@ -459,7 +428,7 @@ public class DungeonActivity extends AppCompatActivity {
         });
     }
 
-    private static void fillLoadedVariables() {
+    private void fillLoadedVariables() {
         loadedTrapDescription = dungeonView.getTrapDescription();
         loadedRoomDescription = dungeonView.getRoomDescription();
         loadedRoamingMonsterDescription = dungeonView.getRoamingMonsterDescription();
@@ -533,8 +502,8 @@ public class DungeonActivity extends AppCompatActivity {
         }
     }
 
-    private static void editPopUp(int index, Textures texture) {
-        dialog = new Dialog(activity.get(), R.style.Dialog);
+    private void editPopUp(int index, Textures texture) {
+        dialog = new Dialog(this, R.style.Dialog);
         EditText description;
         Button saveButton;
         Button cancelButton;
@@ -595,79 +564,79 @@ public class DungeonActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private static void showEntryPopUp() {
+    private void showEntryPopUp() {
         createDialog("Dungeon Entry", null);
     }
 
-    private static void showDoorPopUp(String description) {
+    private void showDoorPopUp(String description) {
         int start = description.indexOf(':');
         int end = description.indexOf('(');
-        TextView details = new TextView(activity.get());
+        TextView details = new TextView(this);
         details.setText(description.substring(end));
         setTextStyle(details, false);
         createDialog(description.substring(start + 1, end), details);
     }
 
-    private static void showTrapPopUp(int index) {
+    private void showTrapPopUp(int index) {
         TrapDescription trap = loadedTrapDescription.get(index);
-        TextView details = new TextView(activity.get());
+        TextView details = new TextView(this);
         details.setText(trap.getDescription());
         setTextStyle(details, false);
         createDialog(trap.getName(), details);
     }
 
-    private static void showRoamingMonsterPopUp(int index) {
+    private void showRoamingMonsterPopUp(int index) {
         RoamingMonsterDescription monster = loadedRoamingMonsterDescription.get(index);
-        TextView details = new TextView(activity.get());
+        TextView details = new TextView(this);
         details.setText(monster.getDescription());
         setTextStyle(details, false);
         createDialog(monster.getName(), details);
     }
 
-    private static void showRoomPopUp(int index) {
+    private void showRoomPopUp(int index) {
         RoomDescription room = loadedRoomDescription.get(index);
-        TextView details = new TextView(activity.get());
+        TextView details = new TextView(this);
         String text = room.getMonster() + "\n" + room.getTreasure();
         details.setText(text);
         setTextStyle(details, false);
         createDialog(room.getName(), details);
     }
 
-    private static void createDialog(String title, View view) {
+    private void createDialog(String title, View view) {
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        dialog = new Dialog(activity.get(), R.style.Dialog);
+        dialog = new Dialog(this, R.style.Dialog);
         dialog.setContentView(R.layout.room_details_popup);
         dialog.setTitle(title);
         if (view != null) {
             dialog.addContentView(view, params);
         }
         if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(ResourcesCompat.getColor(activity.get().getResources(), R.color.transparentWhite, null)));
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(ResourcesCompat.getColor(getResources(), R.color.transparentWhite, null)));
         }
         dialog.show();
     }
 
-    private static void saveData() {
+    private void saveData() {
         if (filter != null) {
             try {
                 updateDungeon();
-                Toast.makeText(activity.get(), "Dungeon updated", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Dungeon updated", Toast.LENGTH_SHORT).show();
                 return;
             } catch (Exception ex) {
-                Toast.makeText(activity.get(), "Something went wrong during the update", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Something went wrong during the update", Toast.LENGTH_SHORT).show();
                 return;
             }
         }
         try {
             saveCurrentDungeon();
-            Toast.makeText(activity.get(), "Dungeon saved", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Dungeon saved", Toast.LENGTH_SHORT).show();
         } catch (SQLiteConstraintException ex) {
-            Toast.makeText(activity.get(), "Dungeon already saved", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Dungeon already saved", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private static void drawDungeon(Object result) {
-        RelativeLayout layout = activity.get().findViewById(R.id.dungeon_layout);
+    private void drawDungeon(Object result) {
+        RelativeLayout layout = findViewById(R.id.dungeon_layout);
         layout.removeAllViews(); // remove the loading screen + text view
         layout.setBackgroundColor(Color.WHITE);
         if (result != null) { // not a loaded dungeon
@@ -682,19 +651,19 @@ public class DungeonActivity extends AppCompatActivity {
         addTouchListener();
     }
 
-    private static void saveCurrentDungeon() {
-        Uri uri = activity.get().getContentResolver().insert(DungeonsProvider.CONTENT_URI, getDungeonContentValues());
+    private void saveCurrentDungeon() {
+        Uri uri = getContentResolver().insert(DungeonsProvider.CONTENT_URI, getDungeonContentValues());
         if (uri != null) {
             filter = DBOpenHelper.DUNGEON_ID + "=" + uri.getLastPathSegment();
         }
     }
 
-    private static void updateDungeon() {
-        activity.get().getContentResolver().update(DungeonsProvider.CONTENT_URI, getUpdateValues(), filter, null);
+    private void updateDungeon() {
+        getContentResolver().update(DungeonsProvider.CONTENT_URI, getUpdateValues(), filter, null);
     }
 
     @NonNull
-    private static ContentValues getUpdateValues() {
+    private ContentValues getUpdateValues() {
         ContentValues values = new ContentValues();
         values.put(DBOpenHelper.LOADED_ROOM_DESCRIPTION, gson.toJson(loadedRoomDescription));
         values.put(DBOpenHelper.LOADED_TRAP_DESCRIPTION, gson.toJson(loadedTrapDescription));
@@ -703,7 +672,7 @@ public class DungeonActivity extends AppCompatActivity {
     }
 
     @NonNull
-    private static ContentValues getDungeonContentValues() {
+    private ContentValues getDungeonContentValues() {
         ContentValues values = new ContentValues();
         values.put(DBOpenHelper.DUNGEON_NAME, "Dungeon_" + getFormattedDate());
         values.put(DBOpenHelper.LOADED_DUNGEON, gson.toJson(dungeonView.getDungeonTiles()));
@@ -726,20 +695,20 @@ public class DungeonActivity extends AppCompatActivity {
         return values;
     }
 
-    private static String getFormattedDate() {
+    private String getFormattedDate() {
         Calendar c = Calendar.getInstance();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd HH:mm:ss", Locale.ENGLISH);
         return dateFormat.format(c.getTime());
     }
 
-    private static void addButtons(RelativeLayout layout) {
+    private void addButtons(RelativeLayout layout) {
         addSaveButton(layout);
         addGenerateButton(layout);
         addExportButton(layout);
     }
 
-    private static void addExportButton(RelativeLayout layout) {
-        Button button = new Button(activity.get());
+    private void addExportButton(RelativeLayout layout) {
+        Button button = new Button(this);
         button.setText(R.string.export_button_text);
         button.setId(R.id.dungeon_activity_export_button);
         RelativeLayout.LayoutParams relativeParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
@@ -749,14 +718,14 @@ public class DungeonActivity extends AppCompatActivity {
             if (checkMassClick()) {
                 return;
             }
-            export(activity.get());
+            export(this);
         });
         buttonStyle(button);
         layout.addView(button);
     }
 
-    private static void addGenerateButton(RelativeLayout layout) {
-        Button button = new Button(activity.get());
+    private void addGenerateButton(RelativeLayout layout) {
+        Button button = new Button(this);
         button.setText(R.string.generate_button_text);
         RelativeLayout.LayoutParams relativeParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         relativeParams.addRule(RelativeLayout.BELOW, R.id.dungeon_activity_save_button);
@@ -772,8 +741,8 @@ public class DungeonActivity extends AppCompatActivity {
         layout.addView(button);
     }
 
-    private static void addSaveButton(RelativeLayout layout) {
-        Button button = new Button(activity.get());
+    private void addSaveButton(RelativeLayout layout) {
+        Button button = new Button(this);
         button.setText(R.string.save_button_text);
         RelativeLayout.LayoutParams relativeParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         relativeParams.addRule(RelativeLayout.BELOW, R.id.dungeonMap_view);
@@ -789,7 +758,7 @@ public class DungeonActivity extends AppCompatActivity {
         layout.addView(button);
     }
 
-    private static boolean checkMassClick() {
+    private boolean checkMassClick() {
         if (SystemClock.elapsedRealtime() - mLastClickTime < 800) {
             return true;
         }
@@ -797,27 +766,27 @@ public class DungeonActivity extends AppCompatActivity {
         return false;
     }
 
-    private static void buttonStyle(Button button) {
+    private void buttonStyle(Button button) {
         button.setTextColor(Color.WHITE);
         GradientDrawable drawable = new GradientDrawable();
         drawable.setShape(GradientDrawable.RECTANGLE);
         if (Build.VERSION.SDK_INT < 23) {
-            drawable.setColor(activity.get().getResources().getColor(R.color.primaryAccent));
-            drawable.setStroke(4, activity.get().getResources().getColor(R.color.primaryDivider));
+            drawable.setColor(getResources().getColor(R.color.primaryAccent));
+            drawable.setStroke(4, getResources().getColor(R.color.primaryDivider));
         } else {
-            drawable.setColor(activity.get().getResources().getColor(R.color.primaryAccent, null));
-            drawable.setStroke(4, activity.get().getResources().getColor(R.color.primaryDivider, null));
+            drawable.setColor(getResources().getColor(R.color.primaryAccent, null));
+            drawable.setStroke(4, getResources().getColor(R.color.primaryDivider, null));
         }
         button.setBackground(drawable);
     }
 
-    private static void export(DungeonActivity self) {
+    private void export(DungeonActivity self) {
         if (exported) {
-            Toast.makeText(activity.get(), "You are already exported this dungeon", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "You are already exported this dungeon", Toast.LENGTH_SHORT).show();
             return;
         }
         if (isExternalStorageWritableAndHasSpace()) {
-              self.popUpForSave();
+            self.popUpForSave();
         }
     }
 
@@ -834,7 +803,7 @@ public class DungeonActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, resultData);
         if (requestCode == CREATE_FILE && resultCode == Activity.RESULT_OK && resultData != null) {
             Uri uri = resultData.getData();
-            Bitmap dungeonBitmap = getBitmapFromView(activity.get().findViewById(R.id.dungeonMap_view));
+            Bitmap dungeonBitmap = getBitmapFromView(findViewById(R.id.dungeonMap_view));
             String html = Export.generateHTML(dungeonBitmap, dungeonView.getRoomDescription(), dungeonView.getTrapDescription(), dungeonView.getRoamingMonsterDescription());
             writeDocument(uri, html);
             exported = true;
@@ -845,17 +814,18 @@ public class DungeonActivity extends AppCompatActivity {
         try {
             ParcelFileDescriptor pfd = this.getApplicationContext().getContentResolver().
                     openFileDescriptor(uri, "w");
-            FileOutputStream fileOutputStream =
-                    new FileOutputStream(pfd.getFileDescriptor());
-            fileOutputStream.write(html.getBytes());
-            fileOutputStream.close();
-            pfd.close();
+            if (pfd != null) {
+                FileOutputStream fileOutputStream = new FileOutputStream(pfd.getFileDescriptor());
+                fileOutputStream.write(html.getBytes());
+                fileOutputStream.close();
+                pfd.close();
+            }
         } catch (IOException e) {
             Log.e("DungeonActivity", "File write failed: " + e.toString());
         }
     }
 
-    private static Bitmap getBitmapFromView(View view) {
+    private Bitmap getBitmapFromView(View view) {
         //Define a bitmap with the same size as the view
         Bitmap returnedBitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
         //Bind a canvas to it
@@ -874,17 +844,14 @@ public class DungeonActivity extends AppCompatActivity {
         return returnedBitmap;
     }
 
-    private static boolean isExternalStorageWritableAndHasSpace() {
+    private boolean isExternalStorageWritableAndHasSpace() {
         String state = Environment.getExternalStorageState();
         long space = Environment.getExternalStorageDirectory().getFreeSpace() / 1024 / 1024;
         return Environment.MEDIA_MOUNTED.equals(state) && space > 1;
     }
 
-    private static DungeonMapView getDungeonView(Boolean load) {
-        if (activity.get() == null) {
-            return null;
-        }
-        dungeonView = new DungeonMapView(activity.get());
+    private DungeonMapView getDungeonView(Boolean load) {
+        dungeonView = new DungeonMapView(this);
         setDungeonParameters();
         if (load) {
             dungeonView.loadDungeon(loadedDungeon, loadedRoomDescription, loadedTrapDescription, hasCorridor, loadedRoamingMonsterDescription);
@@ -894,7 +861,7 @@ public class DungeonActivity extends AppCompatActivity {
         return dungeonView;
     }
 
-    private static void setDungeonParameters() {
+    private void setDungeonParameters() {
         dungeonView.setDungeonHeight(area);
         dungeonView.setDungeonWidth(area);
         dungeonView.setDungeonSize(dungeonSize);
@@ -919,7 +886,7 @@ public class DungeonActivity extends AppCompatActivity {
         dungeonView.setId(R.id.dungeonMap_view);
     }
 
-    private static void addDescription(RelativeLayout layout, List<RoomDescription> roomDescription, List<TrapDescription> trapDescription, List<RoamingMonsterDescription> roamingMonsterDescription) {
+    private void addDescription(RelativeLayout layout, List<RoomDescription> roomDescription, List<TrapDescription> trapDescription, List<RoamingMonsterDescription> roamingMonsterDescription) {
         List<TextView> rooms = getRoomTextViews(layout, roomDescription);
         for (int i = 4; i < rooms.size(); i += 4) { // 4 because the first 4 manually added
             addViewToLayout(layout, rooms.get(i), rooms.get(i - 1), true);
@@ -941,7 +908,7 @@ public class DungeonActivity extends AppCompatActivity {
         }
     }
 
-    private static void addMonstersDescription(RelativeLayout layout, List<RoamingMonsterDescription> roamingMonsterDescription, List<TextView> parent) {
+    private void addMonstersDescription(RelativeLayout layout, List<RoamingMonsterDescription> roamingMonsterDescription, List<TextView> parent) {
         if (roamingMonsterDescription != null && !roamingMonsterDescription.isEmpty()) {
             List<TextView> roamingD = getMonsterTextViews(roamingMonsterDescription);
             addViewToLayout(layout, roamingD.get(0), parent.get(parent.size() - 1), true);
@@ -954,7 +921,7 @@ public class DungeonActivity extends AppCompatActivity {
     }
 
     @NonNull
-    private static List<TextView> getMonsterTextViews(List<RoamingMonsterDescription> roamingMonsterDescription) {
+    private List<TextView> getMonsterTextViews(List<RoamingMonsterDescription> roamingMonsterDescription) {
         List<TextView> result = new ArrayList<>();
         for (RoamingMonsterDescription monster : roamingMonsterDescription) { // generate monster TextViews
             addToTextViewList(result, monster.getName(), monster.getDescription());
@@ -963,7 +930,7 @@ public class DungeonActivity extends AppCompatActivity {
     }
 
     @NonNull
-    private static List<TextView> getTrapTextViews(List<TrapDescription> trapDescription) {
+    private List<TextView> getTrapTextViews(List<TrapDescription> trapDescription) {
         List<TextView> result = new ArrayList<>();
         for (TrapDescription trap : trapDescription) { // generate traps TextViews
             addToTextViewList(result, trap.getName(), trap.getDescription().replace("\n", "")); // cleanup if it's an old saved dungeon
@@ -971,9 +938,9 @@ public class DungeonActivity extends AppCompatActivity {
         return result;
     }
 
-    private static void addToTextViewList(List<TextView> list, String name, String description) {
-        TextView itemName = new TextView(activity.get());
-        TextView itemDescription = new TextView(activity.get());
+    private void addToTextViewList(List<TextView> list, String name, String description) {
+        TextView itemName = new TextView(this);
+        TextView itemDescription = new TextView(this);
         itemName.setText(Html.fromHtml("<b>" + name + "</b>"));
         itemName.setId(View.generateViewId());
         itemDescription.setText(description);
@@ -985,13 +952,13 @@ public class DungeonActivity extends AppCompatActivity {
     }
 
     @NonNull
-    private static List<TextView> getRoomTextViews(RelativeLayout layout, List<RoomDescription> roomDescription) {
+    private List<TextView> getRoomTextViews(RelativeLayout layout, List<RoomDescription> roomDescription) {
         List<TextView> rooms = new ArrayList<>();
         for (RoomDescription room : roomDescription) { // generate rooms TextViews
-            TextView roomName = new TextView(activity.get());
-            TextView monster = new TextView(activity.get());
-            TextView treasure = new TextView(activity.get());
-            TextView doors = new TextView(activity.get());
+            TextView roomName = new TextView(this);
+            TextView monster = new TextView(this);
+            TextView treasure = new TextView(this);
+            TextView doors = new TextView(this);
             roomName.setText(Html.fromHtml("<b>" + room.getName() + "</b>"));
             roomName.setId(View.generateViewId());
             setRoomTexts(room.getMonster(), monster);
@@ -1009,14 +976,14 @@ public class DungeonActivity extends AppCompatActivity {
             rooms.add(treasure);
             rooms.add(doors);
         }
-        addViewToLayout(layout, rooms.get(0), activity.get().findViewById(R.id.dungeon_activity_export_button), true);
+        addViewToLayout(layout, rooms.get(0), findViewById(R.id.dungeon_activity_export_button), true);
         addViewToLayout(layout, rooms.get(1), rooms.get(0), false);
         addViewToLayout(layout, rooms.get(2), rooms.get(1), false);
         addViewToLayout(layout, rooms.get(3), rooms.get(2), false);
         return rooms;
     }
 
-    private static void setRoomTexts(String text, TextView view) {
+    private void setRoomTexts(String text, TextView view) {
         text = text.replaceAll(",\n", ""); // cleanup if it's an old save
         text = text.replaceAll("\n", "<br>");
         if (text.contains("Entry #") && !text.contains("Monsters") && !text.contains("Treasures")) {
@@ -1033,20 +1000,20 @@ public class DungeonActivity extends AppCompatActivity {
         view.setText(Html.fromHtml(text));
     }
 
-    private static void setTextStyle(TextView textView, boolean stripe) {
+    private void setTextStyle(TextView textView, boolean stripe) {
         if (Build.VERSION.SDK_INT < 23) {
-            textView.setTextColor(activity.get().getResources().getColor(R.color.primaryText));
+            textView.setTextColor(getResources().getColor(R.color.primaryText));
             if (stripe)
-                textView.setBackgroundColor(activity.get().getResources().getColor(R.color.striped));
+                textView.setBackgroundColor(getResources().getColor(R.color.striped));
         } else {
-            textView.setTextColor(activity.get().getResources().getColor(R.color.primaryText, null));
+            textView.setTextColor(getResources().getColor(R.color.primaryText, null));
             if (stripe) {
-                textView.setBackgroundColor(activity.get().getResources().getColor(R.color.striped, null));
+                textView.setBackgroundColor(getResources().getColor(R.color.striped, null));
             }
         }
     }
 
-    private static void addViewToLayout(RelativeLayout relativeLayout, View view, View parent, boolean root) {
+    private void addViewToLayout(RelativeLayout relativeLayout, View view, View parent, boolean root) {
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
         params.addRule(RelativeLayout.BELOW, parent.getId());
         if (root) {
