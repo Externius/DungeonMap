@@ -113,20 +113,30 @@ public final class Utils {
         if (monsterType.equalsIgnoreCase("any")) {
             for (Monster monster : monsters) {
                 if (parse(monster.getChallengeRating()) <= partyLevel + 2
-                        && parse(monster.getChallengeRating()) >= Math.floor((float)(partyLevel / 4))) {
+                        && parse(monster.getChallengeRating()) >= Math.floor((float) (partyLevel / 4))) {
                     result.add(monster);
                 }
             }
         } else {
             for (Monster monster : monsters) {
                 if (parse(monster.getChallengeRating()) <= partyLevel + 2
-                        && parse(monster.getChallengeRating()) >= Math.floor((float)(partyLevel / 4))
-                        && monsterType.contains(monster.getType())) {
+                        && parse(monster.getChallengeRating()) >= Math.floor((float) (partyLevel / 4))
+                        && CheckType(monster.getType())) {
                     result.add(monster);
                 }
             }
         }
         return result;
+    }
+
+    private static boolean CheckType(String mType) {
+        String[] types = monsterType.split(",");
+        for (String type : types) {
+            if (mType.toLowerCase().equals(type)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static double parse(String ratio) {

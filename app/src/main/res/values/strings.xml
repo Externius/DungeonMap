@@ -50,6 +50,7 @@
         <item>Monstrosity</item>
         <item>Ooze</item>
         <item>Plant</item>
+        <item>Swarm of tiny beasts</item>
         <item>Undead</item>
     </string-array>
     <string name="dungeon_difficulty"> Dungeon difficulty: </string>

@@ -160,7 +160,7 @@ public class MainActivityTest {
 
     public static void generateDungeon() {
         onView(withId(R.id.generate_button)).perform(click());
-        SystemClock.sleep(1000); // quick and dirty TODO change this
+        SystemClock.sleep(2000); // quick and dirty TODO change this
         onView(withId(R.id.dungeon_activity_generate_button)).perform(scrollTo(), click());
     }
 

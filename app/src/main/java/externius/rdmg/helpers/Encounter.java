@@ -153,7 +153,7 @@ final class Encounter {
         difficulty[1] = thresholds[Utils.getPartyLevel()][1] * Utils.getPartySize();
         difficulty[2] = thresholds[Utils.getPartyLevel()][2] * Utils.getPartySize();
         difficulty[3] = thresholds[Utils.getPartyLevel()][3] * Utils.getPartySize();
-        filteredMonsters = Utils.getMonsterList(); // get monsters for party level
+        filteredMonsters = new ArrayList<>(Utils.getMonsterList()); // get monsters for party level
         sumXP = difficulty[Utils.getDungeonDifficulty()];
     }
 

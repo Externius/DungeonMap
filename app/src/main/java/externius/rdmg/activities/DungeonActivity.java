@@ -101,6 +101,7 @@ public class DungeonActivity extends AppCompatActivity {
     private Dialog dialog;
     private GestureDetector mGestureDetector;
     private RelativeLayout layout;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
