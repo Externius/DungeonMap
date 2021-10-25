@@ -6,6 +6,7 @@ import android.os.Build;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import externius.rdmg.helpers.Utils;
@@ -52,10 +53,6 @@ public class Dungeon {
         this.trapPercent = trapPercent;
         this.roamingPercent = roamingPercent;
         this.hasDeadEnds = hasDeadEnds;
-    }
-
-    public enum Item {
-        TRAP, ROAMING_MONSTER
     }
 
     public void generate() {
@@ -250,12 +247,13 @@ public class Dungeon {
         calcFValue(openList); // calc F value (G + H)
     }
 
+    @SuppressWarnings("ComparatorCombinators")
     private void calcFValue(List<DungeonTile> openList) {
         for (DungeonTile tile : openList) {
             tile.setF(tile.getG() + tile.getH());
         }
         if (Build.VERSION.SDK_INT > 23) { // sort it
-            openList.sort((dt1, dt2) -> dt1.getF() - dt2.getF());
+            openList.sort(Comparator.comparingInt(DungeonTile::getF));
         } else {
             Collections.sort(openList, (t1, t2) -> t1.getF() - t2.getF());
         }
@@ -461,5 +459,9 @@ public class Dungeon {
 
     public List<RoamingMonsterDescription> getRoamingMonsterDescriptions() {
         return roamingMonsterDescriptions;
+    }
+
+    public enum Item {
+        TRAP, ROAMING_MONSTER
     }
 }

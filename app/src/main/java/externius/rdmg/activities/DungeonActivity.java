@@ -34,6 +34,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -67,11 +69,11 @@ import externius.rdmg.models.TrapDescription;
 import externius.rdmg.views.DungeonMapView;
 
 public class DungeonActivity extends AppCompatActivity {
-    private final int CREATE_FILE = 1;
-    private boolean exported = false;
     private final String SMALL = "Small";
     private final String MEDIUM = "Medium";
     private final String LARGE = "Large";
+    private final Gson gson = new Gson();
+    private boolean exported = false;
     private int dungeonDifficulty;
     private int partyLevel;
     private int partySize;
@@ -84,6 +86,16 @@ public class DungeonActivity extends AppCompatActivity {
     private boolean hasDeadEnds;
     private String monsterType;
     private DungeonMapView dungeonView;
+    private final ActivityResultLauncher<Intent> exportActivityResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    Intent data = result.getData();
+                    if (data != null) {
+                        saveDungeonMap(data);
+                    }
+                }
+            });
     private String jsonMonster;
     private String jsonTreasure;
     private String theme;
@@ -95,7 +107,6 @@ public class DungeonActivity extends AppCompatActivity {
     private List<TrapDescription> loadedTrapDescription;
     private List<RoamingMonsterDescription> loadedRoamingMonsterDescription;
     private Bundle extras = null;
-    private final Gson gson = new Gson();
     private long mLastClickTime = 0;
     private int area;
     private Dialog dialog;
@@ -392,16 +403,16 @@ public class DungeonActivity extends AppCompatActivity {
         Cursor cursor = getContentResolver().query(uri, DBOpenHelper.ALL_COLUMNS, filter, null, null);
         if (cursor != null) {
             cursor.moveToFirst();
-            loadedDungeon = gson.fromJson(cursor.getString(cursor.getColumnIndex(DBOpenHelper.LOADED_DUNGEON)), DungeonTile[][].class);
+            loadedDungeon = gson.fromJson(cursor.getString(cursor.getColumnIndexOrThrow(DBOpenHelper.LOADED_DUNGEON)), DungeonTile[][].class);
             Type roomListType = new TypeToken<ArrayList<RoomDescription>>() {
             }.getType();
-            loadedRoomDescription = gson.fromJson(cursor.getString(cursor.getColumnIndex(DBOpenHelper.LOADED_ROOM_DESCRIPTION)), roomListType);
+            loadedRoomDescription = gson.fromJson(cursor.getString(cursor.getColumnIndexOrThrow(DBOpenHelper.LOADED_ROOM_DESCRIPTION)), roomListType);
             Type trapListType = new TypeToken<ArrayList<TrapDescription>>() {
             }.getType();
-            loadedTrapDescription = gson.fromJson(cursor.getString(cursor.getColumnIndex(DBOpenHelper.LOADED_TRAP_DESCRIPTION)), trapListType);
+            loadedTrapDescription = gson.fromJson(cursor.getString(cursor.getColumnIndexOrThrow(DBOpenHelper.LOADED_TRAP_DESCRIPTION)), trapListType);
             Type monsterListType = new TypeToken<ArrayList<RoamingMonsterDescription>>() {
             }.getType();
-            loadedRoamingMonsterDescription = gson.fromJson(cursor.getString(cursor.getColumnIndex(DBOpenHelper.LOADED_ROAMING_MONSTERS)), monsterListType);
+            loadedRoamingMonsterDescription = gson.fromJson(cursor.getString(cursor.getColumnIndexOrThrow(DBOpenHelper.LOADED_ROAMING_MONSTERS)), monsterListType);
             cursor.close();
         }
     }
@@ -434,26 +445,6 @@ public class DungeonActivity extends AppCompatActivity {
         loadedRoomDescription = dungeonView.getRoomDescription();
         loadedRoamingMonsterDescription = dungeonView.getRoamingMonsterDescription();
         loadedDungeon = dungeonView.getDungeonTiles();
-    }
-
-    class DungeonActivityGestureListener extends GestureDetector.SimpleOnGestureListener {
-
-        @Override
-        public boolean onDown(MotionEvent motionEvent) {
-            return true;
-        }
-
-        @Override
-        public boolean onSingleTapUp(MotionEvent motionEvent) {
-            CheckMotion(motionEvent);
-            return true;
-        }
-
-        @Override
-        public void onLongPress(MotionEvent motionEvent) {
-            CheckMotion(motionEvent);
-            super.onLongPress(motionEvent);
-        }
     }
 
     private void CheckMotion(MotionEvent motionEvent) {
@@ -787,28 +778,24 @@ public class DungeonActivity extends AppCompatActivity {
             return;
         }
         if (isExternalStorageWritableAndHasSpace()) {
-            self.popUpForSave();
+            self.popUpForExport();
         }
     }
 
-    private void popUpForSave() {
+    private void popUpForExport() {
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("text/html");
         intent.putExtra(Intent.EXTRA_TITLE, "dungeon.html");
-        startActivityForResult(intent, CREATE_FILE);
+        exportActivityResultLauncher.launch(intent);
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
-        super.onActivityResult(requestCode, resultCode, resultData);
-        if (requestCode == CREATE_FILE && resultCode == Activity.RESULT_OK && resultData != null) {
-            Uri uri = resultData.getData();
-            Bitmap dungeonBitmap = getBitmapFromView(findViewById(R.id.dungeonMap_view));
-            String html = Export.generateHTML(dungeonBitmap, dungeonView.getRoomDescription(), dungeonView.getTrapDescription(), dungeonView.getRoamingMonsterDescription());
-            writeDocument(uri, html);
-            exported = true;
-        }
+    private void saveDungeonMap(Intent data) {
+        Uri uri = data.getData();
+        Bitmap dungeonBitmap = getBitmapFromView(findViewById(R.id.dungeonMap_view));
+        String html = Export.generateHTML(dungeonBitmap, dungeonView.getRoomDescription(), dungeonView.getTrapDescription(), dungeonView.getRoamingMonsterDescription());
+        writeDocument(uri, html);
+        exported = true;
     }
 
     private void writeDocument(Uri uri, String html) {
@@ -1023,6 +1010,26 @@ public class DungeonActivity extends AppCompatActivity {
             params.addRule(RelativeLayout.ALIGN_PARENT_START);
         }
         relativeLayout.addView(view, params);
+    }
+
+    class DungeonActivityGestureListener extends GestureDetector.SimpleOnGestureListener {
+
+        @Override
+        public boolean onDown(MotionEvent motionEvent) {
+            return true;
+        }
+
+        @Override
+        public boolean onSingleTapUp(MotionEvent motionEvent) {
+            CheckMotion(motionEvent);
+            return true;
+        }
+
+        @Override
+        public void onLongPress(MotionEvent motionEvent) {
+            CheckMotion(motionEvent);
+            super.onLongPress(motionEvent);
+        }
     }
 
 }

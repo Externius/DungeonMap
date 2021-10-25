@@ -292,7 +292,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         Bundle extras = new Bundle();
         cursor.moveToFirst();
         for (String column : DBOpenHelper.TO_BUNDLE) {
-            extras.putString(column, cursor.getString(cursor.getColumnIndex(column)));
+            extras.putString(column, cursor.getString(cursor.getColumnIndexOrThrow(column)));
         }
         cursor.close();
         extras.putString("URI", uri.toString());
