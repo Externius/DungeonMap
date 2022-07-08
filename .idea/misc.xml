@@ -3,6 +3,7 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="app/src/main/res/layout/content_about.xml" value="0.12545289855072464" />
         <entry key="app/src/main/res/layout/load_dungeons_popup.xml" value="0.13994565217391305" />
       </map>
     </option>

@@ -253,7 +253,7 @@ public class DungeonActivity extends AppCompatActivity {
             }
             result = sb.toString();
         } catch (Exception ex) {
-            Log.e("DungeonActivity", "Read JSON file failed: " + ex.toString());
+            Log.e("DungeonActivity", "Read JSON file failed: " + ex);
             return null;
         }
         return result;
@@ -809,7 +809,7 @@ public class DungeonActivity extends AppCompatActivity {
                 pfd.close();
             }
         } catch (IOException e) {
-            Log.e("DungeonActivity", "File write failed: " + e.toString());
+            Log.e("DungeonActivity", "File write failed: " + e);
         }
     }
 

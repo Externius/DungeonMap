@@ -87,7 +87,7 @@ public final class Export {
             byte[] bytes = byteArrayOutputStream.toByteArray();
             return Base64.encodeToString(bytes, Base64.NO_WRAP);
         } catch (IOException e) {
-            Log.e("Export", "Bitmap to string failed: " + e.toString());
+            Log.e("Export", "Bitmap to string failed: " + e);
         }
         return "";
     }
