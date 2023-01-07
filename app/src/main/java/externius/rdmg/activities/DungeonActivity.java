@@ -1015,18 +1015,18 @@ public class DungeonActivity extends AppCompatActivity {
     class DungeonActivityGestureListener extends GestureDetector.SimpleOnGestureListener {
 
         @Override
-        public boolean onDown(MotionEvent motionEvent) {
+        public boolean onDown(@NonNull MotionEvent motionEvent) {
             return true;
         }
 
         @Override
-        public boolean onSingleTapUp(MotionEvent motionEvent) {
+        public boolean onSingleTapUp(@NonNull MotionEvent motionEvent) {
             CheckMotion(motionEvent);
             return true;
         }
 
         @Override
-        public void onLongPress(MotionEvent motionEvent) {
+        public void onLongPress(@NonNull MotionEvent motionEvent) {
             CheckMotion(motionEvent);
             super.onLongPress(motionEvent);
         }
