@@ -28,6 +28,7 @@ public class DungeonsProvider extends ContentProvider {
 
     private SQLiteDatabase database;
 
+    @SuppressWarnings("resource")
     @Override
     public boolean onCreate() {
         DBOpenHelper helper = new DBOpenHelper(getContext());

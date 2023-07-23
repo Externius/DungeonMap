@@ -2,11 +2,8 @@ package externius.rdmg.activities;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.LoaderManager;
-import android.content.CursorLoader;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
@@ -17,8 +14,12 @@ import androidx.annotation.NonNull;
 
 import com.google.android.material.appbar.AppBarLayout;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.loader.app.LoaderManager;
+import androidx.loader.content.Loader;
+import androidx.loader.content.CursorLoader;
 
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -120,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         String[] from = {DBOpenHelper.DUNGEON_NAME};
         int[] to = {android.R.id.text1};
         cursorAdapter = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_1, null, from, to, 0);
-        getLoaderManager().initLoader(0, null, this);
+        LoaderManager.getInstance(this).initLoader(0, null, this);
     }
 
     private void addListeners() {
@@ -284,7 +285,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     private void restartLoader() {
-        getLoaderManager().restartLoader(0, null, this);
+        LoaderManager.getInstance(this).restartLoader(0, null, this);
     }
 
     private void loadDungeon(Cursor cursor) {
@@ -379,18 +380,19 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         return super.onOptionsItemSelected(item);
     }
 
+    @NonNull
     @Override
-    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+    public Loader<Cursor> onCreateLoader(int id, @Nullable Bundle args) {
         return new CursorLoader(this, DungeonsProvider.CONTENT_URI, null, null, null, null);
     }
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-        cursorAdapter.swapCursor(cursor);
+    public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
+        cursorAdapter.swapCursor(data);
     }
 
     @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        cursorAdapter.swapCursor(null);
+    public void onLoaderReset(@NonNull Loader<Cursor> loader) {
+        cursorAdapter.changeCursor(null);
     }
 }
