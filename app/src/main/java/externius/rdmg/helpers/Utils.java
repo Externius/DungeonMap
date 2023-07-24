@@ -2,9 +2,10 @@ package externius.rdmg.helpers;
 
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -26,6 +27,10 @@ public final class Utils {
     private static List<Treasures> treasureList;
     private static final Gson gson = new Gson();
     private static final Random random = new Random();
+    private static final Type monsterListType = new TypeToken<ArrayList<Monster>>() {
+    }.getType();
+    private static final Type treasureListType = new TypeToken<ArrayList<Treasures>>() {
+    }.getType();
 
     private Utils() {
 
@@ -173,7 +178,7 @@ public final class Utils {
     }
 
     public static void setJsonMonster(String jsonMonster) {
-        monsterList = getMonsters(Arrays.asList(gson.fromJson(jsonMonster, Monster[].class)));
+        monsterList = getMonsters(gson.fromJson(jsonMonster, monsterListType));
     }
 
     static String getMonsterType() {
@@ -185,7 +190,7 @@ public final class Utils {
     }
 
     public static void setJsonTreasure(String jsonTreasure) {
-        treasureList = Arrays.asList(gson.fromJson(jsonTreasure, Treasures[].class));
+        treasureList = gson.fromJson(jsonTreasure, treasureListType);
     }
 
     public static void setTreasureValue(double treasureValue) {

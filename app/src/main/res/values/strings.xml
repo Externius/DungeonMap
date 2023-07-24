@@ -29,10 +29,9 @@
         <item>No goblins were harmed during the making of this dungeon…</item>
     </string-array>
     <string name="about_content">
-        This generator based on D&amp;D5th Edition SRD (released under OGL 1.0a license)\n
+        This generator based on D&amp;D5th Edition SRD (released under OGL 1.0a license)\n\n
         You can find the source code at GitHub: \n https://github.com/externius/DungeonMap\n\n
         There is a Web version here: \n https://dungeonmap.info/\n\n
-        Please feel free to contact me if you have any recommendation at t.andras@outlook.com.
     </string>
     <string name="title_activity_settings">Generated Dungeon</string>
     <string name="monster_type">Monster type: </string>

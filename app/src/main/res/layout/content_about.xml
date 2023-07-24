@@ -12,7 +12,10 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:textAppearance="@android:style/TextAppearance.DeviceDefault.Large"
         android:text="@string/about_content"
+        android:textAlignment="center"
+        android:layout_gravity="center"
         android:autoLink="all"/>
 
 </ScrollView>
