@@ -107,14 +107,10 @@ public class Dungeon {
 
     private void addItem(int x, int y, Item item) {
         switch (item) {
-            case TRAP:
-                addTrap(x, y);
-                break;
-            case ROAMING_MONSTER:
-                addRoamingMonster(x, y);
-                break;
-            default:
-                break;
+            case TRAP -> addTrap(x, y);
+            case ROAMING_MONSTER -> addRoamingMonster(x, y);
+            default -> {
+            }
         }
     }
 

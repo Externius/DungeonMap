@@ -8,6 +8,8 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.view.View;
 
+import androidx.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -115,17 +117,14 @@ public class DungeonMapView extends View {
         roamingMonster = BitmapFactory.decodeResource(getResources(), R.drawable.monster_dark);
         entry = BitmapFactory.decodeResource(getResources(), R.drawable.entry_dark);
         switch (theme) {
-            case "dark":
-                setTheme(hasCorridor, R.drawable.marble_dark, R.drawable.room_edge_dark, R.drawable.room_dark, R.drawable.nc_door_dark, R.drawable.nc_door_locked_dark, R.drawable.nc_door_trapped_dark);
-                break;
-            case "light":
-                setTheme(hasCorridor, R.drawable.marble_light, R.drawable.room_edge_light, R.drawable.room_light, R.drawable.nc_door_light, R.drawable.nc_door_locked_light, R.drawable.nc_door_trapped_light);
-                break;
-            case "minimal":
-                setTheme(hasCorridor, R.drawable.marble_white, R.drawable.marble_white, R.drawable.room_white, R.drawable.nc_door_white, R.drawable.nc_door_locked_white, R.drawable.nc_door_trapped_white);
-                break;
-            default:
-                break;
+            case "dark" ->
+                    setTheme(hasCorridor, R.drawable.marble_dark, R.drawable.room_edge_dark, R.drawable.room_dark, R.drawable.nc_door_dark, R.drawable.nc_door_locked_dark, R.drawable.nc_door_trapped_dark);
+            case "light" ->
+                    setTheme(hasCorridor, R.drawable.marble_light, R.drawable.room_edge_light, R.drawable.room_light, R.drawable.nc_door_light, R.drawable.nc_door_locked_light, R.drawable.nc_door_trapped_light);
+            case "minimal" ->
+                    setTheme(hasCorridor, R.drawable.marble_white, R.drawable.marble_white, R.drawable.room_white, R.drawable.nc_door_white, R.drawable.nc_door_locked_white, R.drawable.nc_door_trapped_white);
+            default -> {
+            }
         }
     }
 
@@ -152,54 +151,44 @@ public class DungeonMapView extends View {
         }
     }
 
-    protected void onDraw(Canvas canvas) {
+    protected void onDraw(@NonNull Canvas canvas) {
         for (int i = 1; i < dungeonTiles.length - 1; i++) {
             for (int j = 1; j < dungeonTiles.length - 1; j++) {
                 switch (dungeonTiles[i][j].getTexture()) {
-                    case ROOM_EDGE:
-                        canvas.drawBitmap(scaleBitmap(roomEdge, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                        break;
-                    case MARBLE:
-                        canvas.drawBitmap(scaleBitmap(marble, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                        break;
-                    case CORRIDOR:
-                        canvas.drawBitmap(scaleBitmap(corridor, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                        break;
-                    case DOOR:
-                        canvas.drawBitmap(scaleBitmap(rotateBitmap(door, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                        break;
-                    case DOOR_LOCKED:
-                        canvas.drawBitmap(scaleBitmap(rotateBitmap(doorLocked, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                        break;
-                    case DOOR_TRAPPED:
-                        canvas.drawBitmap(scaleBitmap(rotateBitmap(doorTrapped, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                        break;
-                    case ROOM:
+                    case ROOM_EDGE ->
+                            canvas.drawBitmap(scaleBitmap(roomEdge, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
+                    case MARBLE ->
+                            canvas.drawBitmap(scaleBitmap(marble, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
+                    case CORRIDOR ->
+                            canvas.drawBitmap(scaleBitmap(corridor, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
+                    case DOOR ->
+                            canvas.drawBitmap(scaleBitmap(rotateBitmap(door, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
+                    case DOOR_LOCKED ->
+                            canvas.drawBitmap(scaleBitmap(rotateBitmap(doorLocked, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
+                    case DOOR_TRAPPED ->
+                            canvas.drawBitmap(scaleBitmap(rotateBitmap(doorTrapped, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
+                    case ROOM -> {
                         canvas.drawBitmap(scaleBitmap(room, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
                         canvas.drawText(dungeonTiles[i][j].getDescription(), Math.round(dungeonTiles[i][j].getX() + dungeonTiles[i][j].getWidth() * 0.1), Math.round(dungeonTiles[i][j].getY() + dungeonTiles[i][j].getHeight() * 0.65), paint);
-                        break;
-                    case ENTRY:
-                        canvas.drawBitmap(scaleBitmap(entry, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                        break;
-                    case TRAP:
+                    }
+                    case ENTRY ->
+                            canvas.drawBitmap(scaleBitmap(entry, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
+                    case TRAP -> {
                         canvas.drawBitmap(scaleBitmap(trap, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
                         canvas.drawText(dungeonTiles[i][j].getDescription(), Math.round(dungeonTiles[i][j].getX() + dungeonTiles[i][j].getWidth() * 0.1), Math.round(dungeonTiles[i][j].getY() + dungeonTiles[i][j].getHeight() * 0.5), paint);
-                        break;
-                    case ROAMING_MONSTER:
+                    }
+                    case ROAMING_MONSTER -> {
                         canvas.drawBitmap(scaleBitmap(roamingMonster, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
                         canvas.drawText(dungeonTiles[i][j].getDescription(), Math.round(dungeonTiles[i][j].getX() + dungeonTiles[i][j].getWidth() * 0.1), Math.round(dungeonTiles[i][j].getY() + dungeonTiles[i][j].getHeight() * 0.4), paint);
-                        break;
-                    case NO_CORRIDOR_DOOR:
-                        canvas.drawBitmap(scaleBitmap(rotateBitmap(ncDoor, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                        break;
-                    case NO_CORRIDOR_DOOR_LOCKED:
-                        canvas.drawBitmap(scaleBitmap(rotateBitmap(ncDoorLocked, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                        break;
-                    case NO_CORRIDOR_DOOR_TRAPPED:
-                        canvas.drawBitmap(scaleBitmap(rotateBitmap(ncDoorTrapped, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                        break;
-                    default:
-                        break;
+                    }
+                    case NO_CORRIDOR_DOOR ->
+                            canvas.drawBitmap(scaleBitmap(rotateBitmap(ncDoor, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
+                    case NO_CORRIDOR_DOOR_LOCKED ->
+                            canvas.drawBitmap(scaleBitmap(rotateBitmap(ncDoorLocked, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
+                    case NO_CORRIDOR_DOOR_TRAPPED ->
+                            canvas.drawBitmap(scaleBitmap(rotateBitmap(ncDoorTrapped, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
+                    default -> {
+                    }
                 }
             }
         }

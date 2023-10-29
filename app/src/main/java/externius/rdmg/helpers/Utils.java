@@ -45,33 +45,23 @@ public final class Utils {
     }
 
     static int getTreasurePercentage() {
-        switch (dungeonDifficulty) {
-            case 0:
-                return getRandomInt(20, 71);
-            case 1:
-                return getRandomInt(30, 81);
-            case 2:
-                return getRandomInt(40, 91);
-            case 3:
-                return getRandomInt(50, 101);
-            default:
-                return 0;
-        }
+        return switch (dungeonDifficulty) {
+            case 0 -> getRandomInt(20, 71);
+            case 1 -> getRandomInt(30, 81);
+            case 2 -> getRandomInt(40, 91);
+            case 3 -> getRandomInt(50, 101);
+            default -> 0;
+        };
     }
 
     static int getMonsterPercentage() {
-        switch (dungeonDifficulty) {
-            case 0:
-                return getRandomInt(40, 81);
-            case 1:
-                return getRandomInt(50, 91);
-            case 2:
-                return getRandomInt(60, 101);
-            case 3:
-                return getRandomInt(70, 101);
-            default:
-                return 0;
-        }
+        return switch (dungeonDifficulty) {
+            case 0 -> getRandomInt(40, 81);
+            case 1 -> getRandomInt(50, 91);
+            case 2 -> getRandomInt(60, 101);
+            case 3 -> getRandomInt(70, 101);
+            default -> 0;
+        };
     }
 
     public static void addRoamingMonsterDescription(DungeonTile[][] dungeon, int x, int y, List<RoamingMonsterDescription> roamingMonsterDescription) {

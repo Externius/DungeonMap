@@ -86,17 +86,12 @@ final class Trap {
     }
 
     private static int getTrapDanger() {
-        switch (Utils.getDungeonDifficulty()) {
-            case 0:
-                return Utils.getRandomInt(0, 1);
-            case 1:
-            case 2:
-                return Utils.getRandomInt(0, 2);
-            case 3:
-                return Utils.getRandomInt(0, 3);
-            default:
-                return 0;
-        }
+        return switch (Utils.getDungeonDifficulty()) {
+            case 0 -> Utils.getRandomInt(0, 1);
+            case 1, 2 -> Utils.getRandomInt(0, 2);
+            case 3 -> Utils.getRandomInt(0, 3);
+            default -> 0;
+        };
     }
 
     static String getCurrentTrap(boolean door) {

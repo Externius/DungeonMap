@@ -19,40 +19,18 @@ final class DrawTestDungeon {
     private static void printRow(DungeonTile[] row) {
         for (DungeonTile i : row) {
             switch (i.getTexture()) {
-                case EDGE:
-                    System.out.print("X");
-                    break;
-                case ROOM_EDGE:
-                    System.out.print("#");
-                    break;
-                case MARBLE:
-                    System.out.print(" ");
-                    break;
-                case ROOM:
-                    System.out.print(".");
-                    break;
-                case NO_CORRIDOR_DOOR:
-                case NO_CORRIDOR_DOOR_LOCKED:
-                case NO_CORRIDOR_DOOR_TRAPPED:
-                case DOOR:
-                case DOOR_LOCKED:
-                case DOOR_TRAPPED:
-                    System.out.print("D");
-                    break;
-                case CORRIDOR:
-                    System.out.print("-");
-                    break;
-                case ENTRY:
-                    System.out.print("E");
-                    break;
-                case TRAP:
-                    System.out.print("T");
-                    break;
-                case ROAMING_MONSTER:
-                    System.out.print("M");
-                    break;
-                default:
-                    break;
+                case EDGE -> System.out.print("X");
+                case ROOM_EDGE -> System.out.print("#");
+                case MARBLE -> System.out.print(" ");
+                case ROOM -> System.out.print(".");
+                case NO_CORRIDOR_DOOR, NO_CORRIDOR_DOOR_LOCKED, NO_CORRIDOR_DOOR_TRAPPED, DOOR, DOOR_LOCKED, DOOR_TRAPPED ->
+                        System.out.print("D");
+                case CORRIDOR -> System.out.print("-");
+                case ENTRY -> System.out.print("E");
+                case TRAP -> System.out.print("T");
+                case ROAMING_MONSTER -> System.out.print("M");
+                default -> {
+                }
             }
         }
         System.out.println();

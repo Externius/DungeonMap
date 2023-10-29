@@ -90,18 +90,13 @@ final class Treasure {
     }
 
     private static int getItemsCount() {
-        switch (Utils.getDungeonDifficulty()) {
-            case 0:
-                return Utils.getRandomInt(0, itemCount[Utils.getPartyLevel()]);
-            case 1:
-                return Utils.getRandomInt(2, itemCount[Utils.getPartyLevel()]);
-            case 2:
-                return Utils.getRandomInt(3, itemCount[Utils.getPartyLevel()]);
-            case 3:
-                return Utils.getRandomInt(4, itemCount[Utils.getPartyLevel()]);
-            default:
-                return 0;
-        }
+        return switch (Utils.getDungeonDifficulty()) {
+            case 0 -> Utils.getRandomInt(0, itemCount[Utils.getPartyLevel()]);
+            case 1 -> Utils.getRandomInt(2, itemCount[Utils.getPartyLevel()]);
+            case 2 -> Utils.getRandomInt(3, itemCount[Utils.getPartyLevel()]);
+            case 3 -> Utils.getRandomInt(4, itemCount[Utils.getPartyLevel()]);
+            default -> 0;
+        };
     }
 
     private static void getAllCost() {

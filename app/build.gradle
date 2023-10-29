@@ -1,14 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 33
-    buildToolsVersion '33.0.0'
+    compileSdk 34
     defaultConfig {
         applicationId "externius.rdmg"
-        minSdkVersion 19
-        targetSdkVersion 33
-        versionCode 36
-        versionName '1.0.32'
+        minSdkVersion 23
+        targetSdk 34
+        versionCode 37
+        versionName '1.0.33'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         proguardFiles 'proguard-rules.pro'
         multiDexEnabled = false
@@ -21,15 +20,15 @@ android {
     }
     productFlavors {
     }
-    tasks.withType(Test)  {
+    tasks.withType(Test).configureEach {
         testLogging {
             events 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
             showStandardStreams true
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     packagingOptions {
         resources {
@@ -41,8 +40,8 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'androidx.annotation:annotation:1.6.0'
-    androidTestImplementation 'androidx.annotation:annotation:1.6.0'
+    implementation 'androidx.annotation:annotation:1.7.0'
+    androidTestImplementation 'androidx.annotation:annotation:1.7.0'
     androidTestImplementation 'androidx.test:runner:1.5.2'
     androidTestImplementation 'androidx.test:rules:1.5.0'
     androidTestImplementation 'androidx.test.espresso:espresso-intents:3.5.1'
@@ -51,7 +50,7 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'com.google.android.material:material:1.10.0'
     testImplementation 'junit:junit:4.13.2'
     implementation 'org.hamcrest:hamcrest-library:2.2'
     implementation 'com.google.code.gson:gson:2.10.1'

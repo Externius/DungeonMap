@@ -9,18 +9,6 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-
-import com.google.android.material.appbar.AppBarLayout;
-
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.loader.app.LoaderManager;
-import androidx.loader.content.Loader;
-import androidx.loader.content.CursorLoader;
-
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Menu;
@@ -33,6 +21,16 @@ import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.loader.app.LoaderManager;
+import androidx.loader.content.CursorLoader;
+import androidx.loader.content.Loader;
+
+import com.google.android.material.appbar.AppBarLayout;
 
 import java.util.Objects;
 
@@ -217,7 +215,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     private void setButtonStyle(Button button) {
-        button.setBackgroundColor(getResources().getColor(R.color.primaryAccent));
+        button.setBackgroundColor(getResources().getColor(R.color.primaryAccent, null));
         button.setTextColor(Color.WHITE);
     }
 

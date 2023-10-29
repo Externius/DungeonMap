@@ -22,37 +22,39 @@ public final class Export {
 
     public static String generateHTML(Bitmap bmp, List<RoomDescription> roomDescription, List<TrapDescription> trapDescription, List<RoamingMonsterDescription> roamingMonsterDescription) {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("<html>\n" +
-                "<head>\n" +
-                "<title>DungeonMap</title>\n" +
-                "<style>table, th, td {vertical-align: middle;} .wrap {white-space: pre-wrap;} .root {background-color: lightgray; text-align: center; font-weight: bold;}</style>\n" +
-                "</head>\n" +
-                "<body>\n" +
-                "<div>\n" +
-                "<img src=\"data:image/png;base64,");
+        stringBuilder.append("""
+                <html>
+                <head>
+                <title>DungeonMap</title>
+                <style>table, th, td {vertical-align: middle;} .wrap {white-space: pre-wrap;} .root {background-color: lightgray; text-align: center; font-weight: bold;}</style>
+                </head>
+                <body>
+                <div>
+                <img src="data:image/png;base64,""");
         stringBuilder.append(bitmapToBase64String(bmp));
         stringBuilder.append("\">\n" +
                 "<table id=\"table_description\" class=\"wrap\">");
         addRoomDescription(roomDescription, stringBuilder);
         addTrapDescription(trapDescription, stringBuilder);
         addRoamingMonsters(roamingMonsterDescription, stringBuilder);
-        stringBuilder.append("</table>\n" +
-                "</div>\n" +
-                "</body>\n" +
-                "</html>");
+        stringBuilder.append("""
+                </table>
+                </div>
+                </body>
+                </html>""");
         return stringBuilder.toString();
     }
 
     private static void addRoomDescription(List<RoomDescription> roomDescription, StringBuilder stringBuilder) {
         for (RoomDescription room : roomDescription) {
             stringBuilder.append("<tr><td colspan=\"5\" class=\"root\">");
-            stringBuilder.append(room.getName());
+            stringBuilder.append(room.name());
             stringBuilder.append("</td></tr>\n <tr><td>");
-            stringBuilder.append(room.getMonster());
+            stringBuilder.append(room.monster());
             stringBuilder.append("</td></tr>\n <tr><td>");
-            stringBuilder.append(room.getTreasure());
+            stringBuilder.append(room.treasure());
             stringBuilder.append("</td></tr>\n <tr><td>");
-            stringBuilder.append(room.getDoors());
+            stringBuilder.append(room.doors());
             stringBuilder.append("</td></tr>");
         }
     }
@@ -60,7 +62,7 @@ public final class Export {
     private static void addTrapDescription(List<TrapDescription> trapDescription, StringBuilder stringBuilder) {
         if (trapDescription != null && !trapDescription.isEmpty()) {
             for (TrapDescription trap : trapDescription) {
-                appendToStringBuilder(stringBuilder, trap.getName(), trap.getDescription());
+                appendToStringBuilder(stringBuilder, trap.name(), trap.description());
             }
         }
     }
@@ -68,7 +70,7 @@ public final class Export {
     private static void addRoamingMonsters(List<RoamingMonsterDescription> roamingMonsterDescription, StringBuilder stringBuilder) {
         if (roamingMonsterDescription != null && !roamingMonsterDescription.isEmpty()) {
             for (RoamingMonsterDescription monster : roamingMonsterDescription) {
-                appendToStringBuilder(stringBuilder, monster.getName(), monster.getDescription());
+                appendToStringBuilder(stringBuilder, monster.name(), monster.description());
             }
         }
     }

@@ -1,5 +1,7 @@
 package externius.rdmg.helpers;
 
+import static android.content.res.Resources.getSystem;
+
 import android.app.Dialog;
 import android.content.Context;
 import android.database.DataSetObserver;
@@ -14,8 +16,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import externius.rdmg.R;
-
-import static android.content.res.Resources.getSystem;
 
 public class MultiSelectMonster extends androidx.appcompat.widget.AppCompatTextView {
     private static final String ANY = "Any";
@@ -32,7 +32,7 @@ public class MultiSelectMonster extends androidx.appcompat.widget.AppCompatTextV
     }
 
     public MultiSelectMonster(Context context, AttributeSet attr) {
-        this(context, attr, R.attr.spinnerStyle);
+        this(context, attr, androidx.appcompat.R.attr.spinnerStyle);
     }
 
     public MultiSelectMonster(Context context, AttributeSet attr, int defStyle) {
@@ -47,7 +47,7 @@ public class MultiSelectMonster extends androidx.appcompat.widget.AppCompatTextV
     }
 
     private void setButtonStyle(Button button) {
-        button.setBackgroundColor(getResources().getColor(R.color.primaryAccent));
+        button.setBackgroundColor(getResources().getColor(R.color.primaryAccent, null));
         button.setTextColor(Color.WHITE);
     }
 
@@ -171,13 +171,9 @@ public class MultiSelectMonster extends androidx.appcompat.widget.AppCompatTextV
     public void setAllText(String allText) {
         this.mAllText = allText;
         switch (allText) {
-            case ANY:
-                selectAll(true);
-                break;
-            case NONE:
-                selectAll(false);
-                break;
-            default:
+            case ANY -> selectAll(true);
+            case NONE -> selectAll(false);
+            default -> {
                 allText = allText.replaceAll(" ", "");
                 String[] array = allText.trim().split(",");
                 if (array.length > 0) {
@@ -191,7 +187,7 @@ public class MultiSelectMonster extends androidx.appcompat.widget.AppCompatTextV
                         }
                     }
                 }
-                break;
+            }
         }
         addText(allText);
     }

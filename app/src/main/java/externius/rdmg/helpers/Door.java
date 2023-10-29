@@ -40,31 +40,23 @@ public final class Door {
     }
 
     private static int getDoorDC() {
-        switch (Utils.getDungeonDifficulty()) {
-            case 0:
-                return Utils.getRandomInt(0, 2);
-            case 1:
-                return Utils.getRandomInt(1, 4);
-            case 2:
-                return Utils.getRandomInt(1, 6);
-            case 3:
-                return Utils.getRandomInt(2, 7);
-            default:
-                return 0;
-        }
+        return switch (Utils.getDungeonDifficulty()) {
+            case 0 -> Utils.getRandomInt(0, 2);
+            case 1 -> Utils.getRandomInt(1, 4);
+            case 2 -> Utils.getRandomInt(1, 6);
+            case 3 -> Utils.getRandomInt(2, 7);
+            default -> 0;
+        };
     }
 
     private static String getState(Textures texture, int x) {
-        switch (texture) {
-            case NO_CORRIDOR_DOOR_LOCKED:
-            case DOOR_LOCKED:
-                return " Locked Door (AC " + doorAC[x] + ", HP " + doorHP[x] + ", DC " + lockDifficulty[x] + " to unlock)";
-            case NO_CORRIDOR_DOOR_TRAPPED:
-            case DOOR_TRAPPED:
-                return " Trapped Door (AC " + doorAC[x] + ", HP " + doorHP[x] + ") " + Trap.getCurrentTrap(true);
-            default:
-                return " Open Door (AC " + doorAC[x] + ", HP " + doorHP[x] + ")";
-        }
+        return switch (texture) {
+            case NO_CORRIDOR_DOOR_LOCKED, DOOR_LOCKED ->
+                    " Locked Door (AC " + doorAC[x] + ", HP " + doorHP[x] + ", DC " + lockDifficulty[x] + " to unlock)";
+            case NO_CORRIDOR_DOOR_TRAPPED, DOOR_TRAPPED ->
+                    " Trapped Door (AC " + doorAC[x] + ", HP " + doorHP[x] + ") " + Trap.getCurrentTrap(true);
+            default -> " Open Door (AC " + doorAC[x] + ", HP " + doorHP[x] + ")";
+        };
     }
 
     private static String getDoorText(Textures texture, int x) {
