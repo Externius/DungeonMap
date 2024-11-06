@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdk 34
+    compileSdk 35
     defaultConfig {
         applicationId "externius.rdmg"
         minSdkVersion 23
         targetSdk 35
-        versionCode 39
-        versionName '1.0.35'
+        versionCode 40
+        versionName '1.0.36'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         proguardFiles 'proguard-rules.pro'
         multiDexEnabled = false
