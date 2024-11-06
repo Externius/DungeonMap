@@ -10,3 +10,9 @@
 /build
 /captures
 .externalNativeBuild
+/.idea/androidTestResultsUserPreferences.xml
+/.idea/deploymentTargetDropDown.xml
+/.idea/deploymentTargetSelector.xml
+/.idea/migrations.xml
+/.idea/runConfigurations.xml
+/.idea/shelf/*
