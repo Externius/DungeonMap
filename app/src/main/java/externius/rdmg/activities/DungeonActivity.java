@@ -20,12 +20,12 @@ import android.os.ParcelFileDescriptor;
 import android.os.SystemClock;
 import android.text.Html;
 import android.util.Log;
-import android.view.Display;
 import android.view.GestureDetector;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowInsets;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -156,10 +156,14 @@ public class DungeonActivity extends AppCompatActivity {
 
     @NonNull
     private Point getScreenSize() {
-        Display display = getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-        return size;
+        var metrics = getWindowManager().getCurrentWindowMetrics();
+        var windowInsets = metrics.getWindowInsets();
+        var insets = windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.navigationBars()
+                | WindowInsets.Type.displayCutout());
+        var insetsWidth = insets.right + insets.left;
+        var insetsHeight = insets.top + insets.bottom;
+        var bounds = metrics.getBounds();
+        return new Point(bounds.width() - insetsWidth, bounds.height() - insetsHeight);
     }
 
     private void setArea(Point size) {
@@ -482,7 +486,8 @@ public class DungeonActivity extends AppCompatActivity {
             switch (texture) {
                 case ROOM -> showRoomPopUp(loadedDungeon[xIndex][yIndex].getIndex());
                 case TRAP -> showTrapPopUp(loadedDungeon[xIndex][yIndex].getIndex());
-                case DOOR, DOOR_LOCKED, DOOR_TRAPPED, NO_CORRIDOR_DOOR, NO_CORRIDOR_DOOR_LOCKED, NO_CORRIDOR_DOOR_TRAPPED ->
+                case DOOR, DOOR_LOCKED, DOOR_TRAPPED, NO_CORRIDOR_DOOR, NO_CORRIDOR_DOOR_LOCKED,
+                     NO_CORRIDOR_DOOR_TRAPPED ->
                         showDoorPopUp(loadedDungeon[xIndex][yIndex].getDescription());
                 case ENTRY -> showEntryPopUp();
                 case ROAMING_MONSTER ->
@@ -932,7 +937,7 @@ public class DungeonActivity extends AppCompatActivity {
     private void addToTextViewList(List<TextView> list, String name, String description) {
         TextView itemName = new TextView(this);
         TextView itemDescription = new TextView(this);
-        itemName.setText(Html.fromHtml("<b>" + name + "</b>"));
+        itemName.setText(Html.fromHtml("<b>" + name + "</b>", Html.FROM_HTML_MODE_LEGACY));
         itemName.setId(View.generateViewId());
         itemDescription.setText(description);
         itemDescription.setId(View.generateViewId());
@@ -950,7 +955,7 @@ public class DungeonActivity extends AppCompatActivity {
             TextView monster = new TextView(this);
             TextView treasure = new TextView(this);
             TextView doors = new TextView(this);
-            roomName.setText(Html.fromHtml("<b>" + room.name() + "</b>"));
+            roomName.setText(Html.fromHtml("<b>" + room.name() + "</b>", Html.FROM_HTML_MODE_LEGACY));
             roomName.setId(View.generateViewId());
             setRoomTexts(room.monster(), monster);
             monster.setId(View.generateViewId());
@@ -988,7 +993,7 @@ public class DungeonActivity extends AppCompatActivity {
             int index = text.indexOf(":");
             text = text.substring(0, index) + "</b>" + text.substring(index);
         }
-        view.setText(Html.fromHtml(text));
+        view.setText(Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY));
     }
 
     private void setTextStyle(TextView textView, boolean stripe) {

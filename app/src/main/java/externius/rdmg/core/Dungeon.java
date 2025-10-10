@@ -1,11 +1,7 @@
 package externius.rdmg.core;
 
-
-import android.os.Build;
-
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -243,16 +239,11 @@ public class Dungeon {
         calcFValue(openList); // calc F value (G + H)
     }
 
-    @SuppressWarnings("ComparatorCombinators")
     private void calcFValue(List<DungeonTile> openList) {
         for (DungeonTile tile : openList) {
             tile.setF(tile.getG() + tile.getH());
         }
-        if (Build.VERSION.SDK_INT > 23) { // sort it
-            openList.sort(Comparator.comparingInt(DungeonTile::getF));
-        } else {
-            Collections.sort(openList, (t1, t2) -> t1.getF() - t2.getF());
-        }
+        openList.sort(Comparator.comparingInt(DungeonTile::getF));
     }
 
     private void calcGValue(List<DungeonTile> openList) {

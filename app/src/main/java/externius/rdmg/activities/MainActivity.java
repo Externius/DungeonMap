@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -29,8 +28,6 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
-
-import com.google.android.material.appbar.AppBarLayout;
 
 import java.util.Objects;
 
@@ -76,11 +73,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     private void setToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
-        if (Build.VERSION.SDK_INT <= 23) {
-            AppBarLayout.LayoutParams layout = new AppBarLayout.LayoutParams(AppBarLayout.LayoutParams.MATCH_PARENT, AppBarLayout.LayoutParams.MATCH_PARENT);
-            layout.setMarginEnd(0);
-            toolbar.setLayoutParams(layout);
-        }
         setSupportActionBar(toolbar);
     }
 
@@ -233,8 +225,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         if (list.getCount() > 0) {
             builder.setMessage(getString(R.string.delete_confirmation_text))
-                    .setPositiveButton(getString(android.R.string.yes), dialogClickListener)
-                    .setNegativeButton(getString(android.R.string.no), dialogClickListener)
+                    .setPositiveButton(getString(android.R.string.ok), dialogClickListener)
+                    .setNegativeButton(getString(android.R.string.cancel), dialogClickListener)
                     .show();
         }
     }
@@ -264,8 +256,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 };
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(getString(R.string.delete_confirmation_single_text))
-                .setPositiveButton(getString(android.R.string.yes), dialogClickListener)
-                .setNegativeButton(getString(android.R.string.no), dialogClickListener)
+                .setPositiveButton(getString(android.R.string.ok), dialogClickListener)
+                .setNegativeButton(getString(android.R.string.cancel), dialogClickListener)
                 .show();
     }
 

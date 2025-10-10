@@ -73,10 +73,9 @@ final class Treasure {
         }
         Map<Treasures, Integer> map = new HashMap<>();
         for (Treasures temp : finalList) { // get duplicated items count
-            Integer count = map.get(temp);
-            map.put(temp, (count == null) ? 1 : count + 1);
+            map.compute(temp, (k, count) -> (count == null) ? 1 : count + 1);
         }
-        for (Map.Entry<Treasures, Integer> entry : map.entrySet()) { // add them to the stringbuilder
+        for (Map.Entry<Treasures, Integer> entry : map.entrySet()) { // add them to the StringBuilder
             if (entry.getValue() > 1) {
                 sb.append(entry.getValue());
                 sb.append("x ");
