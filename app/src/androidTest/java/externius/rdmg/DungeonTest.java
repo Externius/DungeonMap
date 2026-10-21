@@ -84,7 +84,7 @@ public class DungeonTest {
     @Test
     public void testPartyLevel() {
         onView(withId(R.id.party_level)).perform(scrollTo(), click());
-        onData(anything()).atPosition(2).perform(click());
+        onData(anything()).atPosition(6).perform(click());
         MainActivityTest.generateDungeon();
         MainActivityTest.checkDungeonUI(this.getClass().getName(), "testPartyLevel");
     }

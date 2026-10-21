@@ -31,7 +31,7 @@
     public static int d(...);
     public static int e(...);
 }
--dontobfuscate
+
 -dontwarn org.hamcrest.**
 -dontwarn com.squareup.**
 -dontwarn com.google.android.**
@@ -103,3 +103,13 @@
 -keepclassmembers,allowobfuscation,allowoptimization class <1> {
   <init>();
 }
+
+# Keep model classes used with Gson serialization/deserialization
+-keep class externius.rdmg.models.** { *; }
+
+# Keep Record attributes for Gson reflection on Java Records
+-keepattributes Record, RecordComponent, InnerClasses, EnclosingMethod
+
+# Keep R8 RecordTag class
+-dontwarn com.android.tools.r8.**
+-keep class com.android.tools.r8.** { *; }

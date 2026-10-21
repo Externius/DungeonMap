@@ -55,6 +55,8 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import externius.rdmg.R;
 import externius.rdmg.database.DBOpenHelper;
@@ -111,6 +113,7 @@ public class DungeonActivity extends AppCompatActivity {
     private Dialog dialog;
     private GestureDetector mGestureDetector;
     private RelativeLayout layout;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,8 +129,12 @@ public class DungeonActivity extends AppCompatActivity {
             setParameters();
             jsonMonster = readJSON(R.raw.monsters);
             jsonTreasure = readJSON(R.raw.treasures);
-            dungeonView = getDungeonView(loadedDungeon != null);
-            runOnUiThread(() -> drawDungeon(dungeonView));
+            runOnUiThread(() ->
+                    {
+                        dungeonView = getDungeonView(loadedDungeon != null);
+                        drawDungeon(dungeonView);
+                    }
+            );
         }).start();
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -197,6 +204,7 @@ public class DungeonActivity extends AppCompatActivity {
         if (dialog != null) {
             dialog.dismiss();
         }
+        executor.shutdown();
     }
 
     @Override
@@ -799,11 +807,25 @@ public class DungeonActivity extends AppCompatActivity {
     }
 
     private void saveDungeonMap(Intent data) {
+        if (data == null || data.getData() == null)
+            return;
+
         Uri uri = data.getData();
         Bitmap dungeonBitmap = getBitmapFromView(findViewById(R.id.dungeonMap_view));
-        String html = Export.generateHTML(dungeonBitmap, dungeonView.getRoomDescription(), dungeonView.getTrapDescription(), dungeonView.getRoamingMonsterDescription());
-        writeDocument(uri, html);
-        exported = true;
+        List<RoomDescription> roomDesc = dungeonView.getRoomDescription();
+        List<TrapDescription> trapDesc = dungeonView.getTrapDescription();
+        List<RoamingMonsterDescription> monsterDesc = dungeonView.getRoamingMonsterDescription();
+
+        executor.execute(() -> {
+            String html = Export.generateHTML(
+                    dungeonBitmap,
+                    roomDesc,
+                    trapDesc,
+                    monsterDesc
+            );
+            writeDocument(uri, html);
+            runOnUiThread(() -> exported = true);
+        });
     }
 
     private void writeDocument(Uri uri, String html) {
@@ -980,14 +1002,14 @@ public class DungeonActivity extends AppCompatActivity {
     }
 
     private void setRoomTexts(String text, TextView view) {
-        text = text.replaceAll(",\n", ""); // cleanup if it's an old save
-        text = text.replaceAll("\n", "<br>");
+        text = text.replace(",\n", ""); // cleanup if it's an old save
+        text = text.replace("\n", "<br>");
         if (text.contains("Entry #") && !text.contains("Monsters") && !text.contains("Treasures")) {
-            text = text.replaceAll("West Entry #", "<b>West Entry #");
-            text = text.replaceAll("South Entry #", "<b>South Entry #");
-            text = text.replaceAll("East Entry #", "<b>East Entry #");
-            text = text.replaceAll("North Entry #", "<b>North Entry #");
-            text = text.replaceAll(":", "</b>:");
+            text = text.replace("West Entry #", "<b>West Entry #");
+            text = text.replace("South Entry #", "<b>South Entry #");
+            text = text.replace("East Entry #", "<b>East Entry #");
+            text = text.replace("North Entry #", "<b>North Entry #");
+            text = text.replace(":", "</b>:");
         } else {
             text = "<b>" + text;
             int index = text.indexOf(":");

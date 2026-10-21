@@ -174,7 +174,7 @@ public class MultiSelectMonster extends androidx.appcompat.widget.AppCompatTextV
             case ANY -> selectAll(true);
             case NONE -> selectAll(false);
             default -> {
-                allText = allText.replaceAll(" ", "");
+                allText = allText.replace(" ", "");
                 String[] array = allText.trim().split(",");
                 if (array.length > 0) {
                     mSelected = new boolean[mAdapter.getCount()];

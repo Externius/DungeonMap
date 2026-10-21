@@ -145,7 +145,7 @@ final class Encounter {
             }
             result.setLength(result.length() - 2);
         }
-        return result.toString().replaceAll(", " + none, "");
+        return result.toString().replace(", " + none, "");
     }
 
     private static void init() {
