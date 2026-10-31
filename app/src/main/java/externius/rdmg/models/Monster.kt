@@ -1,341 +1,126 @@
-package externius.rdmg.models;
+package externius.rdmg.models
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
+import com.google.gson.annotations.Expose
+import com.google.gson.annotations.SerializedName
 
-import java.util.List;
-
-public class Monster {
-
+class Monster {
     @SerializedName("name")
     @Expose
-    private String name;
+    var name: String? = null
+
     @SerializedName("size")
     @Expose
-    private String size;
+    var size: String? = null
+
     @SerializedName("type")
     @Expose
-    private String type;
+    var type: String? = null
+
     @SerializedName("subtype")
     @Expose
-    private String subtype;
+    var subtype: String? = null
+
     @SerializedName("alignment")
     @Expose
-    private String alignment;
+    var alignment: String? = null
+
     @SerializedName("armor_class")
     @Expose
-    private Integer armorClass;
+    var armorClass: Int? = null
+
     @SerializedName("hit_points")
     @Expose
-    private Integer hitPoints;
+    var hitPoints: Int? = null
+
     @SerializedName("hit_dice")
     @Expose
-    private String hitDice;
+    var hitDice: String? = null
+
     @SerializedName("speed")
     @Expose
-    private String speed;
+    var speed: String? = null
+
     @SerializedName("strength")
     @Expose
-    private Integer strength;
+    var strength: Int? = null
+
     @SerializedName("dexterity")
     @Expose
-    private Integer dexterity;
+    var dexterity: Int? = null
+
     @SerializedName("constitution")
     @Expose
-    private Integer constitution;
+    var constitution: Int? = null
+
     @SerializedName("intelligence")
     @Expose
-    private Integer intelligence;
+    var intelligence: Int? = null
+
     @SerializedName("wisdom")
     @Expose
-    private Integer wisdom;
+    var wisdom: Int? = null
+
     @SerializedName("charisma")
     @Expose
-    private Integer charisma;
+    var charisma: Int? = null
+
     @SerializedName("constitution_save")
     @Expose
-    private Integer constitutionSave;
+    var constitutionSave: Int? = null
+
     @SerializedName("intelligence_save")
     @Expose
-    private Integer intelligenceSave;
+    var intelligenceSave: Int? = null
+
     @SerializedName("wisdom_save")
     @Expose
-    private Integer wisdomSave;
+    var wisdomSave: Int? = null
+
     @SerializedName("history")
     @Expose
-    private Integer history;
+    var history: Int? = null
+
     @SerializedName("perception")
     @Expose
-    private Integer perception;
+    var perception: Int? = null
+
     @SerializedName("damage_vulnerabilities")
     @Expose
-    private String damageVulnerabilities;
+    var damageVulnerabilities: String? = null
+
     @SerializedName("damage_resistances")
     @Expose
-    private String damageResistances;
+    var damageResistances: String? = null
+
     @SerializedName("damage_immunities")
     @Expose
-    private String damageImmunities;
+    var damageImmunities: String? = null
+
     @SerializedName("condition_immunities")
     @Expose
-    private String conditionImmunities;
+    var conditionImmunities: String? = null
+
     @SerializedName("senses")
     @Expose
-    private String senses;
+    var senses: String? = null
+
     @SerializedName("languages")
     @Expose
-    private String languages;
+    var languages: String? = null
+
     @SerializedName("challenge_rating")
     @Expose
-    private String challengeRating;
+    var challengeRating: String? = null
+
     @SerializedName("special_abilities")
     @Expose
-    private List<SpecialAbility> specialAbilities = null;
+    var specialAbilities: List<SpecialAbility>? = null
+
     @SerializedName("actions")
     @Expose
-    private List<Action> actions = null;
+    var actions: List<Action>? = null
+
     @SerializedName("legendary_actions")
     @Expose
-    private List<LegendaryAction> legendaryActions = null;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getSize() {
-        return size;
-    }
-
-    public void setSize(String size) {
-        this.size = size;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getSubtype() {
-        return subtype;
-    }
-
-    public void setSubtype(String subtype) {
-        this.subtype = subtype;
-    }
-
-    public String getAlignment() {
-        return alignment;
-    }
-
-    public void setAlignment(String alignment) {
-        this.alignment = alignment;
-    }
-
-    public Integer getArmorClass() {
-        return armorClass;
-    }
-
-    public void setArmorClass(Integer armorClass) {
-        this.armorClass = armorClass;
-    }
-
-    public Integer getHitPoints() {
-        return hitPoints;
-    }
-
-    public void setHitPoints(Integer hitPoints) {
-        this.hitPoints = hitPoints;
-    }
-
-    public String getHitDice() {
-        return hitDice;
-    }
-
-    public void setHitDice(String hitDice) {
-        this.hitDice = hitDice;
-    }
-
-    public String getSpeed() {
-        return speed;
-    }
-
-    public void setSpeed(String speed) {
-        this.speed = speed;
-    }
-
-    public Integer getStrength() {
-        return strength;
-    }
-
-    public void setStrength(Integer strength) {
-        this.strength = strength;
-    }
-
-    public Integer getDexterity() {
-        return dexterity;
-    }
-
-    public void setDexterity(Integer dexterity) {
-        this.dexterity = dexterity;
-    }
-
-    public Integer getConstitution() {
-        return constitution;
-    }
-
-    public void setConstitution(Integer constitution) {
-        this.constitution = constitution;
-    }
-
-    public Integer getIntelligence() {
-        return intelligence;
-    }
-
-    public void setIntelligence(Integer intelligence) {
-        this.intelligence = intelligence;
-    }
-
-    public Integer getWisdom() {
-        return wisdom;
-    }
-
-    public void setWisdom(Integer wisdom) {
-        this.wisdom = wisdom;
-    }
-
-    public Integer getCharisma() {
-        return charisma;
-    }
-
-    public void setCharisma(Integer charisma) {
-        this.charisma = charisma;
-    }
-
-    public Integer getConstitutionSave() {
-        return constitutionSave;
-    }
-
-    public void setConstitutionSave(Integer constitutionSave) {
-        this.constitutionSave = constitutionSave;
-    }
-
-    public Integer getIntelligenceSave() {
-        return intelligenceSave;
-    }
-
-    public void setIntelligenceSave(Integer intelligenceSave) {
-        this.intelligenceSave = intelligenceSave;
-    }
-
-    public Integer getWisdomSave() {
-        return wisdomSave;
-    }
-
-    public void setWisdomSave(Integer wisdomSave) {
-        this.wisdomSave = wisdomSave;
-    }
-
-    public Integer getHistory() {
-        return history;
-    }
-
-    public void setHistory(Integer history) {
-        this.history = history;
-    }
-
-    public Integer getPerception() {
-        return perception;
-    }
-
-    public void setPerception(Integer perception) {
-        this.perception = perception;
-    }
-
-    public String getDamageVulnerabilities() {
-        return damageVulnerabilities;
-    }
-
-    public void setDamageVulnerabilities(String damageVulnerabilities) {
-        this.damageVulnerabilities = damageVulnerabilities;
-    }
-
-    public String getDamageResistances() {
-        return damageResistances;
-    }
-
-    public void setDamageResistances(String damageResistances) {
-        this.damageResistances = damageResistances;
-    }
-
-    public String getDamageImmunities() {
-        return damageImmunities;
-    }
-
-    public void setDamageImmunities(String damageImmunities) {
-        this.damageImmunities = damageImmunities;
-    }
-
-    public String getConditionImmunities() {
-        return conditionImmunities;
-    }
-
-    public void setConditionImmunities(String conditionImmunities) {
-        this.conditionImmunities = conditionImmunities;
-    }
-
-    public String getSenses() {
-        return senses;
-    }
-
-    public void setSenses(String senses) {
-        this.senses = senses;
-    }
-
-    public String getLanguages() {
-        return languages;
-    }
-
-    public void setLanguages(String languages) {
-        this.languages = languages;
-    }
-
-    public String getChallengeRating() {
-        return challengeRating;
-    }
-
-    public void setChallengeRating(String challengeRating) {
-        this.challengeRating = challengeRating;
-    }
-
-    public List<SpecialAbility> getSpecialAbilities() {
-        return specialAbilities;
-    }
-
-    public void setSpecialAbilities(List<SpecialAbility> specialAbilities) {
-        this.specialAbilities = specialAbilities;
-    }
-
-    public List<Action> getActions() {
-        return actions;
-    }
-
-    public void setActions(List<Action> actions) {
-        this.actions = actions;
-    }
-
-    public List<LegendaryAction> getLegendaryActions() {
-        return legendaryActions;
-    }
-
-    public void setLegendaryActions(List<LegendaryAction> legendaryActions) {
-        this.legendaryActions = legendaryActions;
-    }
-
+    var legendaryActions: List<LegendaryAction>? = null
 }

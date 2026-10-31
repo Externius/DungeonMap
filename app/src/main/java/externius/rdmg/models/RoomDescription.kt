@@ -1,6 +1,8 @@
-package externius.rdmg.models;
+package externius.rdmg.models
 
-
-public record RoomDescription(String name, String treasure, String monster, String doors) {
-
-}
+data class RoomDescription(
+    val name: String?,
+    val treasure: String?,
+    val monster: String?,
+    val doors: String?
+)

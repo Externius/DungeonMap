@@ -1,319 +1,407 @@
-package externius.rdmg.views;
+package externius.rdmg.views
 
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Matrix;
-import android.graphics.Paint;
-import android.view.View;
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Matrix
+import android.graphics.Paint
+import android.util.AttributeSet
+import android.view.View
+import externius.rdmg.R
+import externius.rdmg.core.Dungeon
+import externius.rdmg.core.DungeonNoCorridor
+import externius.rdmg.helpers.Utils
+import externius.rdmg.models.DungeonTile
+import externius.rdmg.models.RoamingMonsterDescription
+import externius.rdmg.models.RoomDescription
+import externius.rdmg.models.Textures
+import externius.rdmg.models.TrapDescription
+import androidx.core.graphics.scale
+import kotlin.math.roundToLong
 
-import androidx.annotation.NonNull;
+class DungeonMapView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : View(context, attrs, defStyleAttr) {
 
-import java.util.ArrayList;
-import java.util.List;
+    private var marble: Bitmap? = null
+    private var corridor: Bitmap? = null
+    private var door: Bitmap? = null
+    private var doorLocked: Bitmap? = null
+    private var doorTrapped: Bitmap? = null
+    private var room: Bitmap? = null
+    private var entry: Bitmap? = null
+    private var trap: Bitmap? = null
+    private var roamingMonster: Bitmap? = null
+    private var ncDoor: Bitmap? = null
+    private var ncDoorLocked: Bitmap? = null
+    private var ncDoorTrapped: Bitmap? = null
+    private var roomEdge: Bitmap? = null
 
-import externius.rdmg.R;
-import externius.rdmg.core.Dungeon;
-import externius.rdmg.core.DungeonNoCorridor;
-import externius.rdmg.helpers.Utils;
-import externius.rdmg.models.DungeonTile;
-import externius.rdmg.models.RoamingMonsterDescription;
-import externius.rdmg.models.RoomDescription;
-import externius.rdmg.models.Textures;
-import externius.rdmg.models.TrapDescription;
+    var treasureValue: Double = 0.0
+    var itemsRarity: Int = 0
+    var dungeonTiles: Array<Array<DungeonTile>>? = null
+    private val paint = Paint()
 
-public class DungeonMapView extends View {
-    private Bitmap marble;
-    private Bitmap corridor;
-    private Bitmap door;
-    private Bitmap doorLocked;
-    private Bitmap doorTrapped;
-    private Bitmap room;
-    private Bitmap entry;
-    private Bitmap trap;
-    private Bitmap roamingMonster;
-    private Bitmap ncDoor;
-    private Bitmap ncDoorLocked;
-    private Bitmap ncDoorTrapped;
-    private Bitmap roomEdge;
-    private double treasureValue;
-    private int itemsRarity;
-    private DungeonTile[][] dungeonTiles;
-    private final Paint paint = new Paint();
-    private List<RoomDescription> roomDescription = new ArrayList<>();
-    private List<TrapDescription> trapDescription = new ArrayList<>();
-    private List<RoamingMonsterDescription> roamingMonsterDescription = new ArrayList<>();
-    private String jsonMonster;
-    private String jsonTreasure;
-    private int dungeonWidth;
-    private int dungeonHeight;
-    private int dungeonSize;
-    private int roomDensity;
-    private int roomSizePercent;
-    private int trapPercent;
-    private int roamingPercent;
-    private int partyLevel;
-    private boolean hasCorridor;
-    private boolean hasDeadEnds;
-    private int dungeonDifficulty;
-    private int partySize;
-    private String monsterType;
-    private String theme;
+    var roomDescription: List<RoomDescription> = ArrayList()
+    var trapDescription: List<TrapDescription> = ArrayList()
+    var roamingMonsterDescription: List<RoamingMonsterDescription> = ArrayList()
 
-    public DungeonMapView(Context context) {
-        super(context);
+    var jsonMonster: String? = null
+    var jsonTreasure: String? = null
+    var dungeonWidth: Int = 0
+    var dungeonHeight: Int = 0
+    var dungeonSize: Int = 0
+    var roomDensity: Int = 0
+    var roomSizePercent: Int = 0
+    var trapPercent: Int = 0
+    var roamingPercent: Int = 0
+    var partyLevel: Int = 0
+    var hasCorridor: Boolean = false
+    var hasDeadEnds: Boolean = false
+    var dungeonDifficulty: Int = 0
+    var partySize: Int = 0
+    var monsterType: String? = null
+    var theme: String? = null
+
+    fun loadDungeon(
+        dungeonTiles: Array<Array<DungeonTile>>,
+        roomDescription: List<RoomDescription>,
+        trapDescription: List<TrapDescription>,
+        hasCorridor: Boolean,
+        roamingMonsterDescription: List<RoamingMonsterDescription>
+    ) {
+        this.dungeonTiles = dungeonTiles
+        this.roomDescription = roomDescription
+        this.trapDescription = trapDescription
+        this.roamingMonsterDescription = roamingMonsterDescription
+        setBitmaps(hasCorridor)
+        setPaint()
     }
 
-    public void loadDungeon(DungeonTile[][] dungeonTiles, List<RoomDescription> roomDescription, List<TrapDescription> trapDescription, boolean hasCorridor, List<RoamingMonsterDescription> roamingMonsterDescription) {
-        this.dungeonTiles = dungeonTiles;
-        this.roomDescription = roomDescription;
-        this.trapDescription = trapDescription;
-        this.roamingMonsterDescription = roamingMonsterDescription;
-        setBitmaps(hasCorridor);
-        setPaint();
-    }
-
-    public void generateDungeon() {
-        init();
-        setPaint();
-        setBitmaps(hasCorridor);
+    fun generateDungeon() {
+        init()
+        setPaint()
+        setBitmaps(hasCorridor)
         if (hasCorridor) {
-            Dungeon dungeon = new Dungeon(dungeonWidth, dungeonHeight, dungeonSize, roomDensity, roomSizePercent, trapPercent, hasDeadEnds, roamingPercent);
-            dungeon.generate();
-            roomDescription = dungeon.getRoomDescription();
-            trapDescription = dungeon.getTrapDescription();
-            roamingMonsterDescription = dungeon.getRoamingMonsterDescriptions();
-            dungeonTiles = dungeon.getDungeonTiles();
+            val dungeon = Dungeon(
+                dungeonWidth, dungeonHeight, dungeonSize, roomDensity,
+                roomSizePercent, trapPercent, hasDeadEnds, roamingPercent
+            )
+            dungeon.generate()
+            roomDescription = dungeon.roomDescription
+            trapDescription = dungeon.trapDescription
+            roamingMonsterDescription = dungeon.roamingMonsterDescriptions
+            dungeonTiles = dungeon.dungeonTiles
         } else {
-            DungeonNoCorridor dungeonNoCorridor = new DungeonNoCorridor(dungeonWidth, dungeonHeight, dungeonSize, roomSizePercent);
-            dungeonNoCorridor.generate();
-            roomDescription = dungeonNoCorridor.getRoomDescription();
-            dungeonTiles = dungeonNoCorridor.getDungeonTiles();
+            val dungeonNoCorridor = DungeonNoCorridor(
+                dungeonWidth, dungeonHeight, dungeonSize, roomSizePercent
+            )
+            dungeonNoCorridor.generate()
+            roomDescription = dungeonNoCorridor.roomDescription
+            dungeonTiles = dungeonNoCorridor.dungeonTiles
         }
     }
 
-    private void setPaint() {
-        paint.setTextSize(getFontSize(dungeonSize));
+    private fun setPaint() {
+        paint.textSize = getFontSize(dungeonSize).toFloat()
     }
 
-    private void init() {
-        Utils.setPartySize(partySize);
-        Utils.setPartyLevel(partyLevel);
-        Utils.setDungeonDifficulty(dungeonDifficulty);
-        Utils.setMonsterType(monsterType);
-        Utils.setJsonMonster(jsonMonster);
-        Utils.setJsonTreasure(jsonTreasure);
-        Utils.setTreasureValue(treasureValue);
-        Utils.setItemsRarity(itemsRarity);
+    private fun init() {
+        Utils.partySize = partySize
+        Utils.partyLevel = partyLevel
+        Utils.dungeonDifficulty = dungeonDifficulty
+        Utils.monsterType = monsterType ?: ""
+        Utils.setJsonMonster(jsonMonster ?: "")
+        Utils.setJsonTreasure(jsonTreasure ?: "")
+        Utils.treasureValue = treasureValue
+        Utils.itemsRarity = itemsRarity
     }
 
-    private void setBitmaps(Boolean hasCorridor) {
-        corridor = BitmapFactory.decodeResource(getResources(), R.drawable.corridor_dark);
-        door = BitmapFactory.decodeResource(getResources(), R.drawable.door_dark);
-        doorLocked = BitmapFactory.decodeResource(getResources(), R.drawable.door_locked_dark);
-        doorTrapped = BitmapFactory.decodeResource(getResources(), R.drawable.door_trapped_dark);
-        trap = BitmapFactory.decodeResource(getResources(), R.drawable.trap_dark);
-        roamingMonster = BitmapFactory.decodeResource(getResources(), R.drawable.monster_dark);
-        entry = BitmapFactory.decodeResource(getResources(), R.drawable.entry_dark);
-        switch (theme) {
-            case "dark" ->
-                    setTheme(hasCorridor, R.drawable.marble_dark, R.drawable.room_edge_dark, R.drawable.room_dark, R.drawable.nc_door_dark, R.drawable.nc_door_locked_dark, R.drawable.nc_door_trapped_dark);
-            case "light" ->
-                    setTheme(hasCorridor, R.drawable.marble_light, R.drawable.room_edge_light, R.drawable.room_light, R.drawable.nc_door_light, R.drawable.nc_door_locked_light, R.drawable.nc_door_trapped_light);
-            case "minimal" ->
-                    setTheme(hasCorridor, R.drawable.marble_white, R.drawable.marble_white, R.drawable.room_white, R.drawable.nc_door_white, R.drawable.nc_door_locked_white, R.drawable.nc_door_trapped_white);
-            default -> {
-            }
+    private fun setBitmaps(hasCorridor: Boolean) {
+        corridor = BitmapFactory.decodeResource(resources, R.drawable.corridor_dark)
+        door = BitmapFactory.decodeResource(resources, R.drawable.door_dark)
+        doorLocked = BitmapFactory.decodeResource(resources, R.drawable.door_locked_dark)
+        doorTrapped = BitmapFactory.decodeResource(resources, R.drawable.door_trapped_dark)
+        trap = BitmapFactory.decodeResource(resources, R.drawable.trap_dark)
+        roamingMonster = BitmapFactory.decodeResource(resources, R.drawable.monster_dark)
+        entry = BitmapFactory.decodeResource(resources, R.drawable.entry_dark)
+        when (theme) {
+            "light" -> setTheme(
+                hasCorridor, R.drawable.marble_light, R.drawable.room_edge_light,
+                R.drawable.room_light, R.drawable.nc_door_light, R.drawable.nc_door_locked_light,
+                R.drawable.nc_door_trapped_light
+            )
+
+            "minimal" -> setTheme(
+                hasCorridor, R.drawable.marble_white, R.drawable.marble_white,
+                R.drawable.room_white, R.drawable.nc_door_white, R.drawable.nc_door_locked_white,
+                R.drawable.nc_door_trapped_white
+            )
+
+            else -> setTheme(
+                hasCorridor, R.drawable.marble_dark, R.drawable.room_edge_dark,
+                R.drawable.room_dark, R.drawable.nc_door_dark, R.drawable.nc_door_locked_dark,
+                R.drawable.nc_door_trapped_dark
+            )
         }
     }
 
-    private void setTheme(Boolean hasCorridor, int marbleID, int roomEdgeID, int roomID, int ncDoorID, int ncDoorLockedID, int ncDoorTrappedID) {
-        if (hasCorridor) {
-            roomEdge = BitmapFactory.decodeResource(getResources(), marbleID);
+    private fun setTheme(
+        hasCorridor: Boolean,
+        marbleID: Int,
+        roomEdgeID: Int,
+        roomID: Int,
+        ncDoorID: Int,
+        ncDoorLockedID: Int,
+        ncDoorTrappedID: Int
+    ) {
+        roomEdge = if (hasCorridor) {
+            BitmapFactory.decodeResource(resources, marbleID)
         } else {
-            roomEdge = BitmapFactory.decodeResource(getResources(), roomEdgeID);
+            BitmapFactory.decodeResource(resources, roomEdgeID)
         }
-        marble = BitmapFactory.decodeResource(getResources(), marbleID);
-        room = BitmapFactory.decodeResource(getResources(), roomID);
-        ncDoor = BitmapFactory.decodeResource(getResources(), ncDoorID);
-        ncDoorLocked = BitmapFactory.decodeResource(getResources(), ncDoorLockedID);
-        ncDoorTrapped = BitmapFactory.decodeResource(getResources(), ncDoorTrappedID);
+        marble = BitmapFactory.decodeResource(resources, marbleID)
+        room = BitmapFactory.decodeResource(resources, roomID)
+        ncDoor = BitmapFactory.decodeResource(resources, ncDoorID)
+        ncDoorLocked = BitmapFactory.decodeResource(resources, ncDoorLockedID)
+        ncDoorTrapped = BitmapFactory.decodeResource(resources, ncDoorTrappedID)
     }
 
-    private int getFontSize(int dungeonSize) {
-        if (dungeonSize <= 15) {
-            return getResources().getDimensionPixelSize(R.dimen.drawTextSmallFontSize);
+    private fun getFontSize(dungeonSize: Int): Int {
+        return if (dungeonSize <= 15) {
+            resources.getDimensionPixelSize(R.dimen.drawTextSmallFontSize)
         } else if (dungeonSize <= 20) {
-            return getResources().getDimensionPixelSize(R.dimen.drawTextMediumFontSize);
+            resources.getDimensionPixelSize(R.dimen.drawTextMediumFontSize)
         } else {
-            return getResources().getDimensionPixelSize(R.dimen.drawTextLargeFontSize);
+            resources.getDimensionPixelSize(R.dimen.drawTextLargeFontSize)
         }
     }
 
-    protected void onDraw(@NonNull Canvas canvas) {
-        for (int i = 1; i < dungeonTiles.length - 1; i++) {
-            for (int j = 1; j < dungeonTiles.length - 1; j++) {
-                switch (dungeonTiles[i][j].getTexture()) {
-                    case ROOM_EDGE ->
-                            canvas.drawBitmap(scaleBitmap(roomEdge, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                    case MARBLE ->
-                            canvas.drawBitmap(scaleBitmap(marble, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                    case CORRIDOR ->
-                            canvas.drawBitmap(scaleBitmap(corridor, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                    case DOOR ->
-                            canvas.drawBitmap(scaleBitmap(rotateBitmap(door, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                    case DOOR_LOCKED ->
-                            canvas.drawBitmap(scaleBitmap(rotateBitmap(doorLocked, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                    case DOOR_TRAPPED ->
-                            canvas.drawBitmap(scaleBitmap(rotateBitmap(doorTrapped, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                    case ROOM -> {
-                        canvas.drawBitmap(scaleBitmap(room, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                        canvas.drawText(dungeonTiles[i][j].getDescription(), Math.round(dungeonTiles[i][j].getX() + dungeonTiles[i][j].getWidth() * 0.1), Math.round(dungeonTiles[i][j].getY() + dungeonTiles[i][j].getHeight() * 0.65), paint);
+    override fun onDraw(canvas: Canvas) {
+        val tiles = dungeonTiles ?: return
+        for (i in 1 until tiles.size - 1) {
+            for (j in 1 until tiles[i].size - 1) {
+                val tile = tiles[i][j]
+                when (tile.texture) {
+                    Textures.ROOM_EDGE -> {
+                        roomEdge?.let {
+                            canvas.drawBitmap(
+                                scaleBitmap(it, i, j),
+                                tile.x.toFloat(),
+                                tile.y.toFloat(),
+                                null
+                            )
+                        }
                     }
-                    case ENTRY ->
-                            canvas.drawBitmap(scaleBitmap(entry, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                    case TRAP -> {
-                        canvas.drawBitmap(scaleBitmap(trap, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                        canvas.drawText(dungeonTiles[i][j].getDescription(), Math.round(dungeonTiles[i][j].getX() + dungeonTiles[i][j].getWidth() * 0.1), Math.round(dungeonTiles[i][j].getY() + dungeonTiles[i][j].getHeight() * 0.5), paint);
+
+                    Textures.MARBLE -> {
+                        marble?.let {
+                            canvas.drawBitmap(
+                                scaleBitmap(it, i, j),
+                                tile.x.toFloat(),
+                                tile.y.toFloat(),
+                                null
+                            )
+                        }
                     }
-                    case ROAMING_MONSTER -> {
-                        canvas.drawBitmap(scaleBitmap(roamingMonster, i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                        canvas.drawText(dungeonTiles[i][j].getDescription(), Math.round(dungeonTiles[i][j].getX() + dungeonTiles[i][j].getWidth() * 0.1), Math.round(dungeonTiles[i][j].getY() + dungeonTiles[i][j].getHeight() * 0.4), paint);
+
+                    Textures.CORRIDOR -> {
+                        corridor?.let {
+                            canvas.drawBitmap(
+                                scaleBitmap(it, i, j),
+                                tile.x.toFloat(),
+                                tile.y.toFloat(),
+                                null
+                            )
+                        }
                     }
-                    case NO_CORRIDOR_DOOR ->
-                            canvas.drawBitmap(scaleBitmap(rotateBitmap(ncDoor, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                    case NO_CORRIDOR_DOOR_LOCKED ->
-                            canvas.drawBitmap(scaleBitmap(rotateBitmap(ncDoorLocked, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                    case NO_CORRIDOR_DOOR_TRAPPED ->
-                            canvas.drawBitmap(scaleBitmap(rotateBitmap(ncDoorTrapped, getDegree(i, j)), i, j), dungeonTiles[i][j].getX(), dungeonTiles[i][j].getY(), null);
-                    default -> {
+
+                    Textures.DOOR -> {
+                        door?.let {
+                            canvas.drawBitmap(
+                                scaleBitmap(
+                                    rotateBitmap(
+                                        it,
+                                        getDegree(i, j).toFloat()
+                                    ), i, j
+                                ), tile.x.toFloat(), tile.y.toFloat(), null
+                            )
+                        }
                     }
+
+                    Textures.DOOR_LOCKED -> {
+                        doorLocked?.let {
+                            canvas.drawBitmap(
+                                scaleBitmap(
+                                    rotateBitmap(
+                                        it,
+                                        getDegree(i, j).toFloat()
+                                    ), i, j
+                                ), tile.x.toFloat(), tile.y.toFloat(), null
+                            )
+                        }
+                    }
+
+                    Textures.DOOR_TRAPPED -> {
+                        doorTrapped?.let {
+                            canvas.drawBitmap(
+                                scaleBitmap(
+                                    rotateBitmap(
+                                        it,
+                                        getDegree(i, j).toFloat()
+                                    ), i, j
+                                ), tile.x.toFloat(), tile.y.toFloat(), null
+                            )
+                        }
+                    }
+
+                    Textures.ROOM -> {
+                        room?.let {
+                            canvas.drawBitmap(
+                                scaleBitmap(it, i, j),
+                                tile.x.toFloat(),
+                                tile.y.toFloat(),
+                                null
+                            )
+                        }
+                        canvas.drawText(
+                            tile.description ?: "",
+                            (tile.x + tile.width * 0.1).roundToLong().toFloat(),
+                            (tile.y + tile.height * 0.65).roundToLong().toFloat(),
+                            paint
+                        )
+                    }
+
+                    Textures.ENTRY -> {
+                        entry?.let {
+                            canvas.drawBitmap(
+                                scaleBitmap(it, i, j),
+                                tile.x.toFloat(),
+                                tile.y.toFloat(),
+                                null
+                            )
+                        }
+                    }
+
+                    Textures.TRAP -> {
+                        trap?.let {
+                            canvas.drawBitmap(
+                                scaleBitmap(it, i, j),
+                                tile.x.toFloat(),
+                                tile.y.toFloat(),
+                                null
+                            )
+                        }
+                        canvas.drawText(
+                            tile.description ?: "",
+                            (tile.x + tile.width * 0.1).roundToLong().toFloat(),
+                            (tile.y + tile.height * 0.5).roundToLong().toFloat(),
+                            paint
+                        )
+                    }
+
+                    Textures.ROAMING_MONSTER -> {
+                        roamingMonster?.let {
+                            canvas.drawBitmap(
+                                scaleBitmap(it, i, j),
+                                tile.x.toFloat(),
+                                tile.y.toFloat(),
+                                null
+                            )
+                        }
+                        canvas.drawText(
+                            tile.description ?: "",
+                            (tile.x + tile.width * 0.1).roundToLong().toFloat(),
+                            (tile.y + tile.height * 0.4).roundToLong().toFloat(),
+                            paint
+                        )
+                    }
+
+                    Textures.NO_CORRIDOR_DOOR -> {
+                        ncDoor?.let {
+                            canvas.drawBitmap(
+                                scaleBitmap(
+                                    rotateBitmap(
+                                        it,
+                                        getDegree(i, j).toFloat()
+                                    ), i, j
+                                ), tile.x.toFloat(), tile.y.toFloat(), null
+                            )
+                        }
+                    }
+
+                    Textures.NO_CORRIDOR_DOOR_LOCKED -> {
+                        ncDoorLocked?.let {
+                            canvas.drawBitmap(
+                                scaleBitmap(
+                                    rotateBitmap(
+                                        it,
+                                        getDegree(i, j).toFloat()
+                                    ), i, j
+                                ), tile.x.toFloat(), tile.y.toFloat(), null
+                            )
+                        }
+                    }
+
+                    Textures.NO_CORRIDOR_DOOR_TRAPPED -> {
+                        ncDoorTrapped?.let {
+                            canvas.drawBitmap(
+                                scaleBitmap(
+                                    rotateBitmap(
+                                        it,
+                                        getDegree(i, j).toFloat()
+                                    ), i, j
+                                ), tile.x.toFloat(), tile.y.toFloat(), null
+                            )
+                        }
+                    }
+
+                    else -> {}
                 }
             }
         }
     }
 
-    private Bitmap scaleBitmap(Bitmap bitmap, int i, int j) {
-        return Bitmap.createScaledBitmap(bitmap, dungeonTiles[i][j].getWidth(), dungeonTiles[i][j].getHeight(), false);
+    private fun scaleBitmap(bitmap: Bitmap, i: Int, j: Int): Bitmap {
+        val tiles = dungeonTiles ?: return bitmap
+        val width = tiles[i][j].width
+        val height = tiles[i][j].height
+        if (width <= 0 || height <= 0) return bitmap
+        return bitmap.scale(width, height, false)
     }
 
-    private int getDegree(int i, int j) {
-        if (dungeonTiles[i][j - 1].getTexture() == Textures.ROOM) {
-            return -90;
+    private fun getDegree(i: Int, j: Int): Int {
+        val tiles = dungeonTiles ?: return 0
+        if (tiles[i][j - 1].texture == Textures.ROOM) {
+            return -90
         }
-        if (dungeonTiles[i][j + 1].getTexture() == Textures.ROOM) {
-            return 90;
+        if (tiles[i][j + 1].texture == Textures.ROOM) {
+            return 90
         }
-        if (dungeonTiles[i + 1][j].getTexture() == Textures.ROOM) {
-            return 180;
+        if (tiles[i + 1][j].texture == Textures.ROOM) {
+            return 180
         }
-        return 0;
+        return 0
     }
 
-    private static Bitmap rotateBitmap(Bitmap source, float angle) {
-        Matrix matrix = new Matrix();
-        matrix.postRotate(angle);
-        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val w = MeasureSpec.getSize(widthMeasureSpec)
+        setMeasuredDimension(w, w)
     }
 
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int w = MeasureSpec.getSize(widthMeasureSpec);
-        setMeasuredDimension(w, w); // because its always in portrait mode
+    override fun performClick(): Boolean {
+        super.performClick()
+        return true
     }
 
-    @Override
-    public boolean performClick() {
-        super.performClick();
-        return true;
-    }
-
-    public List<RoomDescription> getRoomDescription() {
-        return roomDescription;
-    }
-
-    public void setJsonMonster(String jsonMonster) {
-        this.jsonMonster = jsonMonster;
-    }
-
-    public void setDungeonWidth(int dungeonWidth) {
-        this.dungeonWidth = dungeonWidth;
-    }
-
-    public void setDungeonHeight(int dungeonHeight) {
-        this.dungeonHeight = dungeonHeight;
-    }
-
-    public void setDungeonSize(int dungeonSize) {
-        this.dungeonSize = dungeonSize;
-    }
-
-    public void setRoomDensity(int roomDensity) {
-        this.roomDensity = roomDensity;
-    }
-
-    public void setRoomSizePercent(int roomSizePercent) {
-        this.roomSizePercent = roomSizePercent;
-    }
-
-    public void setTrapPercent(int trapPercent) {
-        this.trapPercent = trapPercent;
-    }
-
-    public void setPartyLevel(int partyLevel) {
-        this.partyLevel = partyLevel;
-    }
-
-    public void setHasCorridor(boolean hasCorridor) {
-        this.hasCorridor = hasCorridor;
-    }
-
-    public void setDungeonDifficulty(int dungeonDifficulty) {
-        this.dungeonDifficulty = dungeonDifficulty;
-    }
-
-    public void setPartySize(int partySize) {
-        this.partySize = partySize;
-    }
-
-    public List<TrapDescription> getTrapDescription() {
-        return trapDescription;
-    }
-
-    public void setMonsterType(String monsterType) {
-        this.monsterType = monsterType;
-    }
-
-    public void setHasDeadEnds(boolean hasDeadEnds) {
-        this.hasDeadEnds = hasDeadEnds;
-    }
-
-    public void setTreasureValue(double treasureValue) {
-        this.treasureValue = treasureValue;
-    }
-
-    public void setItemsRarity(int itemsRarity) {
-        this.itemsRarity = itemsRarity;
-    }
-
-    public void setJsonTreasure(String jsonTreasure) {
-        this.jsonTreasure = jsonTreasure;
-    }
-
-    public DungeonTile[][] getDungeonTiles() {
-        return dungeonTiles;
-    }
-
-    public void setTheme(String theme) {
-        this.theme = theme;
-    }
-
-    public void setRoamingPercent(int roamingPercent) {
-        this.roamingPercent = roamingPercent;
-    }
-
-    public List<RoamingMonsterDescription> getRoamingMonsterDescription() {
-        return roamingMonsterDescription;
+    companion object {
+        private fun rotateBitmap(source: Bitmap, angle: Float): Bitmap {
+            val matrix = Matrix()
+            matrix.postRotate(angle)
+            return Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true)
+        }
     }
 }

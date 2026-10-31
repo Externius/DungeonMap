@@ -1,51 +1,35 @@
-package externius.rdmg.helpers;
+package externius.rdmg.helpers
 
+import externius.rdmg.models.DungeonTile
+import externius.rdmg.models.Textures
 
-import externius.rdmg.models.DungeonTile;
-import externius.rdmg.models.Textures;
+object RoomPosition {
+    @JvmStatic var isUp: Boolean = false
+        private set
+    @JvmStatic var isDown: Boolean = false
+        private set
+    @JvmStatic var isLeft: Boolean = false
+        private set
+    @JvmStatic var isRight: Boolean = false
+        private set
 
-public final class RoomPosition {
-    private static boolean up;
-    private static boolean down;
-    private static boolean left;
-    private static boolean right;
-
-    private RoomPosition() {
-
-    }
-
-    public static void checkRoomPosition(DungeonTile[][] dungeon, int x, int y) {
-        up = false;
-        down = false;
-        left = false;
-        right = false;
-        if (dungeon[x][y - 1].getTexture() == Textures.ROOM) { // left
-            left = true;
+    @JvmStatic
+    fun checkRoomPosition(dungeon: Array<Array<DungeonTile>>, x: Int, y: Int) {
+        isUp = false
+        isDown = false
+        isLeft = false
+        isRight = false
+        if (dungeon[x][y - 1].texture == Textures.ROOM) { // left
+            isLeft = true
         }
-        if (dungeon[x][y + 1].getTexture() == Textures.ROOM) { // right
-            right = true;
+        if (dungeon[x][y + 1].texture == Textures.ROOM) { // right
+            isRight = true
         }
-        if (dungeon[x + 1][y].getTexture() == Textures.ROOM) { // bottom
-            down = true;
+        if (dungeon[x + 1][y].texture == Textures.ROOM) { // bottom
+            isDown = true
         }
-        if (dungeon[x - 1][y].getTexture() == Textures.ROOM) { // top
-            up = true;
+        if (dungeon[x - 1][y].texture == Textures.ROOM) { // top
+            isUp = true
         }
-    }
-
-    public static boolean isUp() {
-        return up;
-    }
-
-    public static boolean isDown() {
-        return down;
-    }
-
-    public static boolean isLeft() {
-        return left;
-    }
-
-    public static boolean isRight() {
-        return right;
     }
 }

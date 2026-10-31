@@ -1,105 +1,99 @@
-package externius.rdmg.helpers;
+package externius.rdmg.helpers
 
+import externius.rdmg.models.Treasures
+import kotlin.math.floor
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+internal object Treasure {
+    private const val BASE = "Treasures: "
+    private var sumValue = 0
 
-import externius.rdmg.models.Treasures;
+    private val treasureGP = intArrayOf(
+        0, 300, 600, 900, 1200, 1600, 2000, 2600, 3400, 4500, 5800,
+        7500, 9800, 13000, 17000, 22000, 28000, 36000, 47000, 61000, 80000
+    )
 
-final class Treasure {
-    private static final String base = "Treasures: ";
+    private val itemCount = intArrayOf(
+        0, 4, 4, 5, 5, 7, 7, 8, 8, 8, 9,
+        9, 9, 9, 9, 12, 12, 12, 15, 15, 15
+    )
 
-    private static int sumValue;
-
-    private static final int[] treasureGP = {
-            0, 300, 600, 900, 1200, 1600, 2000, 2600, 3400, 4500, 5800,
-            7500, 9800, 13000, 17000, 22000, 28000, 36000, 47000, 61000, 80000
-    };
-
-    private static final int[] itemCount = {
-            0, 4, 4, 5, 5, 7, 7, 8, 8, 8, 9,
-            9, 9, 9, 9, 12, 12, 12, 15, 15, 15
-    };
-
-    private Treasure() {
-
-    }
-
-    private static List<Treasures> getFiltered(List<Treasures> treasures) {
-        List<Treasures> result = new ArrayList<>();
-        if (Utils.getMonsterType().equalsIgnoreCase("any")) {
-            for (Treasures treasure : treasures) {
-                if (treasure.getRarity() <= Utils.getItemsRarity() && treasure.getCost() < sumValue) {
-                    result.add(treasure);
+    private fun getFiltered(treasures: List<Treasures>?): List<Treasures> {
+        val result = mutableListOf<Treasures>()
+        if (treasures == null) return result
+        if (Utils.monsterType.equals("any", ignoreCase = true)) {
+            for (treasure in treasures) {
+                val rarity = treasure.rarity ?: 0
+                val cost = treasure.cost ?: 0
+                if (rarity <= Utils.itemsRarity && cost < sumValue) {
+                    result.add(treasure)
                 }
             }
         } else {
-            for (Treasures treasure : treasures) {
-                if (treasure.getRarity() <= Utils.getItemsRarity() && treasure.getCost() < sumValue && treasure.getTypes().contains(Utils.getMonsterType())) {
-                    result.add(treasure);
+            for (treasure in treasures) {
+                val rarity = treasure.rarity ?: 0
+                val cost = treasure.cost ?: 0
+                val types = treasure.types
+                if (rarity <= Utils.itemsRarity && cost < sumValue && types != null && types.contains(Utils.monsterType)) {
+                    result.add(treasure)
                 }
             }
         }
-        return result;
+        return result
     }
 
-    static String getTreasure() {
-        if (Math.floor(Math.random() * 100) > Utils.getTreasurePercentage()) {
-            return base + "Empty";
+    @JvmStatic
+    fun getTreasure(): String {
+        if (floor(Math.random() * 100) > Utils.treasurePercentage) {
+            return "${BASE}Empty"
         }
-        getAllCost();
-        List<Treasures> filteredTreasures = getFiltered(Utils.getTreasureList());
-        return base + calcTreasure(filteredTreasures);
+        getAllCost()
+        val filteredTreasures = getFiltered(Utils.treasureList)
+        return BASE + calcTreasure(filteredTreasures)
     }
 
-    private static String calcTreasure(List<Treasures> filteredTreasures) {
-        StringBuilder sb = new StringBuilder();
-        int currentValue = 0;
-        int itemCount = getItemsCount();
-        int currentCount = 0;
-        int maxAttempt = filteredTreasures.size() * 2;
-        Treasures currentTreasure;
-        List<Treasures> finalList = new ArrayList<>();
-        while (currentCount < itemCount && maxAttempt > 0) {
-            currentTreasure = filteredTreasures.get(Utils.getRandomInt(0, filteredTreasures.size())); // get random treasure
-            if (currentValue + currentTreasure.getCost() < sumValue) { // if it's still affordable add to list
-                currentValue += currentTreasure.getCost();
-                finalList.add(currentTreasure);
-                currentCount++;
+    private fun calcTreasure(filteredTreasures: List<Treasures>): String {
+        val sb = StringBuilder()
+        var currentValue = 0
+        val targetItemCount = getItemsCount()
+        var currentCount = 0
+        var maxAttempt = filteredTreasures.size * 2
+        val finalList = mutableListOf<Treasures>()
+        while (currentCount < targetItemCount && maxAttempt > 0 && filteredTreasures.isNotEmpty()) {
+            val currentTreasure = filteredTreasures[Utils.getRandomInt(0, filteredTreasures.size)]
+            val cost = currentTreasure.cost ?: 0
+            if (currentValue + cost < sumValue) {
+                currentValue += cost
+                finalList.add(currentTreasure)
+                currentCount++
             }
-            maxAttempt--;
+            maxAttempt--
         }
-        Map<Treasures, Integer> map = new HashMap<>();
-        for (Treasures temp : finalList) { // get duplicated items count
-            map.compute(temp, (k, count) -> (count == null) ? 1 : count + 1);
+        val map = mutableMapOf<Treasures, Int>()
+        for (temp in finalList) {
+            map[temp] = (map[temp] ?: 0) + 1
         }
-        for (Map.Entry<Treasures, Integer> entry : map.entrySet()) { // add them to the StringBuilder
-            if (entry.getValue() > 1) {
-                sb.append(entry.getValue());
-                sb.append("x ");
+        for ((key, value) in map) {
+            if (value > 1) {
+                sb.append(value).append("x ")
             }
-            sb.append(entry.getKey().getName());
-            sb.append(", ");
+            sb.append(key.name).append(", ")
         }
-        sb.append(Utils.getRandomInt(1, sumValue - currentValue)); // get the remaining value randomly
-        sb.append(" gp");
-        return sb.toString();
+        sb.append(Utils.getRandomInt(1, sumValue - currentValue))
+        sb.append(" gp")
+        return sb.toString()
     }
 
-    private static int getItemsCount() {
-        return switch (Utils.getDungeonDifficulty()) {
-            case 0 -> Utils.getRandomInt(0, itemCount[Utils.getPartyLevel()]);
-            case 1 -> Utils.getRandomInt(2, itemCount[Utils.getPartyLevel()]);
-            case 2 -> Utils.getRandomInt(3, itemCount[Utils.getPartyLevel()]);
-            case 3 -> Utils.getRandomInt(4, itemCount[Utils.getPartyLevel()]);
-            default -> 0;
-        };
+    private fun getItemsCount(): Int {
+        return when (Utils.dungeonDifficulty) {
+            0 -> Utils.getRandomInt(0, itemCount[Utils.partyLevel])
+            1 -> Utils.getRandomInt(2, itemCount[Utils.partyLevel])
+            2 -> Utils.getRandomInt(3, itemCount[Utils.partyLevel])
+            3 -> Utils.getRandomInt(4, itemCount[Utils.partyLevel])
+            else -> 0
+        }
     }
 
-    private static void getAllCost() {
-        sumValue = (int) (treasureGP[Utils.getPartyLevel()] * Utils.getTreasureValue());
+    private fun getAllCost() {
+        sumValue = (treasureGP[Utils.partyLevel] * Utils.treasureValue).toInt()
     }
-
 }

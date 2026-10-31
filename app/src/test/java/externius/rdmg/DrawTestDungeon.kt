@@ -1,38 +1,34 @@
-package externius.rdmg;
+package externius.rdmg
 
+import externius.rdmg.models.DungeonTile
+import externius.rdmg.models.Textures
 
-import externius.rdmg.models.DungeonTile;
+internal object DrawTestDungeon {
 
-final class DrawTestDungeon {
-
-    private DrawTestDungeon(){
-
-    }
-
-    static void draw(DungeonTile[][] dungeonTiles) {
-        for (DungeonTile[] row : dungeonTiles) {
-            printRow(row);
+    @JvmStatic
+    fun draw(dungeonTiles: Array<Array<DungeonTile>>) {
+        for (row in dungeonTiles) {
+            printRow(row)
         }
-        System.out.println();
+        println()
     }
 
-    private static void printRow(DungeonTile[] row) {
-        for (DungeonTile i : row) {
-            switch (i.getTexture()) {
-                case EDGE -> System.out.print("X");
-                case ROOM_EDGE -> System.out.print("#");
-                case MARBLE -> System.out.print(" ");
-                case ROOM -> System.out.print(".");
-                case NO_CORRIDOR_DOOR, NO_CORRIDOR_DOOR_LOCKED, NO_CORRIDOR_DOOR_TRAPPED, DOOR, DOOR_LOCKED, DOOR_TRAPPED ->
-                        System.out.print("D");
-                case CORRIDOR -> System.out.print("-");
-                case ENTRY -> System.out.print("E");
-                case TRAP -> System.out.print("T");
-                case ROAMING_MONSTER -> System.out.print("M");
-                default -> {
-                }
+    private fun printRow(row: Array<DungeonTile>) {
+        for (i in row) {
+            when (i.texture) {
+                Textures.EDGE -> print("X")
+                Textures.ROOM_EDGE -> print("#")
+                Textures.MARBLE -> print(" ")
+                Textures.ROOM -> print(".")
+                Textures.NO_CORRIDOR_DOOR, Textures.NO_CORRIDOR_DOOR_LOCKED,
+                Textures.NO_CORRIDOR_DOOR_TRAPPED, Textures.DOOR, Textures.DOOR_LOCKED,
+                Textures.DOOR_TRAPPED -> print("D")
+                Textures.CORRIDOR -> print("-")
+                Textures.ENTRY -> print("E")
+                Textures.TRAP -> print("T")
+                Textures.ROAMING_MONSTER -> print("M")
             }
         }
-        System.out.println();
+        println()
     }
 }

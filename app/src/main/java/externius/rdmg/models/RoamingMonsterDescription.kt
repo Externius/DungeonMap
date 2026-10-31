@@ -1,4 +1,6 @@
-package externius.rdmg.models;
+package externius.rdmg.models
 
-public record RoamingMonsterDescription(String name, String description) {
-}
+data class RoamingMonsterDescription(
+    val name: String?,
+    val description: String?
+)

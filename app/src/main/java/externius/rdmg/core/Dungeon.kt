@@ -1,454 +1,472 @@
-package externius.rdmg.core;
+package externius.rdmg.core
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import externius.rdmg.helpers.Utils
+import externius.rdmg.models.DungeonTile
+import externius.rdmg.models.RoamingMonsterDescription
+import externius.rdmg.models.RoomDescription
+import externius.rdmg.models.Textures
+import externius.rdmg.models.TrapDescription
+import kotlin.math.abs
+import kotlin.math.roundToInt
 
-import externius.rdmg.helpers.Utils;
-import externius.rdmg.models.DungeonTile;
-import externius.rdmg.models.RoamingMonsterDescription;
-import externius.rdmg.models.RoomDescription;
-import externius.rdmg.models.Textures;
-import externius.rdmg.models.TrapDescription;
+open class Dungeon {
+    val rooms: MutableList<DungeonTile> = ArrayList()
+    lateinit var dungeonTiles: Array<Array<DungeonTile>>
+    var roomDescription: MutableList<RoomDescription> = ArrayList()
+    var dungeonWidth: Int = 0
+    var dungeonHeight: Int = 0
+    var dungeonSize: Int = 0
+    var roomSizePercent: Int = 0
+    var roomSize: Int = 0
+    var doors: MutableList<DungeonTile> = ArrayList()
 
+    private var result: MutableList<DungeonTile> = ArrayList()
+    private var corridors: MutableList<DungeonTile> = ArrayList()
+    var trapDescription: MutableList<TrapDescription> = ArrayList()
+        private set
+    var roamingMonsterDescriptions: MutableList<RoamingMonsterDescription> = ArrayList()
+        private set
 
-public class Dungeon {
-    private static final int MOVEMENT = 10;
-    final List<DungeonTile> rooms = new ArrayList<>();
-    DungeonTile[][] dungeonTiles;
-    List<RoomDescription> roomDescription;
-    int dungeonWidth;
-    int dungeonHeight;
-    int dungeonSize;
-    int roomSizePercent;
-    int roomSize;
-    List<DungeonTile> doors = new ArrayList<>();
-    private List<DungeonTile> result;
-    private List<DungeonTile> corridors;
-    private List<TrapDescription> trapDescription;
-    private List<RoamingMonsterDescription> roamingMonsterDescriptions;
-    private int roomDensity;
-    private int trapPercent;
-    private int roamingPercent;
-    private int trapCount;
-    private int roamingCount;
-    private int roomCount;
-    private boolean hasDeadEnds;
+    private var roomDensity: Int = 0
+    private var trapPercent: Int = 0
+    private var roamingPercent: Int = 0
+    private var trapCount: Int = 0
+    private var roamingCount: Int = 0
+    private var roomCount: Int = 0
+    private var hasDeadEnds: Boolean = false
 
-    Dungeon() {
+    constructor()
 
+    constructor(
+        dungeonWidth: Int,
+        dungeonHeight: Int,
+        dungeonSize: Int,
+        roomDensity: Int,
+        roomSizePercent: Int,
+        trapPercent: Int,
+        hasDeadEnds: Boolean,
+        roamingPercent: Int
+    ) {
+        this.dungeonWidth = dungeonWidth
+        this.dungeonHeight = dungeonHeight
+        this.dungeonSize = dungeonSize
+        this.roomDensity = roomDensity
+        this.roomSizePercent = roomSizePercent
+        this.trapPercent = trapPercent
+        this.roamingPercent = roamingPercent
+        this.hasDeadEnds = hasDeadEnds
     }
 
-    public Dungeon(int dungeonWidth, int dungeonHeight, int dungeonSize, int roomDensity, int roomSizePercent, int trapPercent, boolean hasDeadEnds, int roamingPercent) {
-        this.dungeonWidth = dungeonWidth;
-        this.dungeonHeight = dungeonHeight;
-        this.dungeonSize = dungeonSize;
-        this.roomDensity = roomDensity;
-        this.roomSizePercent = roomSizePercent;
-        this.trapPercent = trapPercent;
-        this.roamingPercent = roamingPercent;
-        this.hasDeadEnds = hasDeadEnds;
-    }
-
-    public void generate() {
-        init();
-        generateRoom();
-        addEntryPoint();
-        generateCorridors();
+    open fun generate() {
+        init()
+        generateRoom()
+        addEntryPoint()
+        generateCorridors()
         if (hasDeadEnds) {
-            addDeadEnds();
+            addDeadEnds()
         }
-        addCorridorItem(trapCount, Item.TRAP);
-        addCorridorItem(roamingCount, Item.ROAMING_MONSTER);
+        addCorridorItem(trapCount, Item.TRAP)
+        addCorridorItem(roamingCount, Item.ROAMING_MONSTER)
     }
 
-    public void init() {
-        corridors = new ArrayList<>();
-        int imgSizeX = dungeonWidth / dungeonSize;
-        int imgSizeY = dungeonHeight / dungeonSize;
-        roomCount = Math.round(((float) dungeonSize / 100) * (float) roomDensity);
-        roomSize = Math.round((float) (dungeonSize - Math.round(dungeonSize * 0.35)) / 100 * roomSizePercent);
-        roomDescription = new ArrayList<>();
-        trapDescription = new ArrayList<>();
-        roamingMonsterDescriptions = new ArrayList<>();
-        trapCount = dungeonSize * trapPercent / 100;
-        roamingCount = dungeonSize * roamingPercent / 100;
-        dungeonSize += 2; // because of boundaries
-        dungeonTiles = new DungeonTile[dungeonSize][dungeonSize];
-        for (int i = 0; i < dungeonSize; i++) {
-            for (int j = 0; j < dungeonSize; j++) {
-                dungeonTiles[i][j] = new DungeonTile(i, j);
+    open fun init() {
+        corridors = ArrayList()
+        val imgSizeX = dungeonWidth / dungeonSize
+        val imgSizeY = dungeonHeight / dungeonSize
+        roomCount = ((dungeonSize.toFloat() / 100) * roomDensity.toFloat()).roundToInt()
+        roomSize =
+            ((dungeonSize - (dungeonSize * 0.35f).roundToInt()).toFloat() / 100 * roomSizePercent).roundToInt()
+        roomDescription = ArrayList()
+        trapDescription = ArrayList()
+        roamingMonsterDescriptions = ArrayList()
+        trapCount = dungeonSize * trapPercent / 100
+        roamingCount = dungeonSize * roamingPercent / 100
+        dungeonSize += 2 // because of boundaries
+        dungeonTiles = Array(dungeonSize) { i ->
+            Array(dungeonSize) { j ->
+                DungeonTile(i, j)
             }
         }
-        for (int i = 1; i < dungeonSize - 1; i++) { // set drawing area
-            for (int j = 1; j < dungeonSize - 1; j++) {
-                dungeonTiles[i][j] = new DungeonTile(i, j, (j - 1) * imgSizeX, (i - 1) * imgSizeY, imgSizeX, imgSizeY);
-            }
-        }
-    }
-
-    public void addCorridorItem(int inCount, Item item) {
-        int count = 0;
-        while (inCount > count) {
-            int x = Utils.getRandomInt(0, corridors.size());
-            int i = corridors.get(x).getI();
-            int j = corridors.get(x).getJ();
-            if (dungeonTiles[i][j].getTexture() == Textures.CORRIDOR) {
-                addItem(i, j, item);
-                count++;
+        for (i in 1 until dungeonSize - 1) { // set drawing area
+            for (j in 1 until dungeonSize - 1) {
+                dungeonTiles[i][j] =
+                    DungeonTile(i, j, (j - 1) * imgSizeX, (i - 1) * imgSizeY, imgSizeX, imgSizeY)
             }
         }
     }
 
-    private void addItem(int x, int y, Item item) {
-        switch (item) {
-            case TRAP -> addTrap(x, y);
-            case ROAMING_MONSTER -> addRoamingMonster(x, y);
-            default -> {
+    fun addCorridorItem(inCount: Int, item: Item) {
+        var count = 0
+        var maxAttempts = corridors.size
+        while (inCount > count && corridors.isNotEmpty() && maxAttempts > 0) {
+            val x = Utils.getRandomInt(0, corridors.size)
+            val i = corridors[x].i
+            val j = corridors[x].j
+            if (dungeonTiles[i][j].texture == Textures.CORRIDOR) {
+                addItem(i, j, item)
+                count++
+                maxAttempts = corridors.size
+            }
+            maxAttempts--
+        }
+    }
+
+    private fun addItem(x: Int, y: Int, item: Item) {
+        when (item) {
+            Item.TRAP -> addTrap(x, y)
+            Item.ROAMING_MONSTER -> addRoamingMonster(x, y)
+        }
+    }
+
+    private fun addTrap(x: Int, y: Int) {
+        dungeonTiles[x][y].texture = Textures.TRAP
+        Utils.addTrapDescription(dungeonTiles, x, y, trapDescription)
+    }
+
+    private fun addRoamingMonster(x: Int, y: Int) {
+        dungeonTiles[x][y].texture = Textures.ROAMING_MONSTER
+        Utils.addRoamingMonsterDescription(dungeonTiles, x, y, roamingMonsterDescriptions)
+    }
+
+    fun addDeadEnds() {
+        val deadEnds = generateDeadEnds()
+        if (doors.isEmpty()) return
+        val firstDoor = doors[0]
+        for (end in deadEnds) {
+            doors = ArrayList()
+            doors.add(firstDoor)
+            doors.add(end)
+            generateCorridors()
+        }
+    }
+
+    private fun generateDeadEnds(): List<DungeonTile> {
+        val count = roomCount / 2
+        var deadEndsCount = 0
+        val deadEnds = ArrayList<DungeonTile>()
+        val croppedDungeonTiles = Array(dungeonTiles.size - 4) { i ->
+            Array(dungeonTiles.size - 4) { j ->
+                dungeonTiles[i + 2][j + 2]
             }
         }
-    }
-
-    private void addTrap(int x, int y) {
-        dungeonTiles[x][y].setTexture(Textures.TRAP);
-        Utils.addTrapDescription(dungeonTiles, x, y, trapDescription);
-    }
-
-    private void addRoamingMonster(int x, int y) {
-        dungeonTiles[x][y].setTexture(Textures.ROAMING_MONSTER);
-        Utils.addRoamingMonsterDescription(dungeonTiles, x, y, roamingMonsterDescriptions);
-    }
-
-    public void addDeadEnds() {
-        List<DungeonTile> deadEnds = generateDeadEnds();
-        DungeonTile firstDoor = doors.get(0); // get first door
-        for (DungeonTile end : deadEnds) {
-            doors = new ArrayList<>(); // empty doors
-            doors.add(firstDoor);
-            doors.add(end);
-            generateCorridors();
-        }
-    }
-
-    private List<DungeonTile> generateDeadEnds() {
-        int count = roomCount / 2;
-        int deadEndsCount = 0;
-        List<DungeonTile> deadEnds = new ArrayList<>();
-        DungeonTile[][] croppedDungeonTiles = new DungeonTile[dungeonTiles.length - 4][dungeonTiles.length - 4];
-        for (int i = 2; i < dungeonTiles.length - 2; i++) {
-            System.arraycopy(dungeonTiles[i], 2, croppedDungeonTiles[i - 2], 0, dungeonTiles[i].length - 4);
-        }
-        List<DungeonTile> dungeonList = twoDArrayToList(croppedDungeonTiles);
-        dungeonList.removeAll(rooms);
-        dungeonList.removeAll(doors);
-        dungeonList.removeAll(corridors);
-        int maxAttempt = dungeonList.size() * 2;
+        val dungeonList = twoDArrayToList(croppedDungeonTiles)
+        dungeonList.removeAll(rooms)
+        dungeonList.removeAll(doors)
+        dungeonList.removeAll(corridors)
+        var maxAttempt = dungeonList.size * 2
         do {
-            DungeonTile tile = dungeonList.get(Utils.getRandomInt(0, dungeonList.size()));
-            if (checkTileForDeadEnd(tile.getI(), tile.getJ())) {
-                dungeonTiles[tile.getI()][tile.getJ()].setTexture(Textures.CORRIDOR);
-                deadEnds.add(dungeonTiles[tile.getI()][tile.getJ()]);
-                deadEndsCount++;
+            if (dungeonList.isEmpty()) break
+            val tile = dungeonList[Utils.getRandomInt(0, dungeonList.size)]
+            if (checkTileForDeadEnd(tile.i, tile.j)) {
+                dungeonTiles[tile.i][tile.j].texture = Textures.CORRIDOR
+                deadEnds.add(dungeonTiles[tile.i][tile.j])
+                deadEndsCount++
             }
-            maxAttempt--;
-        }
-        while (count != deadEndsCount && maxAttempt > 0);
-        return deadEnds;
+            maxAttempt--
+        } while (count != deadEndsCount && maxAttempt > 0)
+        return deadEnds
     }
 
-    private <T> List<T> twoDArrayToList(T[][] twoDArray) {
-        List<T> list = new ArrayList<>();
-        for (T[] array : twoDArray) {
-            list.addAll(Arrays.asList(array));
+    private fun <T> twoDArrayToList(twoDArray: Array<Array<T>>): MutableList<T> {
+        val list = ArrayList<T>()
+        for (array in twoDArray) {
+            list.addAll(array)
         }
-        return list;
+        return list
     }
 
-    private boolean checkTileForDeadEnd(int x, int y) {
-        for (int i = x - 1; i < x + 2; i++) {
-            for (int j = y - 1; j < y + 2; j++) {
-                if (dungeonTiles[i][j].getTexture() != Textures.MARBLE) { // check if any other tile is there
-                    return false;
+    private fun checkTileForDeadEnd(x: Int, y: Int): Boolean {
+        for (i in x - 1..x + 1) {
+            for (j in y - 1..y + 1) {
+                if (dungeonTiles[i][j].texture != Textures.MARBLE) {
+                    return false
                 }
             }
         }
-        return true;
+        return true
     }
 
-    public void addEntryPoint() {
-        boolean entryIsOk;
-        int x;
-        int y;
+    open fun addEntryPoint() {
+        var entryIsOk: Boolean
+        var x: Int
+        var y: Int
         do {
-            x = Utils.getRandomInt(1, dungeonTiles.length - 1);
-            y = Utils.getRandomInt(1, dungeonTiles.length - 1);
-            entryIsOk = dungeonTiles[x][y].getTexture() == Textures.MARBLE;
-        }
-        while (!entryIsOk);
-        dungeonTiles[x][y].setTexture(Textures.ENTRY);
-        doors.add(dungeonTiles[x][y]);
+            x = Utils.getRandomInt(1, dungeonTiles.size - 1)
+            y = Utils.getRandomInt(1, dungeonTiles.size - 1)
+            entryIsOk = dungeonTiles[x][y].texture == Textures.MARBLE
+        } while (!entryIsOk)
+        dungeonTiles[x][y].texture = Textures.ENTRY
+        doors.add(dungeonTiles[x][y])
     }
 
-    public void generateCorridors() {
-        for (int d = 0; d < doors.size() - 1; d++) { // -1 because the end point
-            result = new ArrayList<>();
-            List<DungeonTile> openList = new ArrayList<>();
-            List<DungeonTile> closedList = new ArrayList<>();
-            DungeonTile start = doors.get(d); // set door as the starting point
-            DungeonTile end = doors.get(d + 1); // set the next door as the end point
-            for (int i = 1; i < dungeonTiles.length - 1; i++) { // preconfig H value + restore default values
-                for (int j = 1; j < dungeonTiles.length - 1; j++) {
-                    dungeonTiles[i][j].setH(Utils.manhattan(Math.abs(i - end.getI()), Math.abs(j - end.getJ())));
-                    dungeonTiles[i][j].setG(0);
-                    dungeonTiles[i][j].setParent(null);
-                    dungeonTiles[i][j].setF(9999);
+    open fun generateCorridors() {
+        for (d in 0 until doors.size - 1) {
+            result = ArrayList()
+            val openList = ArrayList<DungeonTile>()
+            val closedList = ArrayList<DungeonTile>()
+            var start = doors[d]
+            val end = doors[d + 1]
+            for (i in 1 until dungeonTiles.size - 1) {
+                for (j in 1 until dungeonTiles.size - 1) {
+                    dungeonTiles[i][j].h = Utils.manhattan(abs(i - end.i), abs(j - end.j))
+                    dungeonTiles[i][j].g = 0
+                    dungeonTiles[i][j].parent = null
+                    dungeonTiles[i][j].f = 9999
                 }
             }
-            addToClosedList(closedList, start); // add start point to closed list
-            addToOpen(start, openList, closedList, end); // add the nearby nodes to openList
-            while (result.isEmpty() && !openList.isEmpty()) {
-                start = openList.get(0); // get lowest F to repeat things (openList sorted)
-                addToClosedList(closedList, start); // add to closed list this node
-                removeFromOpen(openList, start); // remove from open list this node
-                addToOpen(start, openList, closedList, end); // add open list the nearby nodes
+            addToClosedList(closedList, start)
+            addToOpen(start, openList, closedList, end)
+            while (result.isEmpty() && openList.isNotEmpty()) {
+                start = openList[0]
+                addToClosedList(closedList, start)
+                removeFromOpen(openList, start)
+                addToOpen(start, openList, closedList, end)
             }
-            setPath(); // modify tiles Texture with the path
+            setPath()
         }
     }
 
-    private void setPath() {
-        for (DungeonTile tile : result) {
-            if (tile.getTexture() == Textures.MARBLE) { // only change the marble texture
-                dungeonTiles[tile.getI()][tile.getJ()].setTexture(Textures.CORRIDOR);
-                corridors.add(tile);
+    private fun setPath() {
+        for (tile in result) {
+            if (tile.texture == Textures.MARBLE) {
+                dungeonTiles[tile.i][tile.j].texture = Textures.CORRIDOR
+                corridors.add(tile)
             }
         }
     }
 
-    void removeFromOpen(List<DungeonTile> openList, DungeonTile node) {
-        openList.remove(node);
+    internal open fun removeFromOpen(openList: MutableList<DungeonTile>, node: DungeonTile) {
+        openList.remove(node)
     }
 
-    private void addToOpen(DungeonTile node, List<DungeonTile> openList, List<DungeonTile> closedList, DungeonTile end) {
-        addToOpenList(node, node.getI(), node.getJ() - 1, openList, closedList, end); // left
-        addToOpenList(node, node.getI() - 1, node.getJ(), openList, closedList, end); // top
-        addToOpenList(node, node.getI() + 1, node.getJ(), openList, closedList, end); // bottom
-        addToOpenList(node, node.getI(), node.getJ() + 1, openList, closedList, end); // right
-        calcGValue(openList); // calc G value Parent G + Movement
-        calcFValue(openList); // calc F value (G + H)
+    private fun addToOpen(
+        node: DungeonTile,
+        openList: MutableList<DungeonTile>,
+        closedList: List<DungeonTile>,
+        end: DungeonTile
+    ) {
+        addToOpenList(node, node.i, node.j - 1, openList, closedList, end)
+        addToOpenList(node, node.i - 1, node.j, openList, closedList, end)
+        addToOpenList(node, node.i + 1, node.j, openList, closedList, end)
+        addToOpenList(node, node.i, node.j + 1, openList, closedList, end)
+        calcGValue(openList)
+        calcFValue(openList)
     }
 
-    private void calcFValue(List<DungeonTile> openList) {
-        for (DungeonTile tile : openList) {
-            tile.setF(tile.getG() + tile.getH());
+    private fun calcFValue(openList: MutableList<DungeonTile>) {
+        for (tile in openList) {
+            tile.f = tile.g + tile.h
         }
-        openList.sort(Comparator.comparingInt(DungeonTile::getF));
+        openList.sortBy { it.f }
     }
 
-    private void calcGValue(List<DungeonTile> openList) {
-        for (DungeonTile tile : openList) {
-            tile.setG(tile.getParent().getG() + MOVEMENT);
+    private fun calcGValue(openList: List<DungeonTile>) {
+        for (tile in openList) {
+            val parent = tile.parent
+            if (parent != null) {
+                tile.g = parent.g + MOVEMENT
+            }
         }
     }
 
-    private void addToOpenList(DungeonTile node, int x, int y, List<DungeonTile> openList, List<DungeonTile> closedList, DungeonTile end) {
+    private fun addToOpenList(
+        node: DungeonTile,
+        x: Int,
+        y: Int,
+        openList: MutableList<DungeonTile>,
+        closedList: List<DungeonTile>,
+        end: DungeonTile
+    ) {
         if (!checkEnd(node, x, y, end)) {
-            checkG(node, x, y, openList); // check if it needs reparenting
-            if (checkTileForOpenList(x, y) && !closedList.contains(dungeonTiles[x][y]) && !openList.contains(dungeonTiles[x][y])) { // not in openlist/closedlist
-                setParent(node, x, y);
-                openList.add(dungeonTiles[x][y]);
+            checkG(node, x, y, openList)
+            if (checkTileForOpenList(
+                    x,
+                    y
+                ) && !closedList.contains(dungeonTiles[x][y]) && !openList.contains(dungeonTiles[x][y])
+            ) {
+                setParent(node, x, y)
+                openList.add(dungeonTiles[x][y])
             }
         }
     }
 
-    boolean checkTileForOpenList(int x, int y) {
-        return dungeonTiles[x][y].getH() != 0 && dungeonTiles[x][y].getTexture() != Textures.ROOM && dungeonTiles[x][y].getTexture() != Textures.ROOM_EDGE; // check its not edge/room/room_edge
+    internal open fun checkTileForOpenList(x: Int, y: Int): Boolean {
+        return dungeonTiles[x][y].h != 0 && dungeonTiles[x][y].texture != Textures.ROOM && dungeonTiles[x][y].texture != Textures.ROOM_EDGE
     }
 
-    private void setParent(DungeonTile node, int x, int y) {
-        dungeonTiles[x][y].setParent(node);
+    private fun setParent(node: DungeonTile, x: Int, y: Int) {
+        dungeonTiles[x][y].parent = node
     }
 
-    private void checkG(DungeonTile node, int x, int y, List<DungeonTile> openList) {
-        if (openList.contains(dungeonTiles[x][y]) && dungeonTiles[x][y].getG() > (node.getG() + MOVEMENT)) {
-            setParent(node, x, y);
+    private fun checkG(node: DungeonTile, x: Int, y: Int, openList: List<DungeonTile>) {
+        if (openList.contains(dungeonTiles[x][y]) && dungeonTiles[x][y].g > (node.g + MOVEMENT)) {
+            setParent(node, x, y)
         }
     }
 
-    private boolean checkEnd(DungeonTile node, int x, int y, DungeonTile end) {
-        if (end.getI() == x && end.getJ() == y) {
-            setParent(node, x, y);
-            getParents(node);
-            return true;
+    private fun checkEnd(node: DungeonTile, x: Int, y: Int, end: DungeonTile): Boolean {
+        if (end.i == x && end.j == y) {
+            setParent(node, x, y)
+            getParents(node)
+            return true
         }
-        return false;
+        return false
     }
 
-    private void getParents(DungeonTile node) {
-        result.add(node);
-        DungeonTile parent = node;
-        while (parent.getParent() != null) {
-            parent = parent.getParent();
-            result.add(parent);
+    private fun getParents(node: DungeonTile) {
+        result.add(node)
+        var parent: DungeonTile? = node
+        while (parent?.parent != null) {
+            parent = parent.parent
+            if (parent != null) {
+                result.add(parent)
+            }
         }
     }
 
-    void addToClosedList(List<DungeonTile> closedList, DungeonTile node) {
-        closedList.add(dungeonTiles[node.getI()][node.getJ()]);
+    internal open fun addToClosedList(closedList: MutableList<DungeonTile>, node: DungeonTile) {
+        closedList.add(dungeonTiles[node.i][node.j])
     }
 
-    public void generateRoom() {
-        int[] coordinates;
-        for (int i = 0; i < roomCount; i++) {
-            coordinates = setTilesForRoom();
+    open fun generateRoom() {
+        var coordinates: IntArray
+        repeat(roomCount) {
+            coordinates = setTilesForRoom()
             if (coordinates[0] != 0) {
-                fillRoom(coordinates[0], coordinates[1], coordinates[2], coordinates[3]);
+                fillRoom(coordinates[0], coordinates[1], coordinates[2], coordinates[3])
             }
         }
     }
 
-    int getDoorCount(int down, int right) {
-        if (down < 4 || right < 4) {
-            return Utils.getRandomInt(1, 3);
+    internal open fun getDoorCount(down: Int, right: Int): Int {
+        return if (down < 4 || right < 4) {
+            Utils.getRandomInt(1, 3)
         } else {
-            return Utils.getRandomInt(2, 5);
+            Utils.getRandomInt(2, 5)
         }
     }
 
-    void fillRoom(int x, int y, int right, int down) {
-        int doorCount = getDoorCount(down, right);
-        for (int i = 0; i < down + 2; i++) { // fill with room_edge texture the bigger boundaries
-            for (int j = 0; j < right + 2; j++) {
-                dungeonTiles[x + i - 1][y + j - 1].setTexture(Textures.ROOM_EDGE);
+    internal open fun fillRoom(x: Int, y: Int, right: Int, down: Int) {
+        val doorCount = getDoorCount(down, right)
+        for (i in 0 until down + 2) {
+            for (j in 0 until right + 2) {
+                dungeonTiles[x + i - 1][y + j - 1].texture = Textures.ROOM_EDGE
             }
         }
-        for (int i = 0; i < down; i++) { // fill room texture
-            for (int j = 0; j < right; j++) {
-                dungeonTiles[x + i][y + j].setTexture(Textures.ROOM);
-                rooms.add(dungeonTiles[x + i][y + j]);
-                dungeonTiles[x + i][y + j].setDescription(" ");
-                dungeonTiles[x + i][y + j].setIndex(roomDescription.size());
+        for (i in 0 until down) {
+            for (j in 0 until right) {
+                dungeonTiles[x + i][y + j].texture = Textures.ROOM
+                rooms.add(dungeonTiles[x + i][y + j])
+                dungeonTiles[x + i][y + j].description = " "
+                dungeonTiles[x + i][y + j].index = roomDescription.size
             }
         }
-        int currentSize = doors.size();
-        for (int d = 0; d < doorCount; d++) {
-            addDoor(x, y, down, right);
+        val currentSize = doors.size
+        repeat(doorCount) {
+            addDoor(x, y, down, right)
         }
-        int newSize = doors.size();
-        List<DungeonTile> currentDoors = new ArrayList<>(doors.subList(currentSize, newSize));
-        Utils.addRoomDescription(dungeonTiles, x, y, roomDescription, currentDoors);
+        val newSize = doors.size
+        val currentDoors = ArrayList(doors.subList(currentSize, newSize))
+        Utils.addRoomDescription(dungeonTiles, x, y, roomDescription, currentDoors)
     }
 
-    void addDoor(int x, int y, int down, int right) {
-        boolean doorIsOK;
-        int doorX;
-        int doorY;
+    internal open fun addDoor(x: Int, y: Int, down: Int, right: Int) {
+        var doorIsOK: Boolean
+        var doorX: Int
+        var doorY: Int
         do {
-            doorX = Utils.getRandomInt(x, x + down);
-            doorY = Utils.getRandomInt(y, y + right);
-            doorIsOK = checkDoor(doorX, doorY);
-        }
-        while (!doorIsOK);
+            doorX = Utils.getRandomInt(x, x + down)
+            doorY = Utils.getRandomInt(y, y + right)
+            doorIsOK = checkDoor(doorX, doorY)
+        } while (!doorIsOK)
     }
 
-    boolean checkDoor(int x, int y) {
-        for (int i = x - 1; i < x + 2; i++) {
-            for (int j = y - 1; j < y + 2; j++) {
-                if (dungeonTiles[i][j].getTexture() == Textures.DOOR || dungeonTiles[i][j].getTexture() == Textures.DOOR_LOCKED || dungeonTiles[i][j].getTexture() == Textures.DOOR_TRAPPED) { // check nearby doors
-                    return false;
+    open fun checkDoor(x: Int, y: Int): Boolean {
+        for (i in x - 1..x + 1) {
+            for (j in y - 1..y + 1) {
+                val tex = dungeonTiles[i][j].texture
+                if (tex == Textures.DOOR || tex == Textures.DOOR_LOCKED || tex == Textures.DOOR_TRAPPED) {
+                    return false
                 }
             }
         }
-        return checkEnvironment(x, y);
+        return checkEnvironment(x, y)
     }
 
-    boolean checkEnvironment(int x, int y) {
-        if (dungeonTiles[x][y - 1].getTexture() == Textures.ROOM_EDGE) { // left
-            setDoor(x, y - 1);
-            return true;
-        } else if (dungeonTiles[x][y + 1].getTexture() == Textures.ROOM_EDGE) { // right
-            setDoor(x, y + 1);
-            return true;
-        } else if (dungeonTiles[x + 1][y].getTexture() == Textures.ROOM_EDGE) { // bottom
-            setDoor(x + 1, y);
-            return true;
-        } else if (dungeonTiles[x - 1][y].getTexture() == Textures.ROOM_EDGE) { // top
-            setDoor(x - 1, y);
-            return true;
+    internal open fun checkEnvironment(x: Int, y: Int): Boolean {
+        if (dungeonTiles[x][y - 1].texture == Textures.ROOM_EDGE) {
+            setDoor(x, y - 1)
+            return true
+        } else if (dungeonTiles[x][y + 1].texture == Textures.ROOM_EDGE) {
+            setDoor(x, y + 1)
+            return true
+        } else if (dungeonTiles[x + 1][y].texture == Textures.ROOM_EDGE) {
+            setDoor(x + 1, y)
+            return true
+        } else if (dungeonTiles[x - 1][y].texture == Textures.ROOM_EDGE) {
+            setDoor(x - 1, y)
+            return true
         }
-        return false;
+        return false
     }
 
-    void setDoor(int x, int y) {
+    internal open fun setDoor(x: Int, y: Int) {
         if (Utils.getRandomInt(0, 101) < 40) {
-            dungeonTiles[x][y].setTexture(Textures.DOOR_TRAPPED);
+            dungeonTiles[x][y].texture = Textures.DOOR_TRAPPED
         } else if (Utils.getRandomInt(0, 101) < 50) {
-            dungeonTiles[x][y].setTexture(Textures.DOOR_LOCKED);
+            dungeonTiles[x][y].texture = Textures.DOOR_LOCKED
         } else {
-            dungeonTiles[x][y].setTexture(Textures.DOOR);
+            dungeonTiles[x][y].texture = Textures.DOOR
         }
-        doors.add(dungeonTiles[x][y]);
+        doors.add(dungeonTiles[x][y])
     }
 
-    private int[] setTilesForRoom() {
-        boolean roomIsOk;
-        int x;
-        int y;
-        int max = dungeonTiles.length - (roomSize + 2); // because of edge + room_edge
-        int failSafeCount = dungeonTiles.length * dungeonTiles.length / 2;
-        int right;
-        int down;
+    private fun setTilesForRoom(): IntArray {
+        var roomIsOk: Boolean
+        var x: Int
+        var y: Int
+        val max = dungeonTiles.size - (roomSize + 2)
+        var failSafeCount = dungeonTiles.size * dungeonTiles.size / 2
+        var right: Int
+        var down: Int
         do {
-            x = Utils.getRandomInt(3, max); // 3 because of edge + room_edge
-            y = Utils.getRandomInt(3, max);
-            right = Utils.getRandomInt(2, roomSize + 1);
-            down = Utils.getRandomInt(2, roomSize + 1);
-            roomIsOk = checkTileGoodForRoom(x - 2, y - 2, right + 2, down + 2); // -2/+2 because i want min 3 tiles between rooms
-            failSafeCount--;
-        }
-        while (!roomIsOk && failSafeCount > 0);
-        if (failSafeCount > 0) {
-            return new int[]{x, y, right, down};
+            x = Utils.getRandomInt(3, max)
+            y = Utils.getRandomInt(3, max)
+            right = Utils.getRandomInt(2, roomSize + 1)
+            down = Utils.getRandomInt(2, roomSize + 1)
+            roomIsOk = checkTileGoodForRoom(x - 2, y - 2, right + 2, down + 2)
+            failSafeCount--
+        } while (!roomIsOk && failSafeCount > 0)
+        return if (failSafeCount > 0) {
+            intArrayOf(x, y, right, down)
         } else {
-            return new int[]{0, 0, 0, 0}; // it can never be 0 if its a good coordinate
+            intArrayOf(0, 0, 0, 0)
         }
     }
 
-    private boolean checkTileGoodForRoom(int x, int y, int right, int down) {
-        int maxX = x + down + 2; // +2 because of edges
-        int maxY = y + right + 2;
-        for (int i = x; i < maxX; i++) { // check the room area + boundaries
-            for (int j = y; j < maxY; j++) {
+    private fun checkTileGoodForRoom(x: Int, y: Int, right: Int, down: Int): Boolean {
+        val maxX = x + down + 2
+        val maxY = y + right + 2
+        for (i in x until maxX) {
+            for (j in y until maxY) {
                 if (checkIsRoom(i, j)) {
-                    return false;
+                    return false
                 }
             }
         }
-        return true;
+        return true
     }
 
-    private boolean checkIsRoom(int x, int y) {
-        return dungeonTiles[x][y].getTexture() == Textures.ROOM || dungeonTiles[x][y].getTexture() == Textures.ROOM_EDGE;
+    private fun checkIsRoom(x: Int, y: Int): Boolean {
+        val tex = dungeonTiles[x][y].texture
+        return tex == Textures.ROOM || tex == Textures.ROOM_EDGE
     }
 
-    public List<RoomDescription> getRoomDescription() {
-        return roomDescription;
-    }
-
-    public List<TrapDescription> getTrapDescription() {
-        return trapDescription;
-    }
-
-    public DungeonTile[][] getDungeonTiles() {
-        return dungeonTiles;
-    }
-
-    public List<RoamingMonsterDescription> getRoamingMonsterDescriptions() {
-        return roamingMonsterDescriptions;
-    }
-
-    public enum Item {
+    enum class Item {
         TRAP, ROAMING_MONSTER
+    }
+
+    companion object {
+        private const val MOVEMENT = 10
     }
 }

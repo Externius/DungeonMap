@@ -1,42 +1,18 @@
-package externius.rdmg.models;
+package externius.rdmg.models
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
+import com.google.gson.annotations.Expose
+import com.google.gson.annotations.SerializedName
 
 class SpecialAbility {
-
     @SerializedName("name")
     @Expose
-    private String name;
+    var name: String? = null
+
     @SerializedName("desc")
     @Expose
-    private String desc;
+    var desc: String? = null
+
     @SerializedName("attack_bonus")
     @Expose
-    private Integer attackBonus;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDesc() {
-        return desc;
-    }
-
-    public void setDesc(String desc) {
-        this.desc = desc;
-    }
-
-    public Integer getAttackBonus() {
-        return attackBonus;
-    }
-
-    public void setAttackBonus(Integer attackBonus) {
-        this.attackBonus = attackBonus;
-    }
-
+    var attackBonus: Int? = null
 }

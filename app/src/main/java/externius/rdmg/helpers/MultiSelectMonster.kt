@@ -1,208 +1,203 @@
-package externius.rdmg.helpers;
+package externius.rdmg.helpers
 
-import static android.content.res.Resources.getSystem;
+import android.app.Dialog
+import android.content.Context
+import android.database.DataSetObserver
+import android.graphics.Color
+import android.util.AttributeSet
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.ListView
+import androidx.appcompat.widget.AppCompatTextView
+import externius.rdmg.R
 
-import android.app.Dialog;
-import android.content.Context;
-import android.database.DataSetObserver;
-import android.graphics.Color;
-import android.util.AttributeSet;
-import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ListView;
+class MultiSelectMonster @JvmOverloads constructor(
+    context: Context,
+    attr: AttributeSet? = null,
+    defStyle: Int = androidx.appcompat.R.attr.spinnerStyle
+) : AppCompatTextView(context, attr, defStyle) {
 
-import java.util.Arrays;
-import java.util.List;
+    private var mAdapter: ArrayAdapter<String>? = null
+    private var mOldSelection: BooleanArray = BooleanArray(0)
+    private var mSelected: BooleanArray = BooleanArray(0)
+    var allText: String? = null
+        private set
 
-import externius.rdmg.R;
+    private val monsterTypeList: List<String> =
+        context.resources.getStringArray(R.array.monster_type_array).toList()
 
-public class MultiSelectMonster extends androidx.appcompat.widget.AppCompatTextView {
-    private static final String ANY = "Any";
-    private static final String NONE = "None";
-    private ArrayAdapter<String> mAdapter;
-    private boolean[] mOldSelection;
-    private boolean[] mSelected;
-    private String mAllText;
-    private final List<String> monsterTypeList = Arrays.asList(getResources().getStringArray(R.array.monster_type_array));
-    private Dialog dialog;
+    var dialog: Dialog? = null
+        private set
 
-    public MultiSelectMonster(Context context) {
-        super(context);
-    }
-
-    public MultiSelectMonster(Context context, AttributeSet attr) {
-        this(context, attr, androidx.appcompat.R.attr.spinnerStyle);
-    }
-
-    public MultiSelectMonster(Context context, AttributeSet attr, int defStyle) {
-        super(context, attr, defStyle);
-        init(context);
-    }
-
-    private void init(Context context) {
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_list_item_multiple_choice);
-        adapter.addAll(monsterTypeList);
-        setAdapter(adapter);
-    }
-
-    private void setButtonStyle(Button button) {
-        button.setBackgroundColor(getResources().getColor(R.color.primaryAccent, null));
-        button.setTextColor(Color.WHITE);
-    }
-
-    private final OnClickListener onClickListener = new OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            dialog = new Dialog(getContext(), R.style.Dialog);
-            dialog.setContentView(R.layout.monster_type_popup);
-            dialog.setTitle("Select monster type");
-            Button closePopupBtn = dialog.findViewById(R.id.monster_cancel);
-            Button okBtn = dialog.findViewById(R.id.monster_ok);
-            Button invBtn = dialog.findViewById(R.id.monster_inverse);
-            setButtonStyle(closePopupBtn);
-            setButtonStyle(okBtn);
-            setButtonStyle(invBtn);
-            ListView list = dialog.findViewById(R.id.monster_type_list);
-            list.setAdapter(mAdapter);
-            saveSelection();
-            setChecked(list);
-            list.setOnItemClickListener((parent, view, position, id) -> mSelected[position] = !mSelected[position]);
-            closePopupBtn.setOnClickListener(view -> {
-                restoreSelection();
-                dialog.dismiss();
-            });
-            okBtn.setOnClickListener(view -> {
-                refreshSpinnerText();
-                dialog.dismiss();
-            });
-            invBtn.setOnClickListener(view -> {
-                selectInverse();
-                setChecked(list);
-            });
-            dialog.show();
-        }
-    };
-
-    private void setChecked(ListView list) {
-        for (int i = 0; i < mSelected.length; i++) {
-            list.setItemChecked(i, mSelected[i]);
+    private val dataSetObserver = object : DataSetObserver() {
+        override fun onChanged() {
+            selectAll(true)
         }
     }
 
-    private void restoreSelection() {
-        System.arraycopy(mOldSelection, 0, mSelected, 0, mSelected.length);
-    }
-
-    private void saveSelection() {
-        System.arraycopy(mSelected, 0, mOldSelection, 0, mOldSelection.length);
-    }
-
-    private void selectInverse() {
-        for (int i = 0; i < mSelected.length; i++) {
-            mSelected[i] = !mSelected[i];
+    private val onClickListener = OnClickListener {
+        val adapter = mAdapter ?: return@OnClickListener
+        dialog = Dialog(context, R.style.Dialog).apply {
+            setContentView(R.layout.monster_type_popup)
+            setTitle("Select monster type")
+            val closePopupBtn: Button = findViewById(R.id.monster_cancel)
+            val okBtn: Button = findViewById(R.id.monster_ok)
+            val invBtn: Button = findViewById(R.id.monster_inverse)
+            setButtonStyle(closePopupBtn)
+            setButtonStyle(okBtn)
+            setButtonStyle(invBtn)
+            val list: ListView = findViewById(R.id.monster_type_list)
+            list.adapter = adapter
+            saveSelection()
+            setChecked(list)
+            list.setOnItemClickListener { _, _, position, _ ->
+                mSelected[position] = !mSelected[position]
+            }
+            closePopupBtn.setOnClickListener {
+                restoreSelection()
+                dismiss()
+            }
+            okBtn.setOnClickListener {
+                refreshSpinnerText()
+                dismiss()
+            }
+            invBtn.setOnClickListener {
+                selectInverse()
+                setChecked(list)
+            }
+            show()
         }
     }
 
-    private final DataSetObserver dataSetObserver = new DataSetObserver() {
-        @Override
-        public void onChanged() {
-            selectAll(true);
+    init {
+        init(context)
+    }
+
+    private fun init(context: Context) {
+        val adapter = ArrayAdapter<String>(context, android.R.layout.simple_list_item_multiple_choice)
+        adapter.addAll(monsterTypeList)
+        setAdapter(adapter)
+    }
+
+    private fun setButtonStyle(button: Button) {
+        button.setBackgroundColor(context.getColor(R.color.primaryAccent))
+        button.setTextColor(Color.WHITE)
+    }
+
+    private fun setChecked(list: ListView) {
+        for (i in mSelected.indices) {
+            list.setItemChecked(i, mSelected[i])
         }
-    };
-
-    private void setAdapter(ArrayAdapter<String> adapter) {
-        setOnClickListener(null);
-        mAdapter = adapter;
-        mAdapter.registerDataSetObserver(dataSetObserver);
-        selectAll(true);
-        setOnClickListener(onClickListener);
-        mAllText = ANY;
-        addText(mAllText);
     }
 
-    private void selectAll(boolean isSelected) {
-        mOldSelection = new boolean[mAdapter.getCount()];
-        mSelected = new boolean[mAdapter.getCount()];
-        Arrays.fill(mSelected, isSelected);
+    private fun restoreSelection() {
+        System.arraycopy(mOldSelection, 0, mSelected, 0, mSelected.size)
     }
 
-    private void refreshSpinnerText() {
-        StringBuilder stringBuilder = new StringBuilder();
-        boolean someUnselected = false;
-        boolean allUnselected = true;
-        int count = 0;
-        for (int i = 0; i < mAdapter.getCount(); i++) {
+    private fun saveSelection() {
+        System.arraycopy(mSelected, 0, mOldSelection, 0, mOldSelection.size)
+    }
+
+    private fun selectInverse() {
+        for (i in mSelected.indices) {
+            mSelected[i] = !mSelected[i]
+        }
+    }
+
+    private fun setAdapter(adapter: ArrayAdapter<String>) {
+        setOnClickListener(null)
+        mAdapter = adapter
+        adapter.registerDataSetObserver(dataSetObserver)
+        selectAll(true)
+        setOnClickListener(onClickListener)
+        allText = ANY
+        addText(ANY)
+    }
+
+    private fun selectAll(isSelected: Boolean) {
+        val count = mAdapter?.count ?: 0
+        mOldSelection = BooleanArray(count)
+        mSelected = BooleanArray(count) { isSelected }
+    }
+
+    private fun refreshSpinnerText() {
+        val adapter = mAdapter ?: return
+        val stringBuilder = StringBuilder()
+        var someUnselected = false
+        var allUnselected = true
+        var count = 0
+        for (i in 0 until adapter.count) {
             if (mSelected[i]) {
-                stringBuilder.append(mAdapter.getItem(i));
-                stringBuilder.append(", ");
-                allUnselected = false;
-                count++;
+                stringBuilder.append(adapter.getItem(i))
+                stringBuilder.append(", ")
+                allUnselected = false
+                count++
             } else {
-                someUnselected = true;
+                someUnselected = true
             }
         }
-        if (mAdapter.getCount() == count) {
-            mAllText = ANY;
-            addText(mAllText);
-            return;
+        if (adapter.count == count) {
+            allText = ANY
+            addText(ANY)
+            return
         }
-        String spinnerText = NONE;
-        mAllText = NONE;
+        var spinnerText = NONE
+        allText = NONE
         if (!allUnselected) {
             if (someUnselected) {
-                spinnerText = stringBuilder.toString();
-                if (spinnerText.length() > 2) {
-                    spinnerText = spinnerText.substring(0, spinnerText.length() - 2);
-                    mAllText = spinnerText;
+                spinnerText = stringBuilder.toString()
+                if (spinnerText.length > 2) {
+                    spinnerText = spinnerText.substring(0, spinnerText.length - 2)
+                    allText = spinnerText
                 }
             } else {
-                mAllText = ANY;
-                spinnerText = ANY;
+                allText = ANY
+                spinnerText = ANY
             }
         }
-        addText(spinnerText);
+        addText(spinnerText)
     }
 
-    public String getAllText() {
-        return mAllText;
-    }
-
-    public void setAllText(String allText) {
-        this.mAllText = allText;
-        switch (allText) {
-            case ANY -> selectAll(true);
-            case NONE -> selectAll(false);
-            default -> {
-                allText = allText.replace(" ", "");
-                String[] array = allText.trim().split(",");
-                if (array.length > 0) {
-                    mSelected = new boolean[mAdapter.getCount()];
-                    for (int i = 0; i < mSelected.length; i++) {
-                        for (String monster : array) {
-                            if (monsterTypeList.get(i).contains(monster)) {
-                                mSelected[i] = true;
-                                break;
+    fun setAllText(text: String) {
+        var textVar = text
+        this.allText = textVar
+        when (textVar) {
+            ANY -> selectAll(true)
+            NONE -> selectAll(false)
+            else -> {
+                textVar = textVar.replace(" ", "")
+                val array = textVar.trim().split(",")
+                val adapter = mAdapter
+                if (array.isNotEmpty() && adapter != null) {
+                    mSelected = BooleanArray(adapter.count)
+                    for (i in mSelected.indices) {
+                        for (monster in array) {
+                            if (monsterTypeList[i].contains(monster)) {
+                                mSelected[i] = true
+                                break
                             }
                         }
                     }
                 }
             }
         }
-        addText(allText);
+        addText(textVar)
     }
 
-    private void addText(String Text) {
-        float density = getSystem().getDisplayMetrics().density;
-        float w = getSystem().getDisplayMetrics().widthPixels / (density * 12);
-        if (Text.length() > w && w != 0) {
-            Text = Text.substring(0, (int) w) + "...";
+    private fun addText(text: String) {
+        var displayText = text
+        val displayMetrics = context.resources.displayMetrics
+        val density = displayMetrics.density
+        val w = displayMetrics.widthPixels / (density * 12)
+        if (displayText.length > w && w != 0f) {
+            displayText = displayText.substring(0, w.toInt()) + "..."
         }
-        setText(Text);
-        setTextSize(15);
+        setText(displayText)
+        textSize = 15f
     }
 
-    public Dialog getDialog() {
-        return dialog;
+    companion object {
+        private const val ANY = "Any"
+        private const val NONE = "None"
     }
 }

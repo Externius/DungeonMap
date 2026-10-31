@@ -1,115 +1,35 @@
-package externius.rdmg.models;
+package externius.rdmg.models
 
-public class DungeonTile {
-    private Textures texture;
-    private int i;
-    private int j;
-    private final int x;
-    private final int y;
-    private int width;
-    private int height;
-    private int h;
-    private int g;
-    private int f;
-    private DungeonTile parent;
-    private String description;
-    private int index;
+class DungeonTile {
+    var texture: Textures = Textures.EDGE
+    var i: Int = 0
+    var j: Int = 0
+    val x: Int
+    val y: Int
+    var width: Int = 0
+    var height: Int = 0
+    var h: Int = 0
+    var g: Int = 0
+    var f: Int = 0
+    var parent: DungeonTile? = null
+    var description: String? = null
+    var index: Int = 0
 
-    public DungeonTile(int x, int y) {
-        this.x = x;
-        this.y = y;
-        this.texture = Textures.EDGE;
-        setH(0);
+    constructor(x: Int, y: Int) {
+        this.x = x
+        this.y = y
+        this.texture = Textures.EDGE
+        h = 0
     }
 
-    public DungeonTile(int i, int j, int x, int y, int width, int height) {
-        this.i = i;
-        this.j = j;
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.texture = Textures.MARBLE;
-        setH(0);
-    }
-
-    public int getH() {
-        return h;
-    }
-
-    public void setH(int h) {
-        this.h = h;
-    }
-
-    public int getG() {
-        return g;
-    }
-
-    public void setG(int g) {
-        this.g = g;
-    }
-
-    public int getF() {
-        return f;
-    }
-
-    public void setF(int f) {
-        this.f = f;
-    }
-
-    public DungeonTile getParent() {
-        return parent;
-    }
-
-    public void setParent(DungeonTile parent) {
-        this.parent = parent;
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public int getWidth() {
-        return width;
-    }
-
-    public int getHeight() {
-        return height;
-    }
-
-    public int getI() {
-        return i;
-    }
-
-    public int getJ() {
-        return j;
-    }
-
-    public Textures getTexture() {
-        return texture;
-    }
-
-    public void setTexture(Textures texture) {
-        this.texture = texture;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public int getIndex() {
-        return index;
-    }
-
-    public void setIndex(int index) {
-        this.index = index;
+    constructor(i: Int, j: Int, x: Int, y: Int, width: Int, height: Int) {
+        this.i = i
+        this.j = j
+        this.x = x
+        this.y = y
+        this.width = width
+        this.height = height
+        this.texture = Textures.MARBLE
+        h = 0
     }
 }

@@ -1,93 +1,93 @@
-package externius.rdmg;
+package externius.rdmg
 
+import externius.rdmg.core.DungeonNoCorridor
+import externius.rdmg.helpers.Utils
+import externius.rdmg.models.DungeonTile
+import externius.rdmg.models.Textures
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.allOf
+import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.greaterThan
+import org.hamcrest.Matchers.hasItem
+import org.hamcrest.Matchers.hasProperty
+import org.hamcrest.Matchers.hasSize
+import org.hamcrest.Matchers.lessThan
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TestName
 
-import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestName;
+class DungeonNoCorridorTest {
+    private val dungeonNoCorridor = DungeonNoCorridor(800, 800, 15, 15)
 
-import java.util.List;
-
-import externius.rdmg.core.DungeonNoCorridor;
-import externius.rdmg.helpers.Utils;
-import externius.rdmg.models.DungeonTile;
-import externius.rdmg.models.Textures;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.lessThan;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-public class DungeonNoCorridorTest {
-    private final DungeonNoCorridor dungeonNoCorridor = new DungeonNoCorridor(800, 800, 15, 15);
-
-    @Rule
-    public final TestName name = new TestName();
+    @get:Rule
+    val name = TestName()
 
     @Before
-    public void setup() {
-        Utils.setDungeonDifficulty(1);
-        Utils.setPartySize(4);
-        Utils.setPartyLevel(1);
-        Utils.setMonsterType("any");
-        Utils.setTreasureValue(1);
-        Utils.setItemsRarity(3);
-        Utils.setJsonMonster(UtilsTest.readJSON("monsters.json"));
-        Utils.setJsonTreasure(UtilsTest.readJSON("treasures.json"));
-        dungeonNoCorridor.init();
+    fun setup() {
+        Utils.dungeonDifficulty = 1
+        Utils.partySize = 4
+        Utils.partyLevel = 1
+        Utils.monsterType = "any"
+        Utils.treasureValue = 1.0
+        Utils.itemsRarity = 3
+        Utils.setJsonMonster(UtilsTest.readJSON("monsters.json") ?: "")
+        Utils.setJsonTreasure(UtilsTest.readJSON("treasures.json") ?: "")
+        dungeonNoCorridor.init()
     }
 
     @Test
-    public void testInit() {
-        System.out.println(name.getMethodName());
-        DrawTestDungeon.draw(dungeonNoCorridor.getDungeonTiles());
-        assertTrue(dungeonNoCorridor.getRoomDescription().isEmpty());
+    fun testInit() {
+        println(name.methodName)
+        DrawTestDungeon.draw(dungeonNoCorridor.dungeonTiles)
+        assertTrue(dungeonNoCorridor.roomDescription.isEmpty())
     }
 
     @Test
-    public void testAddFirstRoom() {
-        dungeonNoCorridor.addFirstRoom();
-        System.out.println(name.getMethodName());
-        DrawTestDungeon.draw(dungeonNoCorridor.getDungeonTiles());
-        assertTrue(dungeonNoCorridor.getRoomDescription().isEmpty());
-        assertEquals(2, dungeonNoCorridor.getOpenDoorList().size());
+    fun testAddFirstRoom() {
+        dungeonNoCorridor.addFirstRoom()
+        println(name.methodName)
+        DrawTestDungeon.draw(dungeonNoCorridor.dungeonTiles)
+        assertTrue(dungeonNoCorridor.roomDescription.isEmpty())
+        assertEquals(2, dungeonNoCorridor.openDoorList.size)
     }
 
     @Test
-    public void testFillRoomToDoor() {
-        dungeonNoCorridor.addFirstRoom();
-        dungeonNoCorridor.fillRoomToDoor();
-        System.out.println(name.getMethodName());
-        DrawTestDungeon.draw(dungeonNoCorridor.getDungeonTiles());
-        assertEquals(0, dungeonNoCorridor.getOpenDoorList().size());
+    fun testFillRoomToDoor() {
+        dungeonNoCorridor.addFirstRoom()
+        dungeonNoCorridor.fillRoomToDoor()
+        println(name.methodName)
+        DrawTestDungeon.draw(dungeonNoCorridor.dungeonTiles)
+        assertEquals(0, dungeonNoCorridor.openDoorList.size)
     }
 
     @Test
-    public void testAddDescription() {
-        dungeonNoCorridor.addFirstRoom();
-        dungeonNoCorridor.fillRoomToDoor();
-        dungeonNoCorridor.addDescription();
-        System.out.println(name.getMethodName());
-        DrawTestDungeon.draw(dungeonNoCorridor.getDungeonTiles());
-        assertThat(dungeonNoCorridor.getRoomDescription(), allOf(hasSize(greaterThan(1)), hasSize(lessThan(30))));
+    fun testAddDescription() {
+        dungeonNoCorridor.addFirstRoom()
+        dungeonNoCorridor.fillRoomToDoor()
+        dungeonNoCorridor.addDescription()
+        println(name.methodName)
+        DrawTestDungeon.draw(dungeonNoCorridor.dungeonTiles)
+        assertThat(
+            dungeonNoCorridor.roomDescription,
+            allOf(hasSize(greaterThan(1)), hasSize(lessThan(30)))
+        )
     }
 
     @Test
-    public void testAddEntryPoint() {
-        dungeonNoCorridor.addFirstRoom();
-        dungeonNoCorridor.fillRoomToDoor();
-        dungeonNoCorridor.addDescription();
-        dungeonNoCorridor.addEntryPoint();
-        System.out.println(name.getMethodName());
-        DrawTestDungeon.draw(dungeonNoCorridor.getDungeonTiles());
-        List<DungeonTile> dungeonList = UtilsTest.twoDArrayToList(dungeonNoCorridor.getDungeonTiles());
-        assertThat(dungeonList, hasItem(Matchers.<DungeonTile>hasProperty("texture", equalTo(Textures.ENTRY))));
+    fun testAddEntryPoint() {
+        dungeonNoCorridor.addFirstRoom()
+        dungeonNoCorridor.fillRoomToDoor()
+        dungeonNoCorridor.addDescription()
+        dungeonNoCorridor.addEntryPoint()
+        println(name.methodName)
+        DrawTestDungeon.draw(dungeonNoCorridor.dungeonTiles)
+        val dungeonList = UtilsTest.twoDArrayToList(dungeonNoCorridor.dungeonTiles)
+        assertThat(
+            dungeonList,
+            hasItem(hasProperty<DungeonTile>("texture", equalTo(Textures.ENTRY)))
+        )
     }
-
 }

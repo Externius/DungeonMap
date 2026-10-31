@@ -1,6 +1,6 @@
-package externius.rdmg.models;
+package externius.rdmg.models
 
-
-public record TrapDescription(String name, String description) {
-
-}
+data class TrapDescription(
+    val name: String?,
+    val description: String?
+)

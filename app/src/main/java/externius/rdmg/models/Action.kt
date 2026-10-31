@@ -1,65 +1,26 @@
+package externius.rdmg.models
 
-package externius.rdmg.models;
-
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
+import com.google.gson.annotations.Expose
+import com.google.gson.annotations.SerializedName
 
 class Action {
-
     @SerializedName("name")
     @Expose
-    private String name;
+    var name: String? = null
+
     @SerializedName("desc")
     @Expose
-    private String desc;
+    var desc: String? = null
+
     @SerializedName("attack_bonus")
     @Expose
-    private Integer attackBonus;
+    var attackBonus: Int? = null
+
     @SerializedName("damage_dice")
     @Expose
-    private String damageDice;
+    var damageDice: String? = null
+
     @SerializedName("damage_bonus")
     @Expose
-    private Integer damageBonus;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDesc() {
-        return desc;
-    }
-
-    public void setDesc(String desc) {
-        this.desc = desc;
-    }
-
-    public Integer getAttackBonus() {
-        return attackBonus;
-    }
-
-    public void setAttackBonus(Integer attackBonus) {
-        this.attackBonus = attackBonus;
-    }
-
-    public String getDamageDice() {
-        return damageDice;
-    }
-
-    public void setDamageDice(String damageDice) {
-        this.damageDice = damageDice;
-    }
-
-    public Integer getDamageBonus() {
-        return damageBonus;
-    }
-
-    public void setDamageBonus(Integer damageBonus) {
-        this.damageBonus = damageBonus;
-    }
-
+    var damageBonus: Int? = null
 }

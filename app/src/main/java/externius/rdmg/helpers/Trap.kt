@@ -1,110 +1,96 @@
-package externius.rdmg.helpers;
+package externius.rdmg.helpers
 
+internal object Trap {
+    private val trapSeverity = arrayOf("Setback", "Dangerous", "Deadly")
+    private val trapSave = intArrayOf(10, 12, 16, 21)
+    private val trapAttackBonus = intArrayOf(3, 6, 9, 13)
+    private val trapDmgSeverity = arrayOf(
+        intArrayOf(1, 2, 4),
+        intArrayOf(2, 4, 10),
+        intArrayOf(4, 10, 18),
+        intArrayOf(10, 18, 24)
+    )
 
-final class Trap {
+    private val trapKind = arrayOf(
+        arrayOf("Collapsing Roof", "Dexterity", "10", "15", "Dexterity", "false", "bludgeoning", ""),
+        arrayOf("Falling Net", "Strength", "10", "15", "Dexterity", "false", "", "restrained."),
+        arrayOf("Fire-Breathing Statue", "Dexterity", "15", "13", "Dispel Magic", "false", "fire", ""),
+        arrayOf("Spiked Pit", "Constitution", "15", "15", "Intelligence", "false", "piercing", ""),
+        arrayOf("Locking Pit", "Strength", "10", "15", "Intelligence", "false", "", "locked."),
+        arrayOf("Poison Darts", "Constitution", "15", "15", "Intelligence", "true", "poison", ""),
+        arrayOf("Poison Needle", "Constitution", "15", "15", "Dexterity", "false", "poison", ""),
+        arrayOf("Rolling Sphere", "Dexterity", "15", "15", "Intelligence", "false", "bludgeoning", "")
+    )
 
-    private static final String[] trapSeverity = {
-            "Setback",
-            "Dangerous",
-            "Deadly"
-    };
+    private val trapDoorKind = arrayOf(
+        arrayOf("Fire trap", "Dexterity", "10", "15", "Intelligence", "false", "fire", ""),
+        arrayOf("Lock Covered in Dragon Bile", "Constitution", "10", "15", "Intelligence", "false", "poison", ""),
+        arrayOf("Hail of Needles", "Dexterity", "15", "13", "Dexterity", "false", "piercing", ""),
+        arrayOf("Stone Blocks from Ceiling", "Dexterity", "15", "15", "Intelligence", "true", "bludgeoning", ""),
+        arrayOf("Doorknob Smeared with Contact Poison", "Constitution", "15", "10", "Intelligence", "false", "poison", ""),
+        arrayOf("Poison Darts", "Constitution", "15", "15", "Intelligence", "true", "poison", ""),
+        arrayOf("Poison Needle", "Constitution", "15", "15", "Dexterity", "false", "poison", ""),
+        arrayOf("Energy Drain", "Constitution", "15", "15", "Dispel Magic", "false", "necrotic", "")
+    )
 
-    private static final int[] trapSave = {
-            10, 12, 16, 21
-    };
+    private var currentTrap: Array<String>? = null
 
-    private static final int[] trapAttackBonus = {
-            3, 6, 9, 13
-    };
-
-    private static final int[][] trapDmgSeverity = {
-            {1, 2, 4},
-            {2, 4, 10},
-            {4, 10, 18},
-            {10, 18, 24}
-    };
-
-    private static final String[][] trapKind = { // name, save, spot, disable, disableCheck, attackMod, dmg type, special
-            {"Collapsing Roof", "Dexterity", "10", "15", "Dexterity", "false", "bludgeoning", ""},
-            {"Falling Net", "Strength", "10", "15", "Dexterity", "false", "", "restrained."},
-            {"Fire-Breathing Statue", "Dexterity", "15", "13", "Dispel Magic", "false", "fire", ""},
-            {"Spiked Pit", "Constitution", "15", "15", "Intelligence", "false", "piercing", ""},
-            {"Locking Pit", "Strength", "10", "15", "Intelligence", "false", "", "locked."},
-            {"Poison Darts", "Constitution", "15", "15", "Intelligence", "true", "poison", ""},
-            {"Poison Needle", "Constitution", "15", "15", "Dexterity", "false", "poison", ""},
-            {"Rolling Sphere", "Dexterity", "15", "15", "Intelligence", "false", "bludgeoning", ""}
-    };
-
-    private static final String[][] trapDoorKind = { // name, save, spot, disable, disableCheck, attackMod. dmg type, special
-            {"Fire trap", "Dexterity", "10", "15", "Intelligence", "false", "fire", ""},
-            {"Lock Covered in Dragon Bile", "Constitution", "10", "15", "Intelligence", "false", "poison", ""},
-            {"Hail of Needles", "Dexterity", "15", "13", "Dexterity", "false", "piercing", ""},
-            {"Stone Blocks from Ceiling", "Dexterity", "15", "15", "Intelligence", "true", "bludgeoning", ""},
-            {"Doorknob Smeared with Contact Poison", "Constitution", "15", "10", "Intelligence", "false", "poison", ""},
-            {"Poison Darts", "Constitution", "15", "15", "Intelligence", "true", "poison", ""},
-            {"Poison Needle", "Constitution", "15", "15", "Dexterity", "false", "poison", ""},
-            {"Energy Drain", "Constitution", "15", "15", "Dispel Magic", "false", "necrotic", ""}
-    };
-
-    private static String[] currentTrap;
-
-    private Trap() {
-
-    }
-
-    private static String getTrapAttackBonus(int trapDanger) {
-        if (Boolean.parseBoolean(currentTrap[5])) {
-            int min = trapAttackBonus[trapDanger];
-            int max = trapAttackBonus[trapDanger + 1];
-            return ", (attack bonus +" + Utils.getRandomInt(min, max) + ").";
+    private fun getTrapAttackBonus(trapDanger: Int): String {
+        val trap = currentTrap ?: return "."
+        return if (trap[5].toBoolean()) {
+            val min = trapAttackBonus[trapDanger]
+            val max = trapAttackBonus[trapDanger + 1]
+            ", (attack bonus +" + Utils.getRandomInt(min, max) + ")."
         } else {
-
-            return ".";
+            "."
         }
     }
 
-    private static int getTrapSaveDC(int trapDanger) {
-        int min = trapSave[trapDanger];
-        int max = trapSave[trapDanger + 1];
-        return Utils.getRandomInt(min, max);
+    private fun getTrapSaveDC(trapDanger: Int): Int {
+        val min = trapSave[trapDanger]
+        val max = trapSave[trapDanger + 1]
+        return Utils.getRandomInt(min, max)
     }
 
-    private static int getTrapDamage(int trapDanger) {
-        if (Utils.getPartyLevel() < 5) {
-            return trapDmgSeverity[0][trapDanger];
-        } else if (Utils.getPartyLevel() < 11) {
-            return trapDmgSeverity[1][trapDanger];
-        } else if (Utils.getPartyLevel() < 17) {
-            return trapDmgSeverity[2][trapDanger];
+    private fun getTrapDamage(trapDanger: Int): Int {
+        return if (Utils.partyLevel < 5) {
+            trapDmgSeverity[0][trapDanger]
+        } else if (Utils.partyLevel < 11) {
+            trapDmgSeverity[1][trapDanger]
+        } else if (Utils.partyLevel < 17) {
+            trapDmgSeverity[2][trapDanger]
         } else {
-            return trapDmgSeverity[3][trapDanger];
+            trapDmgSeverity[3][trapDanger]
         }
     }
 
-    static String getTrapName(int count) {
-        return "#TRAP" + count + "#";
+    @JvmStatic
+    fun getTrapName(count: Int): String {
+        return "#TRAP$count#"
     }
 
-    private static int getTrapDanger() {
-        return switch (Utils.getDungeonDifficulty()) {
-            case 0 -> Utils.getRandomInt(0, 1);
-            case 1, 2 -> Utils.getRandomInt(0, 2);
-            case 3 -> Utils.getRandomInt(0, 3);
-            default -> 0;
-        };
-    }
-
-    static String getCurrentTrap(boolean door) {
-        int trapDanger = getTrapDanger(); // setback, dangerous, deadly
-        if (door) { // get random currentTrap index
-            currentTrap = trapDoorKind[Utils.getRandomInt(0, trapDoorKind.length)];
-        } else {
-            currentTrap = trapKind[Utils.getRandomInt(0, trapKind.length)];
+    private fun getTrapDanger(): Int {
+        return when (Utils.dungeonDifficulty) {
+            0 -> Utils.getRandomInt(0, 1)
+            1, 2 -> Utils.getRandomInt(0, 2)
+            3 -> Utils.getRandomInt(0, 3)
+            else -> 0
         }
-        if (currentTrap[6] != null && !currentTrap[6].isEmpty()) { // check dmg type
-            return currentTrap[0] + " [" + trapSeverity[trapDanger] + "]: DC " + currentTrap[2] + " to spot, DC " + currentTrap[3] + " to disable (" + currentTrap[4] + "), DC " + getTrapSaveDC(trapDanger) + " " + currentTrap[1] + " save or take " + getTrapDamage(trapDanger) + "D10 (" + currentTrap[6] + ") damage" + getTrapAttackBonus(trapDanger);
+    }
+
+    @JvmStatic
+    fun getCurrentTrap(door: Boolean): String {
+        val trapDanger = getTrapDanger()
+        val trap = if (door) {
+            trapDoorKind[Utils.getRandomInt(0, trapDoorKind.size)]
         } else {
-            return currentTrap[0] + " [" + trapSeverity[trapDanger] + "]: DC " + currentTrap[2] + " to spot, DC " + currentTrap[3] + " to disable (" + currentTrap[4] + "), DC " + getTrapSaveDC(trapDanger) + " " + currentTrap[1] + " save or " + currentTrap[7];
+            trapKind[Utils.getRandomInt(0, trapKind.size)]
+        }
+        currentTrap = trap
+        return if (trap[6].isNotEmpty()) {
+            "${trap[0]} [${trapSeverity[trapDanger]}]: DC ${trap[2]} to spot, DC ${trap[3]} to disable (${trap[4]}), DC ${getTrapSaveDC(trapDanger)} ${trap[1]} save or take ${getTrapDamage(trapDanger)}D10 (${trap[6]}) damage${getTrapAttackBonus(trapDanger)}"
+        } else {
+            "${trap[0]} [${trapSeverity[trapDanger]}]: DC ${trap[2]} to spot, DC ${trap[3]} to disable (${trap[4]}), DC ${getTrapSaveDC(trapDanger)} ${trap[1]} save or ${trap[7]}"
         }
     }
 }

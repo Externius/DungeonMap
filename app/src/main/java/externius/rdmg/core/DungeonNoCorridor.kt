@@ -1,556 +1,571 @@
-package externius.rdmg.core;
+package externius.rdmg.core
 
-import java.util.ArrayList;
-import java.util.List;
+import externius.rdmg.helpers.Door
+import externius.rdmg.helpers.RoomPosition
+import externius.rdmg.helpers.Utils
+import externius.rdmg.models.DungeonTile
+import externius.rdmg.models.Textures
+import kotlin.math.abs
+import kotlin.math.min
+import kotlin.math.roundToInt
 
-import externius.rdmg.helpers.Door;
-import externius.rdmg.helpers.RoomPosition;
-import externius.rdmg.helpers.Utils;
-import externius.rdmg.models.DungeonTile;
-import externius.rdmg.models.Textures;
+class DungeonNoCorridor : Dungeon {
+    var openDoorList: MutableList<DungeonTile> = ArrayList()
+        private set
+    private var edgeTileList: MutableList<DungeonTile> = ArrayList()
+    private var roomStart: MutableList<DungeonTile> = ArrayList()
 
-public class DungeonNoCorridor extends Dungeon {
-    private List<DungeonTile> openDoorList;
-    private List<DungeonTile> edgeTileList;
-    private List<DungeonTile> roomStart;
-
-    public DungeonNoCorridor(int dungeonWidth, int dungeonHeight, int dungeonSize, int roomSizePercent) {
-        this.dungeonWidth = dungeonWidth;
-        this.dungeonHeight = dungeonHeight;
-        this.dungeonSize = dungeonSize;
-        this.roomSizePercent = roomSizePercent;
+    constructor(
+        dungeonWidth: Int,
+        dungeonHeight: Int,
+        dungeonSize: Int,
+        roomSizePercent: Int
+    ) : super() {
+        this.dungeonWidth = dungeonWidth
+        this.dungeonHeight = dungeonHeight
+        this.dungeonSize = dungeonSize
+        this.roomSizePercent = roomSizePercent
     }
 
-    @Override
-    public void init() {
-        int imgSizeX = dungeonWidth / dungeonSize;
-        int imgSizeY = dungeonHeight / dungeonSize;
-        roomSize = Math.round((float) dungeonSize / 100 * roomSizePercent);
-        roomDescription = new ArrayList<>();
-        dungeonSize += 2; // because of boundaries
-        dungeonTiles = new DungeonTile[dungeonSize][dungeonSize];
-        for (int i = 0; i < dungeonSize; i++) {
-            for (int j = 0; j < dungeonSize; j++) {
-                dungeonTiles[i][j] = new DungeonTile(i, j);
+    override fun init() {
+        val imgSizeX = dungeonWidth / dungeonSize
+        val imgSizeY = dungeonHeight / dungeonSize
+        roomSize = (dungeonSize.toFloat() / 100 * roomSizePercent).roundToInt()
+        roomDescription = ArrayList()
+        dungeonSize += 2 // because of boundaries
+        dungeonTiles = Array(dungeonSize) { i ->
+            Array(dungeonSize) { j ->
+                DungeonTile(i, j)
             }
         }
-        for (int i = 1; i < dungeonSize - 1; i++) { // set drawing area
-            for (int j = 1; j < dungeonSize - 1; j++) {
-                dungeonTiles[i][j] = new DungeonTile(i, j, (j - 1) * imgSizeX, (i - 1) * imgSizeY, imgSizeX, imgSizeY);
+        for (i in 1 until dungeonSize - 1) { // set drawing area
+            for (j in 1 until dungeonSize - 1) {
+                dungeonTiles[i][j] =
+                    DungeonTile(i, j, (j - 1) * imgSizeX, (i - 1) * imgSizeY, imgSizeX, imgSizeY)
             }
         }
     }
 
-    @Override
-    public void generate() {
-        init();
-        addFirstRoom();
-        fillRoomToDoor();
-        addEntryPoint();
-        addDescription();
+    override fun generate() {
+        init()
+        addFirstRoom()
+        fillRoomToDoor()
+        addEntryPoint()
+        addDescription()
     }
 
-    public void addFirstRoom() {
-        roomStart = new ArrayList<>();
-        openDoorList = new ArrayList<>();
-        int x = Utils.getRandomInt(5, dungeonTiles.length - (roomSize + 4));
-        int y = Utils.getRandomInt(5, dungeonTiles.length - (roomSize + 4));
-        int right = Utils.getRandomInt(2, roomSize + 1);
-        int down = Utils.getRandomInt(2, roomSize + 1);
-        fillRoom(x, y, down, right);
-        roomStart.add(dungeonTiles[x][y]);
+    fun addFirstRoom() {
+        roomStart = ArrayList()
+        openDoorList = ArrayList()
+        val x = Utils.getRandomInt(5, dungeonTiles.size - (roomSize + 4))
+        val y = Utils.getRandomInt(5, dungeonTiles.size - (roomSize + 4))
+        val right = Utils.getRandomInt(2, roomSize + 1)
+        val down = Utils.getRandomInt(2, roomSize + 1)
+        fillRoom(x, y, down, right)
+        roomStart.add(dungeonTiles[x][y])
     }
 
-    private void setRoomTiles(int x, int y) {
-        dungeonTiles[x][y].setTexture(Textures.ROOM);
-        dungeonTiles[x][y].setDescription(" ");
-        dungeonTiles[x][y].setIndex(roomStart.size());
+    private fun setRoomTiles(x: Int, y: Int) {
+        dungeonTiles[x][y].texture = Textures.ROOM
+        dungeonTiles[x][y].description = " "
+        dungeonTiles[x][y].index = roomStart.size
     }
 
-    @Override
-    void fillRoom(int x, int y, int right, int down) {
-        int doorCount = getDoorCount(down, right);
-        for (int i = 0; i < down + 2; i++) { // fill with room_edge texture the bigger boundaries
-            for (int j = 0; j < right + 2; j++) {
-                dungeonTiles[x + i - 1][y + j - 1].setTexture(Textures.ROOM_EDGE);
+    override fun fillRoom(x: Int, y: Int, right: Int, down: Int) {
+        val doorCount = getDoorCount(down, right)
+        for (i in 0 until down + 2) { // fill with room_edge texture the bigger boundaries
+            for (j in 0 until right + 2) {
+                dungeonTiles[x + i - 1][y + j - 1].texture = Textures.ROOM_EDGE
             }
         }
-        for (int i = 0; i < down; i++) { // fill room texture
-            for (int j = 0; j < right; j++) {
-                setRoomTiles(x + i, y + j);
-                rooms.add(dungeonTiles[x + i][y + j]);
+        for (i in 0 until down) { // fill room texture
+            for (j in 0 until right) {
+                setRoomTiles(x + i, y + j)
+                rooms.add(dungeonTiles[x + i][y + j])
             }
         }
-        for (int d = 0; d < doorCount; d++) {
-            addDoor(x, y, down, right);
+        repeat(doorCount) {
+            addDoor(x, y, down, right)
         }
     }
 
-    @Override
-    public void addEntryPoint() {
-        boolean entryIsOk;
-        int x;
-        int y;
+    override fun addEntryPoint() {
+        var entryIsOk: Boolean
+        var x: Int
+        var y: Int
         do {
-            x = Utils.getRandomInt(1, dungeonTiles.length - 1);
-            y = Utils.getRandomInt(1, dungeonTiles.length - 1);
-            RoomPosition.checkRoomPosition(dungeonTiles, x, y);
-            entryIsOk = dungeonTiles[x][y].getTexture() == Textures.ROOM_EDGE && checkPos() && checkNearbyDoor(dungeonTiles[x][y]) && checkEdges(dungeonTiles, x, y);
-        }
-        while (!entryIsOk);
-        dungeonTiles[x][y].setTexture(Textures.ENTRY);
+            x = Utils.getRandomInt(1, dungeonTiles.size - 1)
+            y = Utils.getRandomInt(1, dungeonTiles.size - 1)
+            RoomPosition.checkRoomPosition(dungeonTiles, x, y)
+            entryIsOk =
+                dungeonTiles[x][y].texture == Textures.ROOM_EDGE && checkPos() && checkNearbyDoor(
+                    dungeonTiles[x][y]
+                ) && checkEdges(dungeonTiles, x, y)
+        } while (!entryIsOk)
+        dungeonTiles[x][y].texture = Textures.ENTRY
     }
 
-    private boolean checkEdges(DungeonTile[][] dungeonTiles, int x, int y) {
-        return dungeonTiles[x][y - 1].getTexture() == Textures.ROOM || dungeonTiles[x][y + 1].getTexture() == Textures.ROOM || dungeonTiles[x + 1][y].getTexture() == Textures.ROOM || dungeonTiles[x - 1][y].getTexture() == Textures.ROOM;
+    private fun checkEdges(dungeonTiles: Array<Array<DungeonTile>>, x: Int, y: Int): Boolean {
+        return dungeonTiles[x][y - 1].texture == Textures.ROOM || dungeonTiles[x][y + 1].texture == Textures.ROOM || dungeonTiles[x + 1][y].texture == Textures.ROOM || dungeonTiles[x - 1][y].texture == Textures.ROOM
     }
 
-    public void fillRoomToDoor() {
-        while (!openDoorList.isEmpty()) {
-            int i = openDoorList.size() - 1;
-            RoomPosition.checkRoomPosition(dungeonTiles, openDoorList.get(i).getI(), openDoorList.get(i).getJ());
+    fun fillRoomToDoor() {
+        while (openDoorList.isNotEmpty()) {
+            val i = openDoorList.size - 1
+            RoomPosition.checkRoomPosition(dungeonTiles, openDoorList[i].i, openDoorList[i].j)
             if (checkPos()) {
-                if (RoomPosition.isUp()) {
-                    randomFillUpDown(openDoorList.get(i).getI() + 1, openDoorList.get(i).getJ(), openDoorList.get(i));
-                } else if (RoomPosition.isDown()) {
-                    randomFillUpDown(openDoorList.get(i).getI() - 1, openDoorList.get(i).getJ(), openDoorList.get(i));
-                } else if (RoomPosition.isRight()) {
-                    randomFillLeftRight(openDoorList.get(i).getI(), openDoorList.get(i).getJ() - 1, openDoorList.get(i));
-                } else if (RoomPosition.isLeft()) {
-                    randomFillLeftRight(openDoorList.get(i).getI(), openDoorList.get(i).getJ() + 1, openDoorList.get(i));
+                if (RoomPosition.isUp) {
+                    randomFillUpDown(openDoorList[i].i + 1, openDoorList[i].j, openDoorList[i])
+                } else if (RoomPosition.isDown) {
+                    randomFillUpDown(openDoorList[i].i - 1, openDoorList[i].j, openDoorList[i])
+                } else if (RoomPosition.isRight) {
+                    randomFillLeftRight(openDoorList[i].i, openDoorList[i].j - 1, openDoorList[i])
+                } else if (RoomPosition.isLeft) {
+                    randomFillLeftRight(openDoorList[i].i, openDoorList[i].j + 1, openDoorList[i])
                 }
             }
-            openDoorList.remove(openDoorList.get(i));
+            openDoorList.removeAt(i)
         }
     }
 
-    private void randomFillLeftRight(int x, int y, DungeonTile door) {
-        int[] result = checkArea(x, y, door);
+    private fun randomFillLeftRight(x: Int, y: Int, door: DungeonTile) {
+        val result = checkArea(x, y, door)
         if (result[0] != 0 && result[1] != 0) {
-            fillLeftRight(x, y, result[0], result[1]);
+            fillLeftRight(x, y, result[0], result[1])
         }
     }
 
-    private void fillLeftRight(int x, int y, int down, int right) {
-        edgeTileList = new ArrayList<>();
+    private fun fillLeftRight(x: Int, y: Int, down: Int, right: Int) {
+        edgeTileList = ArrayList()
         if (right < 0) {
-            for (int i = right + 1; i < 1; i++) {
-                fillVertical(x, y + i, down);
+            for (i in right + 1 until 1) {
+                fillVertical(x, y + i, down)
             }
         } else {
-            for (int i = 0; i < right; i++) {
-                fillVertical(x, y + i, down);
+            for (i in 0 until right) {
+                fillVertical(x, y + i, down)
             }
         }
-        setVerticalEdge(x, y, right, down);
-        setVerticalEdge(x, y, right < 0 ? 1 : -1, down);
-        fillDoor(down, right);
-        roomStart.add(dungeonTiles[x][y]);
+        setVerticalEdge(x, y, right, down)
+        setVerticalEdge(x, y, if (right < 0) 1 else -1, down)
+        fillDoor(down, right)
+        roomStart.add(dungeonTiles[x][y])
     }
 
-    public void addDescription() {
-        cleanDoorList();
-        setDoorsDescriptions();
-        for (DungeonTile room : roomStart) {
-            List<DungeonTile> openList = new ArrayList<>();
-            List<DungeonTile> closedList = new ArrayList<>();
-            DungeonTile start = room;
-            addToClosedList(closedList, start); // add start point to closed list
-            addToOpen(start, openList, closedList); // add the nearby nodes to openList
-            while (!openList.isEmpty()) {
-                start = openList.get(0); // get next room
-                addToClosedList(closedList, start); // add to closed list this node
-                removeFromOpen(openList, start); // remove from open list this node
-                addToOpen(start, openList, closedList); // add open list the nearby nodes
+    fun addDescription() {
+        cleanDoorList()
+        setDoorsDescriptions()
+        for (room in roomStart) {
+            val openList = ArrayList<DungeonTile>()
+            val closedList = ArrayList<DungeonTile>()
+            var start = room
+            addToClosedList(closedList, start)
+            addToOpen(start, openList, closedList)
+            while (openList.isNotEmpty()) {
+                start = openList[0]
+                addToClosedList(closedList, start)
+                removeFromOpen(openList, start)
+                addToOpen(start, openList, closedList)
             }
-            Utils.addNCRoomDescription(dungeonTiles, room.getI(), room.getJ(), roomDescription, Door.getNCDoorDescription(dungeonTiles, closedList));
+            Utils.addNCRoomDescription(
+                dungeonTiles,
+                room.i,
+                room.j,
+                roomDescription,
+                Door.getNCDoorDescription(dungeonTiles, closedList)
+            )
         }
     }
 
-    private void setDoorsDescriptions() {
-        for (DungeonTile door : doors) {
-            door.setDescription(Door.getNCDoor(door));
+    private fun setDoorsDescriptions() {
+        for (door in doors) {
+            door.description = Door.getNCDoor(door)
         }
     }
 
-    @Override
-    boolean checkTileForOpenList(int x, int y) {
-        return dungeonTiles[x][y].getTexture() == Textures.ROOM;
+    override fun checkTileForOpenList(x: Int, y: Int): Boolean {
+        return dungeonTiles[x][y].texture == Textures.ROOM
     }
 
-    private void addToOpenList(int x, int y, List<DungeonTile> openList, List<DungeonTile> closedList) {
-        if (checkTileForOpenList(x, y) && !closedList.contains(dungeonTiles[x][y]) && !openList.contains(dungeonTiles[x][y])) { // not in openlist/closedlist
-            openList.add(dungeonTiles[x][y]);
+    private fun addToOpenList(
+        x: Int,
+        y: Int,
+        openList: MutableList<DungeonTile>,
+        closedList: List<DungeonTile>
+    ) {
+        if (checkTileForOpenList(
+                x,
+                y
+            ) && !closedList.contains(dungeonTiles[x][y]) && !openList.contains(dungeonTiles[x][y])
+        ) {
+            openList.add(dungeonTiles[x][y])
         }
     }
 
-    private void addToOpen(DungeonTile node, List<DungeonTile> openList, List<DungeonTile> closedList) {
-        addToOpenList(node.getI(), node.getJ() - 1, openList, closedList); // left
-        addToOpenList(node.getI() - 1, node.getJ(), openList, closedList); // top
-        addToOpenList(node.getI() + 1, node.getJ(), openList, closedList); // bottom
-        addToOpenList(node.getI(), node.getJ() + 1, openList, closedList); // right
+    private fun addToOpen(
+        node: DungeonTile,
+        openList: MutableList<DungeonTile>,
+        closedList: List<DungeonTile>
+    ) {
+        addToOpenList(node.i, node.j - 1, openList, closedList)
+        addToOpenList(node.i - 1, node.j, openList, closedList)
+        addToOpenList(node.i + 1, node.j, openList, closedList)
+        addToOpenList(node.i, node.j + 1, openList, closedList)
     }
 
-    private void cleanDoorList() {
-        List<DungeonTile> toDelete = new ArrayList<>();
-        for (DungeonTile door : doors) {
-            if (door.getTexture() == Textures.ROOM_EDGE) {
-                toDelete.add(door);
-            }
-        }
-        doors.removeAll(toDelete);
-    }
-
-    private void setVerticalEdge(int x, int y, int right, int down) {
-        boolean addToEdgeList = !(right == 1 || right == -1);
-        if (down < 0) { // up
-            for (int i = down; i < 2; i++) { //right edge
-                setRoomEdge(x + i, y + right, addToEdgeList);
-            }
-        } else { // bottom
-            for (int i = -1; i < down + 1; i++) { //left edge
-                setRoomEdge(x + i, y + right, addToEdgeList);
-            }
-        }
-    }
-
-    private void fillVertical(int x, int y, int down) {
-        if (down < 0) { // up
-            for (int i = down + 1; i < 1; i++) { // set room
-                setRoomTiles(x + i, y);
-            }
-            setTextureToRoomEdge(x + 1, y); // bottom edge
-            addEdgeTileList(x + 1, y);
-        } else { // down
-            for (int i = 0; i < down; i++) { // set room
-                setRoomTiles(x + i, y);
-            }
-            setTextureToRoomEdge(x - 1, y); // top edge
-            addEdgeTileList(x - 1, y);
-        }
-        setTextureToRoomEdge(x + down, y);
-        addEdgeTileList(x + down, y);
-    }
-
-    private int[] checkArea(int x, int y, DungeonTile door) {
-        int vertical = checkVertical(x, y);
-        int horizontal = checkHorizontal(x, y);
-        if (checkPossible(vertical, horizontal, door)) {
-            int[] result = getDownRight(vertical, horizontal);
-            int down = result[0];
-            int right = result[1];
-            vertical = checkVerticalOneWay(x, y + right, down); // check horizontal end vertically
-            horizontal = checkHorizontalOneWay(x + down, y, right); // check vertical end horizontally
-            if (checkPossibleEnd(vertical, horizontal, door, down, right)) {
-                return new int[]{down, right};
+    private fun cleanDoorList() {
+        val toDelete = ArrayList<DungeonTile>()
+        for (door in doors) {
+            if (door.texture == Textures.ROOM_EDGE) {
+                toDelete.add(door)
             }
         }
-        return new int[]{0, 0};
+        doors.removeAll(toDelete)
     }
 
-    private boolean checkPossibleEnd(int vertical, int horizontal, DungeonTile door, int down, int right) {
-        if (vertical < 0 != down < 0 || horizontal < 0 != right < 0 || Math.abs(vertical) < Math.abs(down) || Math.abs(horizontal) < Math.abs(right)) { // it would overlap with another room
-            dungeonTiles[door.getI()][door.getJ()].setTexture(Textures.ROOM_EDGE); // change the door to a room_edge
-            return false;
-        }
-        return true;
-    }
-
-    private void randomFillUpDown(int x, int y, DungeonTile door) {
-        int[] result = checkArea(x, y, door);
-        if (result[0] != 0 && result[1] != 0) {
-            fillUpDown(x, y, result[0], result[1]);
-        }
-    }
-
-    private void fillUpDown(int x, int y, int down, int right) {
-        edgeTileList = new ArrayList<>();
+    private fun setVerticalEdge(x: Int, y: Int, right: Int, down: Int) {
+        val addToEdgeList = !(right == 1 || right == -1)
         if (down < 0) {
-            for (int i = down + 1; i < 1; i++) {
-                fillHorizontal(x + i, y, right);
+            for (i in down until 2) {
+                setRoomEdge(x + i, y + right, addToEdgeList)
             }
         } else {
-            for (int i = 0; i < down; i++) {
-                fillHorizontal(x + i, y, right);
+            for (i in -1 until down + 1) {
+                setRoomEdge(x + i, y + right, addToEdgeList)
             }
-        }
-        setHorizontalEdge(x, y, right, down);
-        setHorizontalEdge(x, y, right, down < 0 ? 1 : -1);
-        fillDoor(down, right);
-        roomStart.add(dungeonTiles[x][y]);
-    }
-
-    @Override
-    int getDoorCount(int down, int right) {
-        if (Math.abs(down) < 4 || Math.abs(right) < 4) {
-            return 2;
-        } else {
-            return Utils.getRandomInt(3, 6);
         }
     }
 
-    private void fillDoor(int down, int right) {
-        int doorCount = getDoorCount(down, right);
-        cleanEdgeTileList();
-        int maxTryNumber = edgeTileList.size();
+    private fun fillVertical(x: Int, y: Int, down: Int) {
+        if (down < 0) {
+            for (i in down + 1 until 1) {
+                setRoomTiles(x + i, y)
+            }
+            setTextureToRoomEdge(x + 1, y)
+            addEdgeTileList(x + 1, y)
+        } else {
+            for (i in 0 until down) {
+                setRoomTiles(x + i, y)
+            }
+            setTextureToRoomEdge(x - 1, y)
+            addEdgeTileList(x - 1, y)
+        }
+        setTextureToRoomEdge(x + down, y)
+        addEdgeTileList(x + down, y)
+    }
+
+    private fun checkArea(x: Int, y: Int, door: DungeonTile): IntArray {
+        var vertical = checkVertical(x, y)
+        var horizontal = checkHorizontal(x, y)
+        if (checkPossible(vertical, horizontal, door)) {
+            val result = getDownRight(vertical, horizontal)
+            val down = result[0]
+            val right = result[1]
+            vertical = checkVerticalOneWay(x, y + right, down)
+            horizontal = checkHorizontalOneWay(x + down, y, right)
+            if (checkPossibleEnd(vertical, horizontal, door, down, right)) {
+                return intArrayOf(down, right)
+            }
+        }
+        return intArrayOf(0, 0)
+    }
+
+    private fun checkPossibleEnd(
+        vertical: Int,
+        horizontal: Int,
+        door: DungeonTile,
+        down: Int,
+        right: Int
+    ): Boolean {
+        if ((vertical < 0) != (down < 0) || (horizontal < 0) != (right < 0) ||
+            abs(vertical) < abs(down) || abs(horizontal) < abs(right)
+        ) {
+            dungeonTiles[door.i][door.j].texture = Textures.ROOM_EDGE
+            return false
+        }
+        return true
+    }
+
+    private fun randomFillUpDown(x: Int, y: Int, door: DungeonTile) {
+        val result = checkArea(x, y, door)
+        if (result[0] != 0 && result[1] != 0) {
+            fillUpDown(x, y, result[0], result[1])
+        }
+    }
+
+    private fun fillUpDown(x: Int, y: Int, down: Int, right: Int) {
+        edgeTileList = ArrayList()
+        if (down < 0) {
+            for (i in down + 1 until 1) {
+                fillHorizontal(x + i, y, right)
+            }
+        } else {
+            for (i in 0 until down) {
+                fillHorizontal(x + i, y, right)
+            }
+        }
+        setHorizontalEdge(x, y, right, down)
+        setHorizontalEdge(x, y, right, if (down < 0) 1 else -1)
+        fillDoor(down, right)
+        roomStart.add(dungeonTiles[x][y])
+    }
+
+    override fun getDoorCount(down: Int, right: Int): Int {
+        return if (abs(down) < 4 || abs(right) < 4) {
+            2
+        } else {
+            Utils.getRandomInt(3, 6)
+        }
+    }
+
+    private fun fillDoor(down: Int, right: Int) {
+        var doorCount = getDoorCount(down, right)
+        cleanEdgeTileList()
+        var maxTryNumber = edgeTileList.size
         do {
-            int random = Utils.getRandomInt(0, edgeTileList.size());
-            if (checkNearbyDoor(edgeTileList.get(random))) {
-                setDoor(edgeTileList.get(random).getI(), edgeTileList.get(random).getJ());
-                doorCount--;
+            if (edgeTileList.isEmpty()) break
+            val random = Utils.getRandomInt(0, edgeTileList.size)
+            if (checkNearbyDoor(edgeTileList[random])) {
+                setDoor(edgeTileList[random].i, edgeTileList[random].j)
+                doorCount--
             }
-            maxTryNumber--;
-        }
-        while (doorCount > 0 && maxTryNumber > 0);
+            maxTryNumber--
+        } while (doorCount > 0 && maxTryNumber > 0)
     }
 
-    private boolean checkNearbyDoor(DungeonTile node) {
-        for (int i = node.getI() - 1; i < node.getI() + 2; i++) {
-            for (int j = node.getJ() - 1; j < node.getJ() + 2; j++) {
-                if (Door.checkNCDoor(dungeonTiles, i, j)) { // check nearby doors
-                    return false;
+    private fun checkNearbyDoor(node: DungeonTile): Boolean {
+        for (i in node.i - 1..node.i + 1) {
+            for (j in node.j - 1..node.j + 1) {
+                if (Door.checkNCDoor(dungeonTiles, i, j)) {
+                    return false
                 }
             }
         }
-        return true;
+        return true
     }
 
-    private void cleanEdgeTileList() {
-        List<DungeonTile> toDelete = new ArrayList<>();
-        for (DungeonTile tile : edgeTileList) {
-            if (checkRooms(tile.getI(), tile.getJ())) { // if its on the edge
-                toDelete.add(tile);
+    private fun cleanEdgeTileList() {
+        val toDelete = ArrayList<DungeonTile>()
+        for (tile in edgeTileList) {
+            if (checkRooms(tile.i, tile.j)) {
+                toDelete.add(tile)
             }
         }
-        edgeTileList.removeAll(toDelete);
+        edgeTileList.removeAll(toDelete)
     }
 
-    private boolean checkRooms(int x, int y) {
-        return dungeonTiles[x][y - 1].getTexture() != Textures.ROOM && dungeonTiles[x][y + 1].getTexture() != Textures.ROOM && dungeonTiles[x + 1][y].getTexture() != Textures.ROOM && dungeonTiles[x - 1][y].getTexture() != Textures.ROOM;
+    private fun checkRooms(x: Int, y: Int): Boolean {
+        return dungeonTiles[x][y - 1].texture != Textures.ROOM && dungeonTiles[x][y + 1].texture != Textures.ROOM && dungeonTiles[x + 1][y].texture != Textures.ROOM && dungeonTiles[x - 1][y].texture != Textures.ROOM
     }
 
-    private void setHorizontalEdge(int x, int y, int right, int down) {
-        boolean addToEdgeList = !(down == 1 || down == -1);
-        if (right < 0) { // left
-            for (int i = right; i < 2; i++) {
-                setRoomEdge(x + down, y + i, addToEdgeList);
+    private fun setHorizontalEdge(x: Int, y: Int, right: Int, down: Int) {
+        val addToEdgeList = !(down == 1 || down == -1)
+        if (right < 0) {
+            for (i in right until 2) {
+                setRoomEdge(x + down, y + i, addToEdgeList)
             }
-        } else { // right
-            for (int i = -1; i < right + 1; i++) {
-                setRoomEdge(x + down, y + i, addToEdgeList);
+        } else {
+            for (i in -1 until right + 1) {
+                setRoomEdge(x + down, y + i, addToEdgeList)
             }
         }
     }
 
-    private void setRoomEdge(int x, int y, boolean addToEdgeList) {
-        if (!Door.checkNCDoor(dungeonTiles, x, y) && addToEdgeList) { // if its not a corridor_door
-            setTextureToRoomEdge(x, y);
-            addEdgeTileList(x, y);
+    private fun setRoomEdge(x: Int, y: Int, addToEdgeList: Boolean) {
+        if (!Door.checkNCDoor(dungeonTiles, x, y) && addToEdgeList) {
+            setTextureToRoomEdge(x, y)
+            addEdgeTileList(x, y)
         } else if (!Door.checkNCDoor(dungeonTiles, x, y)) {
-            setTextureToRoomEdge(x, y);
+            setTextureToRoomEdge(x, y)
         }
     }
 
-    private void setTextureToRoomEdge(int x, int y) {
-        dungeonTiles[x][y].setTexture(Textures.ROOM_EDGE);
+    private fun setTextureToRoomEdge(x: Int, y: Int) {
+        dungeonTiles[x][y].texture = Textures.ROOM_EDGE
     }
 
-    private void addEdgeTileList(int x, int y) {
-        edgeTileList.add(dungeonTiles[x][y]);
+    private fun addEdgeTileList(x: Int, y: Int) {
+        edgeTileList.add(dungeonTiles[x][y])
     }
 
-    private void fillHorizontal(int x, int y, int right) {
-        if (right < 0) { // left
-            for (int i = right + 1; i < 1; i++) { // set room
-                setRoomTiles(x, y + i);
+    private fun fillHorizontal(x: Int, y: Int, right: Int) {
+        if (right < 0) {
+            for (i in right + 1 until 1) {
+                setRoomTiles(x, y + i)
             }
-            setTextureToRoomEdge(x, y + 1); // right edge
-            addEdgeTileList(x, y + 1);
-        } else { // right
-            for (int i = 0; i < right; i++) { // set room
-                setRoomTiles(x, y + i);
+            setTextureToRoomEdge(x, y + 1)
+            addEdgeTileList(x, y + 1)
+        } else {
+            for (i in 0 until right) {
+                setRoomTiles(x, y + i)
             }
-            setTextureToRoomEdge(x, y - 1); // left edge
-            addEdgeTileList(x, y - 1);
+            setTextureToRoomEdge(x, y - 1)
+            addEdgeTileList(x, y - 1)
         }
-        setTextureToRoomEdge(x, y + right);
-        addEdgeTileList(x, y + right);
+        setTextureToRoomEdge(x, y + right)
+        addEdgeTileList(x, y + right)
     }
 
-    private int[] getDownRight(int vertical, int horizontal) {
-        int down = Utils.getRandomInt(2, Math.min((Math.abs(vertical)), roomSize));
-        int right = Utils.getRandomInt(2, Math.min((Math.abs(horizontal)), roomSize));
+    private fun getDownRight(vertical: Int, horizontal: Int): IntArray {
+        var down = Utils.getRandomInt(2, min(abs(vertical), roomSize))
+        var right = Utils.getRandomInt(2, min(abs(horizontal), roomSize))
         if (vertical < 0) {
-            down = -down;
+            down = -down
         }
         if (horizontal < 0) {
-            right = -right;
+            right = -right
         }
-        return new int[]{down, right};
+        return intArrayOf(down, right)
     }
 
-    private boolean checkPossible(int vertical, int horizontal, DungeonTile door) {
-        if (vertical == 0 || horizontal == 0) { // its impossible to add room
-            dungeonTiles[door.getI()][door.getJ()].setTexture(Textures.ROOM_EDGE); // change the door to a room_edge
-            return false;
+    private fun checkPossible(vertical: Int, horizontal: Int, door: DungeonTile): Boolean {
+        if (vertical == 0 || horizontal == 0) {
+            dungeonTiles[door.i][door.j].texture = Textures.ROOM_EDGE
+            return false
         }
-        return true;
+        return true
     }
 
-    private int checkUp(int x, int y) {
-        boolean tile;
-        boolean edge;
-        int temp = x;
-        int count = 0;
+    private fun checkUp(x: Int, y: Int): Int {
+        var tile: Boolean
+        var edge: Boolean
+        var temp = x
+        var count = 0
         do {
-            tile = checkTile(temp, y);
-            edge = checkDungeonTilesEdge(temp, y);
-            temp--;
-            count--;
-        }
-        while (!tile && !edge);
+            tile = checkTile(temp, y)
+            edge = checkDungeonTilesEdge(temp, y)
+            temp--
+            count--
+        } while (!tile && !edge)
         if (edge) {
-            count++;
+            count++
         }
-        return count;
+        return count
     }
 
-    private int checkDown(int x, int y) {
-        boolean tile;
-        boolean edge;
-        int temp = x;
-        int count = 0;
+    private fun checkDown(x: Int, y: Int): Int {
+        var tile: Boolean
+        var edge: Boolean
+        var temp = x
+        var count = 0
         do {
-            tile = checkTile(temp, y);
-            edge = checkDungeonTilesEdge(temp, y);
-            temp++;
-            count++;
-        }
-        while (!tile && !edge);
+            tile = checkTile(temp, y)
+            edge = checkDungeonTilesEdge(temp, y)
+            temp++
+            count++
+        } while (!tile && !edge)
         if (edge) {
-            count--;
+            count--
         }
-        return count;
+        return count
     }
 
-    private int checkVerticalOneWay(int x, int y, int down) {
-        int count;
-        if (down < 0) { // up
-            count = checkUp(x, y);
+    private fun checkVerticalOneWay(x: Int, y: Int, down: Int): Int {
+        val count = if (down < 0) {
+            checkUp(x, y)
         } else {
-            count = checkDown(x, y);
+            checkDown(x, y)
         }
-        if (Math.abs(count) > 2) {
-            return count;
-        }
-        return 0;
+        return if (abs(count) > 2) count else 0
     }
 
-    private int checkLeft(int x, int y) {
-        boolean tile;
-        boolean edge;
-        int temp = y;
-        int count = 0;
+    private fun checkLeft(x: Int, y: Int): Int {
+        var tile: Boolean
+        var edge: Boolean
+        var temp = y
+        var count = 0
         do {
-            tile = checkTile(x, temp);
-            edge = checkDungeonTilesEdge(x, temp);
-            temp--;
-            count--;
-        }
-        while (!tile && !edge);
+            tile = checkTile(x, temp)
+            edge = checkDungeonTilesEdge(x, temp)
+            temp--
+            count--
+        } while (!tile && !edge)
         if (edge) {
-            count++;
+            count++
         }
-        return count;
+        return count
     }
 
-    private int checkRight(int x, int y) {
-        boolean tile;
-        boolean edge;
-        int temp = y;
-        int count = 0;
+    private fun checkRight(x: Int, y: Int): Int {
+        var tile: Boolean
+        var edge: Boolean
+        var temp = y
+        var count = 0
         do {
-            tile = checkTile(x, temp);
-            edge = checkDungeonTilesEdge(x, temp);
-            temp++;
-            count++;
-        }
-        while (!tile && !edge);
+            tile = checkTile(x, temp)
+            edge = checkDungeonTilesEdge(x, temp)
+            temp++
+            count++
+        } while (!tile && !edge)
         if (edge) {
-            count--;
+            count--
         }
-        return count;
+        return count
     }
 
-    private int checkHorizontalOneWay(int x, int y, int right) {
-        int count;
-        if (right < 0) { // left
-            count = checkLeft(x, y);
+    private fun checkHorizontalOneWay(x: Int, y: Int, right: Int): Int {
+        val count = if (right < 0) {
+            checkLeft(x, y)
         } else {
-            count = checkRight(x, y);
+            checkRight(x, y)
         }
-        if (Math.abs(count) > 2) {
-            return count;
+        return if (abs(count) > 2) count else 0
+    }
+
+    private fun checkHorizontal(x: Int, y: Int): Int {
+        return getCheckResult(checkLeft(x, y), checkRight(x, y))
+    }
+
+    private fun checkDungeonTilesEdge(x: Int, y: Int): Boolean {
+        return dungeonTiles[x][y].texture == Textures.EDGE
+    }
+
+    private fun checkTile(x: Int, y: Int): Boolean {
+        return dungeonTiles[x][y].texture == Textures.ROOM_EDGE || Door.checkNCDoor(
+            dungeonTiles,
+            x,
+            y
+        )
+    }
+
+    private fun checkVertical(x: Int, y: Int): Int {
+        return getCheckResult(checkUp(x, y), checkDown(x, y))
+    }
+
+    private fun getCheckResult(x: Int, y: Int): Int {
+        if (abs(x) >= abs(y) && abs(x) > 2) {
+            return x
         }
-        return 0;
-    }
-
-    private int checkHorizontal(int x, int y) {
-        return getCheckResult(checkLeft(x, y), checkRight(x, y));
-    }
-
-    private boolean checkDungeonTilesEdge(int x, int y) {
-        return dungeonTiles[x][y].getTexture() == Textures.EDGE;
-    }
-
-    private boolean checkTile(int x, int y) {
-        return dungeonTiles[x][y].getTexture() == Textures.ROOM_EDGE || Door.checkNCDoor(dungeonTiles, x, y);
-    }
-
-    private int checkVertical(int x, int y) {
-        return getCheckResult(checkUp(x, y), checkDown(x, y));
-    }
-
-    private int getCheckResult(int x, int y) {
-        if (Math.abs(x) >= Math.abs(y) && Math.abs(x) > 2) {
-            return x;
+        if (abs(y) > abs(x) && abs(y) > 2) {
+            return y
         }
-        if (Math.abs(y) > Math.abs(x) && Math.abs(y) > 2) {
-            return y;
-        }
-        return 0;
+        return 0
     }
 
-    private boolean checkPos() {
-        return !(RoomPosition.isUp() && RoomPosition.isDown() || RoomPosition.isLeft() && RoomPosition.isRight());
+    private fun checkPos(): Boolean {
+        return !(RoomPosition.isUp && RoomPosition.isDown || RoomPosition.isLeft && RoomPosition.isRight)
     }
 
-    @Override
-    public boolean checkDoor(int x, int y) {
-        for (int i = x - 1; i < x + 2; i++) {
-            for (int j = y - 1; j < y + 2; j++) {
-                if (Door.checkNCDoor(dungeonTiles, i, j)) { // check nearby doors
-                    return false;
+    override fun checkDoor(x: Int, y: Int): Boolean {
+        for (i in x - 1..x + 1) {
+            for (j in y - 1..y + 1) {
+                if (Door.checkNCDoor(dungeonTiles, i, j)) {
+                    return false
                 }
             }
         }
-        return checkEnvironment(x, y);
+        return checkEnvironment(x, y)
     }
 
-    @Override
-    void setDoor(int x, int y) {
+    override fun setDoor(x: Int, y: Int) {
         if (Utils.getRandomInt(0, 101) < 40) {
-            dungeonTiles[x][y].setTexture(Textures.NO_CORRIDOR_DOOR_TRAPPED);
+            dungeonTiles[x][y].texture = Textures.NO_CORRIDOR_DOOR_TRAPPED
         } else if (Utils.getRandomInt(0, 101) < 50) {
-            dungeonTiles[x][y].setTexture(Textures.NO_CORRIDOR_DOOR_LOCKED);
+            dungeonTiles[x][y].texture = Textures.NO_CORRIDOR_DOOR_LOCKED
         } else {
-            dungeonTiles[x][y].setTexture(Textures.NO_CORRIDOR_DOOR);
+            dungeonTiles[x][y].texture = Textures.NO_CORRIDOR_DOOR
         }
-        openDoorList.add(dungeonTiles[x][y]);
-        doors.add(dungeonTiles[x][y]);
-    }
-
-    public List<DungeonTile> getOpenDoorList() {
-        return openDoorList;
+        openDoorList.add(dungeonTiles[x][y])
+        doors.add(dungeonTiles[x][y])
     }
 }

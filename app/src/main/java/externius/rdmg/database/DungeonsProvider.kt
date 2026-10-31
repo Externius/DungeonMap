@@ -1,70 +1,81 @@
-package externius.rdmg.database;
+package externius.rdmg.database
 
+import android.content.ContentProvider
+import android.content.ContentValues
+import android.content.UriMatcher
+import android.database.Cursor
+import android.database.sqlite.SQLiteDatabase
+import android.net.Uri
+import androidx.core.net.toUri
 
-import android.content.ContentProvider;
-import android.content.ContentValues;
-import android.content.UriMatcher;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.net.Uri;
+class DungeonsProvider : ContentProvider() {
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+    private var database: SQLiteDatabase? = null
 
-public class DungeonsProvider extends ContentProvider {
-    private static final String AUTHORITY = "externius.rdmg.dungeonsprovider";
-    private static final String BASE_PATH = "dungeons";
-    public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + BASE_PATH);
-
-    private static final int DUNGEONS = 1;
-    private static final int DUNGEONS_ID = 2;
-
-    private static final UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-
-    static {
-        uriMatcher.addURI(AUTHORITY, BASE_PATH, DUNGEONS);
-        uriMatcher.addURI(AUTHORITY, BASE_PATH + "/#", DUNGEONS_ID);
+    override fun onCreate(): Boolean {
+        val helper = DBOpenHelper(context)
+        database = helper.writableDatabase
+        return true
     }
 
-    private SQLiteDatabase database;
-
-    @SuppressWarnings("resource")
-    @Override
-    public boolean onCreate() {
-        DBOpenHelper helper = new DBOpenHelper(getContext());
-        database = helper.getWritableDatabase();
-        return true;
-    }
-
-    @Nullable
-    @Override
-    public Cursor query(@NonNull Uri uri, @Nullable String[] strings, @Nullable String s, @Nullable String[] strings1, @Nullable String s1) {
+    override fun query(
+        uri: Uri,
+        projection: Array<out String>?,
+        selection: String?,
+        selectionArgs: Array<out String>?,
+        sortOrder: String?
+    ): Cursor? {
+        var sel = selection
         if (uriMatcher.match(uri) == DUNGEONS_ID) {
-            s = DBOpenHelper.DUNGEON_ID + "=" + uri.getLastPathSegment();
+            sel = "${DBOpenHelper.DUNGEON_ID}=${uri.lastPathSegment}"
         }
-        return database.query(DBOpenHelper.TABLE_DUNGEONS, DBOpenHelper.ALL_COLUMNS, s, null, null, null, DBOpenHelper.DUNGEON_CREATED + " DESC");
+        return database?.query(
+            DBOpenHelper.TABLE_DUNGEONS,
+            DBOpenHelper.ALL_COLUMNS,
+            sel,
+            null,
+            null,
+            null,
+            "${DBOpenHelper.DUNGEON_CREATED} DESC"
+        )
     }
 
-    @Nullable
-    @Override
-    public String getType(@NonNull Uri uri) {
-        return null;
+    override fun getType(uri: Uri): String? {
+        return null
     }
 
-    @Nullable
-    @Override
-    public Uri insert(@NonNull Uri uri, @Nullable ContentValues contentValues) {
-        long id = database.insertOrThrow(DBOpenHelper.TABLE_DUNGEONS, null, contentValues);
-        return Uri.parse(BASE_PATH + "/" + id);
+    override fun insert(uri: Uri, values: ContentValues?): Uri? {
+        val db = database ?: return null
+        val id = db.insertOrThrow(DBOpenHelper.TABLE_DUNGEONS, null, values)
+        return "$BASE_PATH/$id".toUri()
     }
 
-    @Override
-    public int delete(@NonNull Uri uri, @Nullable String s, @Nullable String[] strings) {
-        return database.delete(DBOpenHelper.TABLE_DUNGEONS, s, strings);
+    override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int {
+        return database?.delete(DBOpenHelper.TABLE_DUNGEONS, selection, selectionArgs) ?: 0
     }
 
-    @Override
-    public int update(@NonNull Uri uri, @Nullable ContentValues contentValues, @Nullable String s, @Nullable String[] strings) {
-        return database.update(DBOpenHelper.TABLE_DUNGEONS, contentValues, s, strings);
+    override fun update(
+        uri: Uri,
+        values: ContentValues?,
+        selection: String?,
+        selectionArgs: Array<out String>?
+    ): Int {
+        return database?.update(DBOpenHelper.TABLE_DUNGEONS, values, selection, selectionArgs) ?: 0
+    }
+
+    companion object {
+        private const val AUTHORITY = "externius.rdmg.dungeonsprovider"
+        private const val BASE_PATH = "dungeons"
+
+        @JvmField
+        val CONTENT_URI: Uri = "content://$AUTHORITY/$BASE_PATH".toUri()
+
+        private const val DUNGEONS = 1
+        private const val DUNGEONS_ID = 2
+
+        private val uriMatcher = UriMatcher(UriMatcher.NO_MATCH).apply {
+            addURI(AUTHORITY, BASE_PATH, DUNGEONS)
+            addURI(AUTHORITY, "$BASE_PATH/#", DUNGEONS_ID)
+        }
     }
 }

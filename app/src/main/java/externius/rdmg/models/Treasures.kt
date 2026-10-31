@@ -1,66 +1,26 @@
-package externius.rdmg.models;
+package externius.rdmg.models
 
-import java.util.List;
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
+import com.google.gson.annotations.Expose
+import com.google.gson.annotations.SerializedName
 
-public class Treasures {
-
+class Treasures {
     @SerializedName("name")
     @Expose
-    private String name;
+    var name: String? = null
+
     @SerializedName("cost")
     @Expose
-    private Integer cost;
+    var cost: Int? = null
+
     @SerializedName("rarity")
     @Expose
-    private Integer rarity;
+    var rarity: Int? = null
+
     @SerializedName("magical")
     @Expose
-    private Boolean magical;
+    var magical: Boolean? = null
+
     @SerializedName("types")
     @Expose
-    private List<String> types = null;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Integer getCost() {
-        return cost;
-    }
-
-    public void setCost(Integer cost) {
-        this.cost = cost;
-    }
-
-    public Integer getRarity() {
-        return rarity;
-    }
-
-    public void setRarity(Integer rarity) {
-        this.rarity = rarity;
-    }
-
-
-    public Boolean getMagical() {
-        return magical;
-    }
-
-    public void setMagical(Boolean magical) {
-        this.magical = magical;
-    }
-
-    public List<String> getTypes() {
-        return types;
-    }
-
-    public void setTypes(List<String> types) {
-        this.types = types;
-    }
-
+    var types: List<String>? = null
 }
