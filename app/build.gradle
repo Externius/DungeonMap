@@ -57,10 +57,6 @@ dependencies {
     implementation 'com.google.android.material:material:1.14.0'
     testImplementation 'junit:junit:4.13.2'
     implementation 'org.hamcrest:hamcrest-library:3.0'
-    implementation 'com.google.code.gson:gson:2.14.0'
+    implementation 'com.google.code.gson:gson:2.15.0'
     implementation 'androidx.loader:loader:1.2.0'
-}
-
-configurations.implementation {
-    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
 }
