@@ -1,0 +1,139 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 4,
+    "identityHash": "62e9b1223599c9e4046df691fd5ab4a2",
+    "entities": [
+      {
+        "tableName": "dungeons",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `DUNGEON_NAME` TEXT, `LOADED_DUNGEON` TEXT NOT NULL, `LOADED_ROOM_DESCRIPTION` TEXT, `LOADED_TRAP_DESCRIPTION` TEXT, `LOADED_ROAMING_MONSTERS` TEXT, `DUNGEON_DIFFICULTY` TEXT, `PARTY_LEVEL` TEXT, `PARTY_SIZE` TEXT, `TREASURE_VALUE` TEXT, `ITEMS_RARITY` TEXT, `DUNGEON_SIZE` TEXT, `ROOM_DENSITY` TEXT, `ROOM_SIZE` TEXT, `TRAPS` TEXT, `CORRIDORS` TEXT, `MONSTER_TYPE` TEXT, `DEAD_ENDS` TEXT, `ROAMING_MONSTERS` TEXT, `DUNGEON_CREATED` TEXT DEFAULT CURRENT_TIMESTAMP)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dungeonName",
+            "columnName": "DUNGEON_NAME",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "loadedDungeon",
+            "columnName": "LOADED_DUNGEON",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "loadedRoomDescription",
+            "columnName": "LOADED_ROOM_DESCRIPTION",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "loadedTrapDescription",
+            "columnName": "LOADED_TRAP_DESCRIPTION",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "loadedRoamingMonsters",
+            "columnName": "LOADED_ROAMING_MONSTERS",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "dungeonDifficulty",
+            "columnName": "DUNGEON_DIFFICULTY",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "partyLevel",
+            "columnName": "PARTY_LEVEL",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "partySize",
+            "columnName": "PARTY_SIZE",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "treasureValue",
+            "columnName": "TREASURE_VALUE",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "itemsRarity",
+            "columnName": "ITEMS_RARITY",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "dungeonSize",
+            "columnName": "DUNGEON_SIZE",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "roomDensity",
+            "columnName": "ROOM_DENSITY",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "roomSize",
+            "columnName": "ROOM_SIZE",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "traps",
+            "columnName": "TRAPS",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "corridors",
+            "columnName": "CORRIDORS",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "monsterType",
+            "columnName": "MONSTER_TYPE",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "deadEnds",
+            "columnName": "DEAD_ENDS",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "roamingMonsters",
+            "columnName": "ROAMING_MONSTERS",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "dungeonCreated",
+            "columnName": "DUNGEON_CREATED",
+            "affinity": "TEXT",
+            "defaultValue": "CURRENT_TIMESTAMP"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_dungeons_LOADED_DUNGEON",
+            "unique": true,
+            "columnNames": [
+              "LOADED_DUNGEON"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_dungeons_LOADED_DUNGEON` ON `${TABLE_NAME}` (`LOADED_DUNGEON`)"
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '62e9b1223599c9e4046df691fd5ab4a2')"
+    ]
+  }
+}

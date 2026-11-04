@@ -1,4 +1,9 @@
 apply plugin: 'com.android.application'
+apply plugin: 'com.google.devtools.ksp'
+
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
 
 android {
     compileSdk = 37
@@ -59,4 +64,7 @@ dependencies {
     implementation 'org.hamcrest:hamcrest-library:3.0'
     implementation 'com.google.code.gson:gson:2.15.0'
     implementation 'androidx.loader:loader:1.2.0'
+    implementation 'androidx.room:room-runtime:2.8.5'
+    implementation 'androidx.room:room-ktx:2.8.5'
+    ksp 'androidx.room:room-compiler:2.8.5'
 }

@@ -30,6 +30,10 @@ import externius.rdmg.database.DBOpenHelper
 import externius.rdmg.database.DungeonsProvider
 import externius.rdmg.helpers.MultiSelectMonster
 import androidx.core.net.toUri
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> {
     private lateinit var spinnerDifficulty: Spinner
@@ -84,7 +88,12 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
 
     private fun getCorridorItemSelectedListener(): AdapterView.OnItemSelectedListener {
         return object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(adapterView: AdapterView<*>?, view: View?, i: Int, l: Long) {
+            override fun onItemSelected(
+                adapterView: AdapterView<*>?,
+                view: View?,
+                i: Int,
+                l: Long
+            ) {
                 if (spinnerCorridors.selectedItem.toString().equals("no", ignoreCase = true)) {
                     spinnerTraps.isEnabled = false
                     spinnerRoomDens.isEnabled = false
@@ -105,7 +114,8 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
     private fun initDB() {
         val from = arrayOf(DBOpenHelper.DUNGEON_NAME)
         val to = intArrayOf(android.R.id.text1)
-        cursorAdapter = SimpleCursorAdapter(this, android.R.layout.simple_list_item_1, null, from, to, 0)
+        cursorAdapter =
+            SimpleCursorAdapter(this, android.R.layout.simple_list_item_1, null, from, to, 0)
         LoaderManager.getInstance(this).initLoader(0, null, this)
     }
 
@@ -192,9 +202,17 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
     private fun deleteAllData() {
         val dialogClickListener = DialogInterface.OnClickListener { _, button ->
             if (button == DialogInterface.BUTTON_POSITIVE) {
-                contentResolver.delete(DungeonsProvider.CONTENT_URI, null, null)
-                restartLoader()
-                Toast.makeText(this@MainActivity, getString(R.string.all_deleted), Toast.LENGTH_SHORT).show()
+                lifecycleScope.launch(Dispatchers.IO) {
+                    contentResolver.delete(DungeonsProvider.CONTENT_URI, null, null)
+                    withContext(Dispatchers.Main) {
+                        restartLoader()
+                        Toast.makeText(
+                            this@MainActivity,
+                            getString(R.string.all_deleted),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
             }
         }
         val listView = list
@@ -223,9 +241,17 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
         getUriAndFilter(id)
         val dialogClickListener = DialogInterface.OnClickListener { _, button ->
             if (button == DialogInterface.BUTTON_POSITIVE) {
-                contentResolver.delete(DungeonsProvider.CONTENT_URI, filter, null)
-                restartLoader()
-                Toast.makeText(this@MainActivity, getString(R.string.selected_deleted), Toast.LENGTH_SHORT).show()
+                lifecycleScope.launch(Dispatchers.IO) {
+                    contentResolver.delete(DungeonsProvider.CONTENT_URI, filter, null)
+                    withContext(Dispatchers.Main) {
+                        restartLoader()
+                        Toast.makeText(
+                            this@MainActivity,
+                            getString(R.string.selected_deleted),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
             }
         }
         AlertDialog.Builder(this)
@@ -238,9 +264,15 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
     private fun getSelectedDungeon(id: Long) {
         getUriAndFilter(id)
         val u = uri ?: return
-        val cursor = contentResolver.query(u, DBOpenHelper.ALL_COLUMNS, filter, null, null)
-        if (cursor != null) {
-            loadDungeon(cursor)
+        lifecycleScope.launch(Dispatchers.IO) {
+            val cursor = contentResolver.query(u, DBOpenHelper.ALL_COLUMNS, filter, null, null)
+            withContext(Dispatchers.Main) {
+                cursor?.use { c ->
+                    if (c.moveToFirst()) {
+                        loadDungeon(c)
+                    }
+                }
+            }
         }
     }
 
@@ -256,11 +288,9 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
     private fun loadDungeon(cursor: Cursor) {
         val dungeon = Intent(this, DungeonActivity::class.java)
         val extras = Bundle()
-        cursor.moveToFirst()
         for (column in DBOpenHelper.TO_BUNDLE) {
             extras.putString(column, cursor.getString(cursor.getColumnIndexOrThrow(column)))
         }
-        cursor.close()
         extras.putString("URI", uri.toString())
         extras.putString("FILTER", filter)
         extras.putString("THEME", spinnerTheme.selectedItem.toString())
@@ -271,22 +301,72 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
     }
 
     private fun setSpinners(extras: Bundle) {
-        spinnerDifficulty.setSelection(getIndex(spinnerDifficulty, extras.getString(DBOpenHelper.DUNGEON_DIFFICULTY)))
-        spinnerPartyLevel.setSelection(getIndex(spinnerPartyLevel, extras.getString(DBOpenHelper.PARTY_LEVEL)))
-        spinnerPartySize.setSelection(getIndex(spinnerPartySize, extras.getString(DBOpenHelper.PARTY_SIZE)))
-        spinnerTreasureValue.setSelection(getIndex(spinnerTreasureValue, extras.getString(DBOpenHelper.TREASURE_VALUE)))
-        spinnerItemsRarity.setSelection(getIndex(spinnerItemsRarity, extras.getString(DBOpenHelper.ITEMS_RARITY)))
+        spinnerDifficulty.setSelection(
+            getIndex(
+                spinnerDifficulty,
+                extras.getString(DBOpenHelper.DUNGEON_DIFFICULTY)
+            )
+        )
+        spinnerPartyLevel.setSelection(
+            getIndex(
+                spinnerPartyLevel,
+                extras.getString(DBOpenHelper.PARTY_LEVEL)
+            )
+        )
+        spinnerPartySize.setSelection(
+            getIndex(
+                spinnerPartySize,
+                extras.getString(DBOpenHelper.PARTY_SIZE)
+            )
+        )
+        spinnerTreasureValue.setSelection(
+            getIndex(
+                spinnerTreasureValue,
+                extras.getString(DBOpenHelper.TREASURE_VALUE)
+            )
+        )
+        spinnerItemsRarity.setSelection(
+            getIndex(
+                spinnerItemsRarity,
+                extras.getString(DBOpenHelper.ITEMS_RARITY)
+            )
+        )
         spinnerSize.setSelection(getIndex(spinnerSize, extras.getString(DBOpenHelper.DUNGEON_SIZE)))
-        spinnerRoomDens.setSelection(getIndex(spinnerRoomDens, extras.getString(DBOpenHelper.ROOM_DENSITY)))
-        spinnerRoomSize.setSelection(getIndex(spinnerRoomSize, extras.getString(DBOpenHelper.ROOM_SIZE)))
+        spinnerRoomDens.setSelection(
+            getIndex(
+                spinnerRoomDens,
+                extras.getString(DBOpenHelper.ROOM_DENSITY)
+            )
+        )
+        spinnerRoomSize.setSelection(
+            getIndex(
+                spinnerRoomSize,
+                extras.getString(DBOpenHelper.ROOM_SIZE)
+            )
+        )
         spinnerTraps.setSelection(getIndex(spinnerTraps, extras.getString(DBOpenHelper.TRAPS)))
-        spinnerCorridors.setSelection(getIndex(spinnerCorridors, extras.getString(DBOpenHelper.CORRIDORS)))
+        spinnerCorridors.setSelection(
+            getIndex(
+                spinnerCorridors,
+                extras.getString(DBOpenHelper.CORRIDORS)
+            )
+        )
         val mt = extras.getString(DBOpenHelper.MONSTER_TYPE)
         if (mt != null) {
             spinnerMonsterType.setAllText(mt)
         }
-        spinnerDeadEnds.setSelection(getIndex(spinnerDeadEnds, extras.getString(DBOpenHelper.DEAD_ENDS)))
-        spinnerRoamingMonsters.setSelection(getIndex(spinnerRoamingMonsters, extras.getString(DBOpenHelper.ROAMING_MONSTERS)))
+        spinnerDeadEnds.setSelection(
+            getIndex(
+                spinnerDeadEnds,
+                extras.getString(DBOpenHelper.DEAD_ENDS)
+            )
+        )
+        spinnerRoamingMonsters.setSelection(
+            getIndex(
+                spinnerRoamingMonsters,
+                extras.getString(DBOpenHelper.ROAMING_MONSTERS)
+            )
+        )
     }
 
     private fun getIndex(spinner: Spinner, myString: String?): Int {

@@ -33,6 +33,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.net.toUri
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import externius.rdmg.R
@@ -355,29 +359,29 @@ class DungeonActivity : AppCompatActivity() {
         val uriStr = ex.getString("URI") ?: return
         val uri = uriStr.toUri()
         filter = ex.getString("FILTER")
-        val cursor = contentResolver.query(uri, DBOpenHelper.ALL_COLUMNS, filter, null, null)
-        if (cursor != null) {
-            cursor.moveToFirst()
-            loadedDungeon = gson.fromJson(
-                cursor.getString(cursor.getColumnIndexOrThrow(DBOpenHelper.LOADED_DUNGEON)),
-                Array<Array<DungeonTile>>::class.java
-            )
-            val roomListType = object : TypeToken<ArrayList<RoomDescription>>() {}.type
-            loadedRoomDescription = gson.fromJson(
-                cursor.getString(cursor.getColumnIndexOrThrow(DBOpenHelper.LOADED_ROOM_DESCRIPTION)),
-                roomListType
-            )
-            val trapListType = object : TypeToken<ArrayList<TrapDescription>>() {}.type
-            loadedTrapDescription = gson.fromJson(
-                cursor.getString(cursor.getColumnIndexOrThrow(DBOpenHelper.LOADED_TRAP_DESCRIPTION)),
-                trapListType
-            )
-            val monsterListType = object : TypeToken<ArrayList<RoamingMonsterDescription>>() {}.type
-            loadedRoamingMonsterDescription = gson.fromJson(
-                cursor.getString(cursor.getColumnIndexOrThrow(DBOpenHelper.LOADED_ROAMING_MONSTERS)),
-                monsterListType
-            )
-            cursor.close()
+        contentResolver.query(uri, DBOpenHelper.ALL_COLUMNS, filter, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                loadedDungeon = gson.fromJson(
+                    cursor.getString(cursor.getColumnIndexOrThrow(DBOpenHelper.LOADED_DUNGEON)),
+                    Array<Array<DungeonTile>>::class.java
+                )
+                val roomListType = object : TypeToken<ArrayList<RoomDescription>>() {}.type
+                loadedRoomDescription = gson.fromJson(
+                    cursor.getString(cursor.getColumnIndexOrThrow(DBOpenHelper.LOADED_ROOM_DESCRIPTION)),
+                    roomListType
+                )
+                val trapListType = object : TypeToken<ArrayList<TrapDescription>>() {}.type
+                loadedTrapDescription = gson.fromJson(
+                    cursor.getString(cursor.getColumnIndexOrThrow(DBOpenHelper.LOADED_TRAP_DESCRIPTION)),
+                    trapListType
+                )
+                val monsterListType =
+                    object : TypeToken<ArrayList<RoamingMonsterDescription>>() {}.type
+                loadedRoamingMonsterDescription = gson.fromJson(
+                    cursor.getString(cursor.getColumnIndexOrThrow(DBOpenHelper.LOADED_ROAMING_MONSTERS)),
+                    monsterListType
+                )
+            }
         }
     }
 
@@ -592,22 +596,63 @@ class DungeonActivity : AppCompatActivity() {
     }
 
     private fun saveData() {
-        if (filter != null) {
-            try {
-                updateDungeon()
-                Toast.makeText(this, "Dungeon updated", Toast.LENGTH_SHORT).show()
-                return
-            } catch (_: Exception) {
-                Toast.makeText(this, "Something went wrong during the update", Toast.LENGTH_SHORT)
-                    .show()
-                return
+        val currentFilter = filter
+
+        if (currentFilter != null) {
+            val updateValues = getUpdateValues()
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    contentResolver.update(
+                        DungeonsProvider.CONTENT_URI,
+                        updateValues,
+                        currentFilter,
+                        null
+                    )
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@DungeonActivity, "Dungeon updated", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                } catch (_: Exception) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            this@DungeonActivity,
+                            "Something went wrong during the update",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
             }
-        }
-        try {
-            saveCurrentDungeon()
-            Toast.makeText(this, "Dungeon saved", Toast.LENGTH_SHORT).show()
-        } catch (_: SQLiteConstraintException) {
-            Toast.makeText(this, "Dungeon already saved", Toast.LENGTH_SHORT).show()
+        } else {
+            val insertValues = getDungeonContentValues()
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    val uriInserted =
+                        contentResolver.insert(DungeonsProvider.CONTENT_URI, insertValues)
+                    withContext(Dispatchers.Main) {
+                        if (uriInserted != null) {
+                            filter = "${DBOpenHelper.DUNGEON_ID}=${uriInserted.lastPathSegment}"
+                        }
+                        Toast.makeText(this@DungeonActivity, "Dungeon saved", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                } catch (_: SQLiteConstraintException) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            this@DungeonActivity,
+                            "Dungeon already saved",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                } catch (_: Exception) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            this@DungeonActivity,
+                            "Something went wrong during save",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
         }
     }
 
@@ -637,18 +682,6 @@ class DungeonActivity : AppCompatActivity() {
             )
         }
         addTouchListener()
-    }
-
-    private fun saveCurrentDungeon() {
-        val uriInserted =
-            contentResolver.insert(DungeonsProvider.CONTENT_URI, getDungeonContentValues())
-        if (uriInserted != null) {
-            filter = "${DBOpenHelper.DUNGEON_ID}=${uriInserted.lastPathSegment}"
-        }
-    }
-
-    private fun updateDungeon() {
-        contentResolver.update(DungeonsProvider.CONTENT_URI, getUpdateValues(), filter, null)
     }
 
     private fun getUpdateValues(): ContentValues {
