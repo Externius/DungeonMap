@@ -1,21 +1,32 @@
 package externius.rdmg.database
 
 import android.content.ContentProvider
+import android.content.ContentUris
 import android.content.ContentValues
 import android.content.UriMatcher
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.net.Uri
 import androidx.core.net.toUri
+import androidx.sqlite.db.SupportSQLiteQueryBuilder
 
 class DungeonsProvider : ContentProvider() {
 
-    private var database: SQLiteDatabase? = null
+    private lateinit var database: AppDatabase
 
     override fun onCreate(): Boolean {
-        val helper = DBOpenHelper(context)
-        database = helper.writableDatabase
+        val ctx = context ?: return false
+        database = AppDatabase.getInstance(ctx)
         return true
+    }
+
+    private fun getSelectionWithId(uri: Uri, selection: String?): String? {
+        return if (uriMatcher.match(uri) == DUNGEONS_ID) {
+            val idWhere = "${DBOpenHelper.DUNGEON_ID} = ${uri.lastPathSegment}"
+            if (selection.isNullOrEmpty()) idWhere else "($idWhere) AND ($selection)"
+        } else {
+            selection
+        }
     }
 
     override fun query(
@@ -24,34 +35,73 @@ class DungeonsProvider : ContentProvider() {
         selection: String?,
         selectionArgs: Array<out String>?,
         sortOrder: String?
-    ): Cursor? {
-        var sel = selection
-        if (uriMatcher.match(uri) == DUNGEONS_ID) {
-            sel = "${DBOpenHelper.DUNGEON_ID}=${uri.lastPathSegment}"
+    ): Cursor {
+        val finalSelection = getSelectionWithId(uri, selection)
+        val order = if (sortOrder.isNullOrEmpty()) {
+            "${DBOpenHelper.DUNGEON_CREATED} DESC, ${DBOpenHelper.DUNGEON_ID} DESC"
+        } else {
+            sortOrder
         }
-        return database?.query(
-            DBOpenHelper.TABLE_DUNGEONS,
-            DBOpenHelper.ALL_COLUMNS,
-            sel,
-            null,
-            null,
-            null,
-            "${DBOpenHelper.DUNGEON_CREATED} DESC"
-        )
+        val query = SupportSQLiteQueryBuilder
+            .builder(DBOpenHelper.TABLE_DUNGEONS)
+            .columns(projection)
+            .selection(finalSelection, selectionArgs)
+            .orderBy(order)
+            .create()
+
+        val cursor = database.openHelper.writableDatabase.query(query)
+        context?.let { ctx ->
+            cursor.setNotificationUri(ctx.contentResolver, uri)
+        }
+        return cursor
     }
 
-    override fun getType(uri: Uri): String? {
+    override fun getType(uri: Uri): String? = null
+
+    override fun insert(uri: Uri, values: ContentValues?): Uri? {
+        if (values == null) return null
+        val createdTime = values.getAsString(DBOpenHelper.DUNGEON_CREATED)
+            ?: java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US).apply {
+                timeZone = java.util.TimeZone.getTimeZone("UTC")
+            }.format(java.util.Date())
+        val entity = DungeonEntity(
+            dungeonName = values.getAsString(DBOpenHelper.DUNGEON_NAME),
+            loadedDungeon = values.getAsString(DBOpenHelper.LOADED_DUNGEON) ?: "",
+            loadedRoomDescription = values.getAsString(DBOpenHelper.LOADED_ROOM_DESCRIPTION),
+            loadedTrapDescription = values.getAsString(DBOpenHelper.LOADED_TRAP_DESCRIPTION),
+            loadedRoamingMonsters = values.getAsString(DBOpenHelper.LOADED_ROAMING_MONSTERS),
+            dungeonDifficulty = values.getAsString(DBOpenHelper.DUNGEON_DIFFICULTY),
+            partyLevel = values.getAsString(DBOpenHelper.PARTY_LEVEL),
+            partySize = values.getAsString(DBOpenHelper.PARTY_SIZE),
+            treasureValue = values.getAsString(DBOpenHelper.TREASURE_VALUE),
+            itemsRarity = values.getAsString(DBOpenHelper.ITEMS_RARITY),
+            dungeonSize = values.getAsString(DBOpenHelper.DUNGEON_SIZE),
+            roomDensity = values.getAsString(DBOpenHelper.ROOM_DENSITY),
+            roomSize = values.getAsString(DBOpenHelper.ROOM_SIZE),
+            traps = values.getAsString(DBOpenHelper.TRAPS),
+            corridors = values.getAsString(DBOpenHelper.CORRIDORS),
+            monsterType = values.getAsString(DBOpenHelper.MONSTER_TYPE),
+            deadEnds = values.getAsString(DBOpenHelper.DEAD_ENDS),
+            roamingMonsters = values.getAsString(DBOpenHelper.ROAMING_MONSTERS),
+            dungeonCreated = createdTime
+        )
+        val id = database.dungeonDao().insert(entity)
+        if (id > 0) {
+            val insertedUri = ContentUris.withAppendedId(CONTENT_URI, id)
+            context?.contentResolver?.notifyChange(CONTENT_URI, null)
+            return insertedUri
+        }
         return null
     }
 
-    override fun insert(uri: Uri, values: ContentValues?): Uri? {
-        val db = database ?: return null
-        val id = db.insertOrThrow(DBOpenHelper.TABLE_DUNGEONS, null, values)
-        return "$BASE_PATH/$id".toUri()
-    }
-
     override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int {
-        return database?.delete(DBOpenHelper.TABLE_DUNGEONS, selection, selectionArgs) ?: 0
+        val finalSelection = getSelectionWithId(uri, selection)
+        val db = database.openHelper.writableDatabase
+        val count = db.delete(DBOpenHelper.TABLE_DUNGEONS, finalSelection, selectionArgs)
+        if (count > 0) {
+            context?.contentResolver?.notifyChange(CONTENT_URI, null)
+        }
+        return count
     }
 
     override fun update(
@@ -60,7 +110,20 @@ class DungeonsProvider : ContentProvider() {
         selection: String?,
         selectionArgs: Array<out String>?
     ): Int {
-        return database?.update(DBOpenHelper.TABLE_DUNGEONS, values, selection, selectionArgs) ?: 0
+        if (values == null || values.size() == 0) return 0
+        val finalSelection = getSelectionWithId(uri, selection)
+        val db = database.openHelper.writableDatabase
+        val count = db.update(
+            DBOpenHelper.TABLE_DUNGEONS,
+            SQLiteDatabase.CONFLICT_NONE,
+            values,
+            finalSelection,
+            selectionArgs
+        )
+        if (count > 0) {
+            context?.contentResolver?.notifyChange(CONTENT_URI, null)
+        }
+        return count
     }
 
     companion object {
