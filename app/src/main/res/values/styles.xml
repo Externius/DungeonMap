@@ -1,7 +1,7 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.DarkActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primaryDark</item>
@@ -15,7 +15,7 @@
 
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.DayNight" />
 
     <style name="MainContentText">
         <item name="android:layout_margin">@dimen/content_text_margin</item>
@@ -45,9 +45,10 @@
         <item name="android:layout_marginEnd">@dimen/spinner_margin</item>
     </style>
 
-    <style name="Dialog" parent="Theme.AppCompat.Dialog">
+    <style name="Dialog" parent="Theme.AppCompat.DayNight.Dialog">
         <item name="android:windowNoTitle">false</item>
         <item name="android:windowIsFloating">true</item>
+        <item name="android:windowBackground">@drawable/dialog_background</item>
         <item name="android:textColor">@color/primaryText</item>
         <item name="android:buttonStyle">@style/Widget.AppCompat.Button.Colored</item>
     </style>

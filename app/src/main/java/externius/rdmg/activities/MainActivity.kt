@@ -4,8 +4,8 @@ import android.app.AlertDialog
 import android.app.Dialog
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.res.Configuration
 import android.database.Cursor
-import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
@@ -29,6 +29,8 @@ import externius.rdmg.R
 import externius.rdmg.database.DBOpenHelper
 import externius.rdmg.database.DungeonsProvider
 import externius.rdmg.helpers.MultiSelectMonster
+import externius.rdmg.helpers.ThemeHelper
+import externius.rdmg.helpers.applyPrimaryStyle
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
@@ -115,7 +117,7 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
         val from = arrayOf(DBOpenHelper.DUNGEON_NAME)
         val to = intArrayOf(android.R.id.text1)
         cursorAdapter =
-            SimpleCursorAdapter(this, android.R.layout.simple_list_item_1, null, from, to, 0)
+            SimpleCursorAdapter(this, R.layout.list_item_dungeon, null, from, to, 0)
         LoaderManager.getInstance(this).initLoader(0, null, this)
     }
 
@@ -186,17 +188,12 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
         dlg.setTitle("Select saved dungeon")
         val closePopupBtn: Button = dlg.findViewById(R.id.popup_close_button)
         val deleteAllBtn: Button = dlg.findViewById(R.id.delete_all_dungeon_button)
-        setButtonStyle(closePopupBtn)
-        setButtonStyle(deleteAllBtn)
+        closePopupBtn.applyPrimaryStyle()
+        deleteAllBtn.applyPrimaryStyle()
         getDataFromDB(dlg)
         closePopupBtn.setOnClickListener { dlg.dismiss() }
         deleteAllBtn.setOnClickListener { deleteAllData() }
         dlg.show()
-    }
-
-    private fun setButtonStyle(button: Button) {
-        button.setBackgroundColor(getColor(R.color.primaryAccent))
-        button.setTextColor(Color.WHITE)
     }
 
     private fun deleteAllData() {
@@ -410,13 +407,68 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == R.id.action_about) {
-            val about = Intent(this, AboutActivity::class.java)
-            startActivity(about)
-            return true
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        val menuItem = menu?.findItem(R.id.action_theme_toggle)
+        val currentMode = ThemeHelper.getSavedThemeMode(this)
+        val isNightMode = when (currentMode) {
+            ThemeHelper.MODE_NIGHT -> true
+            ThemeHelper.MODE_LIGHT -> false
+            else -> {
+                val nightModeFlags =
+                    resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+                nightModeFlags == Configuration.UI_MODE_NIGHT_YES
+            }
         }
-        return super.onOptionsItemSelected(item)
+        if (isNightMode) {
+            menuItem?.setIcon(R.drawable.ic_light_mode)
+        } else {
+            menuItem?.setIcon(R.drawable.ic_night_mode)
+        }
+        return super.onPrepareOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_about -> {
+                val about = Intent(this, AboutActivity::class.java)
+                startActivity(about)
+                true
+            }
+
+            R.id.action_theme_toggle -> {
+                showThemeSelectionDialog()
+                true
+            }
+
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun showThemeSelectionDialog() {
+        val modes = arrayOf(
+            getString(R.string.theme_system_default),
+            getString(R.string.theme_light),
+            getString(R.string.theme_dark)
+        )
+        val currentMode = ThemeHelper.getSavedThemeMode(this)
+        val selectedIndex = when (currentMode) {
+            ThemeHelper.MODE_LIGHT -> 1
+            ThemeHelper.MODE_NIGHT -> 2
+            else -> 0
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.select_theme)
+            .setSingleChoiceItems(modes, selectedIndex) { dialog, which ->
+                val newMode = when (which) {
+                    1 -> ThemeHelper.MODE_LIGHT
+                    2 -> ThemeHelper.MODE_NIGHT
+                    else -> ThemeHelper.MODE_SYSTEM
+                }
+                ThemeHelper.setThemeMode(this, newMode)
+                dialog.dismiss()
+            }
+            .show()
     }
 
     override fun onCreateLoader(id: Int, args: Bundle?): Loader<Cursor> {
