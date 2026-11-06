@@ -153,4 +153,9 @@
         <item>Light</item>
         <item>Minimal</item>
     </string-array>
+    <string name="theme_toggle">Toggle Theme</string>
+    <string name="select_theme">Select App Theme</string>
+    <string name="theme_system_default">System Default</string>
+    <string name="theme_light">Light Mode</string>
+    <string name="theme_dark">Dark Mode</string>
 </resources>

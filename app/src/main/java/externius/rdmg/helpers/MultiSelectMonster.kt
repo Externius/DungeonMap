@@ -3,7 +3,6 @@ package externius.rdmg.helpers
 import android.app.Dialog
 import android.content.Context
 import android.database.DataSetObserver
-import android.graphics.Color
 import android.util.AttributeSet
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -43,9 +42,9 @@ class MultiSelectMonster @JvmOverloads constructor(
             val closePopupBtn: Button = findViewById(R.id.monster_cancel)
             val okBtn: Button = findViewById(R.id.monster_ok)
             val invBtn: Button = findViewById(R.id.monster_inverse)
-            setButtonStyle(closePopupBtn)
-            setButtonStyle(okBtn)
-            setButtonStyle(invBtn)
+            closePopupBtn.applyPrimaryStyle()
+            okBtn.applyPrimaryStyle()
+            invBtn.applyPrimaryStyle()
             val list: ListView = findViewById(R.id.monster_type_list)
             list.adapter = adapter
             saveSelection()
@@ -74,14 +73,9 @@ class MultiSelectMonster @JvmOverloads constructor(
     }
 
     private fun init(context: Context) {
-        val adapter = ArrayAdapter<String>(context, android.R.layout.simple_list_item_multiple_choice)
+        val adapter = ArrayAdapter<String>(context, R.layout.list_item_monster)
         adapter.addAll(monsterTypeList)
         setAdapter(adapter)
-    }
-
-    private fun setButtonStyle(button: Button) {
-        button.setBackgroundColor(context.getColor(R.color.primaryAccent))
-        button.setTextColor(Color.WHITE)
     }
 
     private fun setChecked(list: ListView) {

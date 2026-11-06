@@ -23,12 +23,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/editDialogSave"
-            android:layout_below="@+id/edit_trap"/>
+            android:layout_below="@+id/edit_trap"
+            android:layout_marginTop="4dp" />
         <Button
             android:id="@+id/editDialogCancelButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/editDialogCancel"
-            android:layout_below="@+id/editDialogSaveButton"/>
+            android:layout_below="@+id/editDialogSaveButton"
+            android:layout_marginTop="4dp" />
     </RelativeLayout>
 </ScrollView>

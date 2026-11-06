@@ -8,7 +8,6 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Point
-import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -31,6 +30,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
@@ -43,6 +43,7 @@ import externius.rdmg.R
 import externius.rdmg.database.DBOpenHelper
 import externius.rdmg.database.DungeonsProvider
 import externius.rdmg.helpers.Export
+import externius.rdmg.helpers.applyPrimaryStyle
 import externius.rdmg.models.DungeonTile
 import externius.rdmg.models.RoamingMonsterDescription
 import externius.rdmg.models.RoomDescription
@@ -525,9 +526,11 @@ class DungeonActivity : AppCompatActivity() {
                 }
             }
 
-            else -> {}
+            else -> return
         }
+        saveButton.applyPrimaryStyle()
         val cancelButton: Button = dlg.findViewById(R.id.editDialogCancelButton)
+        cancelButton.applyPrimaryStyle()
         cancelButton.setOnClickListener { dlg.dismiss() }
         dlg.show()
     }
@@ -590,7 +593,7 @@ class DungeonActivity : AppCompatActivity() {
             dlg.addContentView(view, params)
         }
         dlg.window?.setBackgroundDrawable(
-            ResourcesCompat.getColor(resources, R.color.transparentWhite, null).toDrawable()
+            ResourcesCompat.getColor(resources, R.color.dialogOverlayColor, null).toDrawable()
         )
         dlg.show()
     }
@@ -659,7 +662,14 @@ class DungeonActivity : AppCompatActivity() {
     private fun drawDungeon(result: Any?) {
         val layoutView: RelativeLayout = findViewById(R.id.dungeon_layout)
         layoutView.removeAllViews()
-        layoutView.setBackgroundColor(Color.WHITE)
+        val typedValue = android.util.TypedValue()
+        getTheme().resolveAttribute(android.R.attr.colorBackground, typedValue, true)
+        val backgroundColor = if (typedValue.resourceId != 0) {
+            ContextCompat.getColor(this, typedValue.resourceId)
+        } else {
+            typedValue.data
+        }
+        layoutView.setBackgroundColor(backgroundColor)
         val dv = dungeonView
         if (result != null && dv != null) {
             layoutView.addView(result as View)
@@ -736,27 +746,33 @@ class DungeonActivity : AppCompatActivity() {
         val button = Button(this)
         button.setText(R.string.export_button_text)
         button.id = R.id.dungeon_activity_export_button
+        val topMargin = (resources.displayMetrics.density * 4).toInt()
         val relativeParams = RelativeLayout.LayoutParams(
             RelativeLayout.LayoutParams.MATCH_PARENT,
             RelativeLayout.LayoutParams.WRAP_CONTENT
-        )
+        ).apply {
+            setMargins(0, topMargin, 0, resources.displayMetrics.density.toInt())
+        }
         relativeParams.addRule(RelativeLayout.BELOW, R.id.dungeon_activity_generate_button)
         button.layoutParams = relativeParams
         button.setOnClickListener {
             if (checkMassClick()) return@setOnClickListener
             export()
         }
-        buttonStyle(button)
+        button.applyPrimaryStyle()
         layoutView.addView(button)
     }
 
     private fun addGenerateButton(layoutView: RelativeLayout) {
         val button = Button(this)
         button.setText(R.string.generate_button_text)
+        val topMargin = (resources.displayMetrics.density * 4).toInt()
         val relativeParams = RelativeLayout.LayoutParams(
             RelativeLayout.LayoutParams.MATCH_PARENT,
             RelativeLayout.LayoutParams.WRAP_CONTENT
-        )
+        ).apply {
+            setMargins(0, topMargin, 0, 0)
+        }
         relativeParams.addRule(RelativeLayout.BELOW, R.id.dungeon_activity_save_button)
         button.layoutParams = relativeParams
         button.setOnClickListener {
@@ -764,7 +780,7 @@ class DungeonActivity : AppCompatActivity() {
             generateDungeon()
         }
         button.id = R.id.dungeon_activity_generate_button
-        buttonStyle(button)
+        button.applyPrimaryStyle()
         layoutView.addView(button)
     }
 
@@ -774,7 +790,9 @@ class DungeonActivity : AppCompatActivity() {
         val relativeParams = RelativeLayout.LayoutParams(
             RelativeLayout.LayoutParams.MATCH_PARENT,
             RelativeLayout.LayoutParams.WRAP_CONTENT
-        )
+        ).apply {
+            setMargins(0, resources.displayMetrics.density.toInt(), 0, 0)
+        }
         relativeParams.addRule(RelativeLayout.BELOW, R.id.dungeonMap_view)
         button.layoutParams = relativeParams
         button.setOnClickListener {
@@ -782,7 +800,7 @@ class DungeonActivity : AppCompatActivity() {
             saveData()
         }
         button.id = R.id.dungeon_activity_save_button
-        buttonStyle(button)
+        button.applyPrimaryStyle()
         layoutView.addView(button)
     }
 
@@ -792,16 +810,6 @@ class DungeonActivity : AppCompatActivity() {
         }
         mLastClickTime = SystemClock.elapsedRealtime()
         return false
-    }
-
-    private fun buttonStyle(button: Button) {
-        button.setTextColor(Color.WHITE)
-        val drawable = GradientDrawable().apply {
-            shape = GradientDrawable.RECTANGLE
-            setColor(getColor(R.color.primaryAccent))
-            setStroke(4, getColor(R.color.primaryDivider))
-        }
-        button.background = drawable
     }
 
     private fun export() {

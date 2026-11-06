@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#1E1E1E</color>
+    <color name="primaryDark">#121212</color>
+    <color name="primaryAccent">#80CBC4</color>
+    <color name="primaryText">#E0E0E0</color>
+    <color name="primarySecondaryText">#B0BEC5</color>
+    <color name="primaryDivider">#37474F</color>
+    <color name="dialogOverlayColor">#c8212121</color>
+    <color name="striped">#2A3B32</color>
+    <color name="buttonTextColor">#121212</color>
+    <color name="dialogBackground">#212121</color>
+</resources>
