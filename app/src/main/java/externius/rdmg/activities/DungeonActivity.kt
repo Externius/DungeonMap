@@ -533,7 +533,7 @@ class DungeonActivity : AppCompatActivity() {
     }
 
     private fun showEntryPopUp() {
-        createDialog("Dungeon Entry", null)
+        createDialog(getString(R.string.dungeon_entry), null)
     }
 
     private fun showDoorPopUp(description: String) {
@@ -609,14 +609,14 @@ class DungeonActivity : AppCompatActivity() {
                         null
                     )
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(this@DungeonActivity, "Dungeon updated", Toast.LENGTH_SHORT)
+                        Toast.makeText(this@DungeonActivity, getString(R.string.dungeon_updated), Toast.LENGTH_SHORT)
                             .show()
                     }
                 } catch (_: Exception) {
                     withContext(Dispatchers.Main) {
                         Toast.makeText(
                             this@DungeonActivity,
-                            "Something went wrong during the update",
+                            getString(R.string.dungeon_update_error),
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -632,14 +632,14 @@ class DungeonActivity : AppCompatActivity() {
                         if (uriInserted != null) {
                             filter = "${DBOpenHelper.DUNGEON_ID}=${uriInserted.lastPathSegment}"
                         }
-                        Toast.makeText(this@DungeonActivity, "Dungeon saved", Toast.LENGTH_SHORT)
+                        Toast.makeText(this@DungeonActivity, getString(R.string.dungeon_saved), Toast.LENGTH_SHORT)
                             .show()
                     }
                 } catch (_: SQLiteConstraintException) {
                     withContext(Dispatchers.Main) {
                         Toast.makeText(
                             this@DungeonActivity,
-                            "Dungeon already saved",
+                            getString(R.string.dungeon_already_saved),
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -647,7 +647,7 @@ class DungeonActivity : AppCompatActivity() {
                     withContext(Dispatchers.Main) {
                         Toast.makeText(
                             this@DungeonActivity,
-                            "Something went wrong during save",
+                            getString(R.string.dungeon_save_error),
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -811,7 +811,7 @@ class DungeonActivity : AppCompatActivity() {
 
     private fun export() {
         if (exported) {
-            Toast.makeText(this, "You are already exported this dungeon", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.dungeon_already_exported), Toast.LENGTH_SHORT).show()
             return
         }
         if (isExternalStorageWritableAndHasSpace()) {
