@@ -57,7 +57,6 @@ import java.util.Calendar
 import java.util.Locale
 import java.util.Random
 import java.util.Scanner
-import java.util.concurrent.Executors
 import kotlin.math.min
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.createBitmap
@@ -108,7 +107,6 @@ class DungeonActivity : AppCompatActivity() {
     private var dialog: Dialog? = null
     private var mGestureDetector: GestureDetector? = null
     private var layout: RelativeLayout? = null
-    private val executor = Executors.newSingleThreadExecutor()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -118,17 +116,17 @@ class DungeonActivity : AppCompatActivity() {
         addLoadingScreen()
         addScreenText()
         mGestureDetector = GestureDetector(this, DungeonActivityGestureListener())
-        Thread {
+        lifecycleScope.launch(Dispatchers.IO) {
             extras = intent.extras
             setParameters()
             jsonMonster = readJSON(R.raw.monsters)
             jsonTreasure = readJSON(R.raw.treasures)
-            runOnUiThread {
+            withContext(Dispatchers.Main) {
                 val dv = getDungeonView(loadedDungeon != null)
                 dungeonView = dv
                 drawDungeon(dv)
             }
-        }.start()
+        }
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
@@ -198,7 +196,6 @@ class DungeonActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         dialog?.dismiss()
-        executor.shutdown()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -840,7 +837,7 @@ class DungeonActivity : AppCompatActivity() {
         val trapDesc = dv.trapDescription
         val monsterDesc = dv.roamingMonsterDescription
 
-        executor.execute {
+        lifecycleScope.launch(Dispatchers.IO) {
             val html = Export.generateHTML(
                 dungeonBitmap,
                 roomDesc,
@@ -848,7 +845,9 @@ class DungeonActivity : AppCompatActivity() {
                 monsterDesc
             )
             writeDocument(uri, html)
-            runOnUiThread { exported = true }
+            withContext(Dispatchers.Main) {
+                exported = true
+            }
         }
     }
 
