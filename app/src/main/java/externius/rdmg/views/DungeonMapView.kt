@@ -4,8 +4,8 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
-import android.graphics.Matrix
 import android.graphics.Paint
+import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.View
 import externius.rdmg.R
@@ -17,8 +17,8 @@ import externius.rdmg.models.RoamingMonsterDescription
 import externius.rdmg.models.RoomDescription
 import externius.rdmg.models.Textures
 import externius.rdmg.models.TrapDescription
-import androidx.core.graphics.scale
 import kotlin.math.roundToLong
+import androidx.core.graphics.withRotation
 
 class DungeonMapView @JvmOverloads constructor(
     context: Context,
@@ -44,6 +44,8 @@ class DungeonMapView @JvmOverloads constructor(
     var itemsRarity: Int = 0
     var dungeonTiles: Array<Array<DungeonTile>>? = null
     private val paint = Paint()
+    private val srcRect = Rect()
+    private val dstRect = Rect()
 
     var roomDescription: List<RoomDescription> = ArrayList()
     var trapDescription: List<TrapDescription> = ArrayList()
@@ -187,86 +189,31 @@ class DungeonMapView @JvmOverloads constructor(
                 val tile = tiles[i][j]
                 when (tile.texture) {
                     Textures.ROOM_EDGE -> {
-                        roomEdge?.let {
-                            canvas.drawBitmap(
-                                scaleBitmap(it, i, j),
-                                tile.x.toFloat(),
-                                tile.y.toFloat(),
-                                null
-                            )
-                        }
+                        roomEdge?.let { drawTileBitmap(canvas, it, tile) }
                     }
 
                     Textures.MARBLE -> {
-                        marble?.let {
-                            canvas.drawBitmap(
-                                scaleBitmap(it, i, j),
-                                tile.x.toFloat(),
-                                tile.y.toFloat(),
-                                null
-                            )
-                        }
+                        marble?.let { drawTileBitmap(canvas, it, tile) }
                     }
 
                     Textures.CORRIDOR -> {
-                        corridor?.let {
-                            canvas.drawBitmap(
-                                scaleBitmap(it, i, j),
-                                tile.x.toFloat(),
-                                tile.y.toFloat(),
-                                null
-                            )
-                        }
+                        corridor?.let { drawTileBitmap(canvas, it, tile) }
                     }
 
                     Textures.DOOR -> {
-                        door?.let {
-                            canvas.drawBitmap(
-                                scaleBitmap(
-                                    rotateBitmap(
-                                        it,
-                                        getDegree(i, j).toFloat()
-                                    ), i, j
-                                ), tile.x.toFloat(), tile.y.toFloat(), null
-                            )
-                        }
+                        door?.let { drawTileBitmap(canvas, it, tile, getDegree(i, j)) }
                     }
 
                     Textures.DOOR_LOCKED -> {
-                        doorLocked?.let {
-                            canvas.drawBitmap(
-                                scaleBitmap(
-                                    rotateBitmap(
-                                        it,
-                                        getDegree(i, j).toFloat()
-                                    ), i, j
-                                ), tile.x.toFloat(), tile.y.toFloat(), null
-                            )
-                        }
+                        doorLocked?.let { drawTileBitmap(canvas, it, tile, getDegree(i, j)) }
                     }
 
                     Textures.DOOR_TRAPPED -> {
-                        doorTrapped?.let {
-                            canvas.drawBitmap(
-                                scaleBitmap(
-                                    rotateBitmap(
-                                        it,
-                                        getDegree(i, j).toFloat()
-                                    ), i, j
-                                ), tile.x.toFloat(), tile.y.toFloat(), null
-                            )
-                        }
+                        doorTrapped?.let { drawTileBitmap(canvas, it, tile, getDegree(i, j)) }
                     }
 
                     Textures.ROOM -> {
-                        room?.let {
-                            canvas.drawBitmap(
-                                scaleBitmap(it, i, j),
-                                tile.x.toFloat(),
-                                tile.y.toFloat(),
-                                null
-                            )
-                        }
+                        room?.let { drawTileBitmap(canvas, it, tile) }
                         canvas.drawText(
                             tile.description ?: "",
                             (tile.x + tile.width * 0.1).roundToLong().toFloat(),
@@ -276,25 +223,11 @@ class DungeonMapView @JvmOverloads constructor(
                     }
 
                     Textures.ENTRY -> {
-                        entry?.let {
-                            canvas.drawBitmap(
-                                scaleBitmap(it, i, j),
-                                tile.x.toFloat(),
-                                tile.y.toFloat(),
-                                null
-                            )
-                        }
+                        entry?.let { drawTileBitmap(canvas, it, tile) }
                     }
 
                     Textures.TRAP -> {
-                        trap?.let {
-                            canvas.drawBitmap(
-                                scaleBitmap(it, i, j),
-                                tile.x.toFloat(),
-                                tile.y.toFloat(),
-                                null
-                            )
-                        }
+                        trap?.let { drawTileBitmap(canvas, it, tile) }
                         canvas.drawText(
                             tile.description ?: "",
                             (tile.x + tile.width * 0.1).roundToLong().toFloat(),
@@ -304,14 +237,7 @@ class DungeonMapView @JvmOverloads constructor(
                     }
 
                     Textures.ROAMING_MONSTER -> {
-                        roamingMonster?.let {
-                            canvas.drawBitmap(
-                                scaleBitmap(it, i, j),
-                                tile.x.toFloat(),
-                                tile.y.toFloat(),
-                                null
-                            )
-                        }
+                        roamingMonster?.let { drawTileBitmap(canvas, it, tile) }
                         canvas.drawText(
                             tile.description ?: "",
                             (tile.x + tile.width * 0.1).roundToLong().toFloat(),
@@ -321,42 +247,15 @@ class DungeonMapView @JvmOverloads constructor(
                     }
 
                     Textures.NO_CORRIDOR_DOOR -> {
-                        ncDoor?.let {
-                            canvas.drawBitmap(
-                                scaleBitmap(
-                                    rotateBitmap(
-                                        it,
-                                        getDegree(i, j).toFloat()
-                                    ), i, j
-                                ), tile.x.toFloat(), tile.y.toFloat(), null
-                            )
-                        }
+                        ncDoor?.let { drawTileBitmap(canvas, it, tile, getDegree(i, j)) }
                     }
 
                     Textures.NO_CORRIDOR_DOOR_LOCKED -> {
-                        ncDoorLocked?.let {
-                            canvas.drawBitmap(
-                                scaleBitmap(
-                                    rotateBitmap(
-                                        it,
-                                        getDegree(i, j).toFloat()
-                                    ), i, j
-                                ), tile.x.toFloat(), tile.y.toFloat(), null
-                            )
-                        }
+                        ncDoorLocked?.let { drawTileBitmap(canvas, it, tile, getDegree(i, j)) }
                     }
 
                     Textures.NO_CORRIDOR_DOOR_TRAPPED -> {
-                        ncDoorTrapped?.let {
-                            canvas.drawBitmap(
-                                scaleBitmap(
-                                    rotateBitmap(
-                                        it,
-                                        getDegree(i, j).toFloat()
-                                    ), i, j
-                                ), tile.x.toFloat(), tile.y.toFloat(), null
-                            )
-                        }
+                        ncDoorTrapped?.let { drawTileBitmap(canvas, it, tile, getDegree(i, j)) }
                     }
 
                     else -> {}
@@ -365,12 +264,22 @@ class DungeonMapView @JvmOverloads constructor(
         }
     }
 
-    private fun scaleBitmap(bitmap: Bitmap, i: Int, j: Int): Bitmap {
-        val tiles = dungeonTiles ?: return bitmap
-        val width = tiles[i][j].width
-        val height = tiles[i][j].height
-        if (width <= 0 || height <= 0) return bitmap
-        return bitmap.scale(width, height, false)
+    private fun drawTileBitmap(canvas: Canvas, bitmap: Bitmap, tile: DungeonTile, degree: Int = 0) {
+        if (tile.width <= 0 || tile.height <= 0)
+            return
+        srcRect.set(0, 0, bitmap.width, bitmap.height)
+        dstRect.set(tile.x, tile.y, tile.x + tile.width, tile.y + tile.height)
+        if (degree != 0) {
+            canvas.withRotation(
+                degree.toFloat(),
+                tile.x + tile.width / 2f,
+                tile.y + tile.height / 2f
+            ) {
+                drawBitmap(bitmap, srcRect, dstRect, null)
+            }
+        } else {
+            canvas.drawBitmap(bitmap, srcRect, dstRect, null)
+        }
     }
 
     private fun getDegree(i: Int, j: Int): Int {
@@ -395,13 +304,5 @@ class DungeonMapView @JvmOverloads constructor(
     override fun performClick(): Boolean {
         super.performClick()
         return true
-    }
-
-    companion object {
-        private fun rotateBitmap(source: Bitmap, angle: Float): Bitmap {
-            val matrix = Matrix()
-            matrix.postRotate(angle)
-            return Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true)
-        }
     }
 }
