@@ -189,11 +189,17 @@ object Utils {
     }
 
     private fun parse(ratio: String): Double {
-        return if (ratio.contains("/")) {
-            val rat = ratio.split("/")
-            rat[0].toDouble() / rat[1].toDouble()
-        } else {
-            ratio.toDouble()
+        return try {
+            if (ratio.contains("/")) {
+                val rat = ratio.split("/")
+                val num = rat.getOrNull(0)?.toDoubleOrNull() ?: 0.0
+                val den = rat.getOrNull(1)?.toDoubleOrNull() ?: 1.0
+                if (den == 0.0) 0.0 else num / den
+            } else {
+                ratio.toDoubleOrNull() ?: 0.0
+            }
+        } catch (_: Exception) {
+            0.0
         }
     }
 

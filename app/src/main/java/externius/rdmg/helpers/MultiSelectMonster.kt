@@ -38,7 +38,7 @@ class MultiSelectMonster @JvmOverloads constructor(
         val adapter = mAdapter ?: return@OnClickListener
         dialog = Dialog(context, R.style.Dialog).apply {
             setContentView(R.layout.monster_type_popup)
-            setTitle("Select monster type")
+            setTitle(context.getString(R.string.select_monster_type))
             val closePopupBtn: Button = findViewById(R.id.monster_cancel)
             val okBtn: Button = findViewById(R.id.monster_ok)
             val invBtn: Button = findViewById(R.id.monster_inverse)

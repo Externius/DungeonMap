@@ -185,7 +185,7 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
         val dlg = Dialog(this, R.style.Dialog)
         loadDialog = dlg
         dlg.setContentView(R.layout.load_dungeons_popup)
-        dlg.setTitle("Select saved dungeon")
+        dlg.setTitle(getString(R.string.select_saved_dungeon))
         val closePopupBtn: Button = dlg.findViewById(R.id.popup_close_button)
         val deleteAllBtn: Button = dlg.findViewById(R.id.delete_all_dungeon_button)
         closePopupBtn.applyPrimaryStyle()

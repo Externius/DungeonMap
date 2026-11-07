@@ -158,4 +158,13 @@
     <string name="theme_system_default">System Default</string>
     <string name="theme_light">Light Mode</string>
     <string name="theme_dark">Dark Mode</string>
+    <string name="select_saved_dungeon">Select saved dungeon</string>
+    <string name="select_monster_type">Select monster type</string>
+    <string name="dungeon_entry">Dungeon Entry</string>
+    <string name="dungeon_updated">Dungeon updated</string>
+    <string name="dungeon_update_error">Something went wrong during the update</string>
+    <string name="dungeon_saved">Dungeon saved</string>
+    <string name="dungeon_already_saved">Dungeon already saved</string>
+    <string name="dungeon_save_error">Something went wrong during save</string>
+    <string name="dungeon_already_exported">You have already exported this dungeon</string>
 </resources>
