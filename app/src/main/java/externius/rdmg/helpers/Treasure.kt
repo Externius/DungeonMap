@@ -1,11 +1,11 @@
 package externius.rdmg.helpers
 
+import externius.rdmg.models.DungeonParams
 import externius.rdmg.models.Treasures
 import kotlin.math.floor
 
 internal object Treasure {
     private const val BASE = "Treasures: "
-    private var sumValue = 0
 
     private val treasureGP = intArrayOf(
         0, 300, 600, 900, 1200, 1600, 2000, 2600, 3400, 4500, 5800,
@@ -17,23 +17,28 @@ internal object Treasure {
         9, 9, 9, 9, 12, 12, 12, 15, 15, 15
     )
 
-    private fun getFiltered(treasures: List<Treasures>?): List<Treasures> {
+    private fun getFiltered(
+        params: DungeonParams,
+        sumValue: Int
+    ): List<Treasures> {
         val result = mutableListOf<Treasures>()
-        if (treasures == null) return result
-        if (Utils.monsterType.equals("any", ignoreCase = true)) {
-            for (treasure in treasures) {
+        if (params.monsterType.equals("any", ignoreCase = true)) {
+            for (treasure in params.treasureList) {
                 val rarity = treasure.rarity ?: 0
                 val cost = treasure.cost ?: 0
-                if (rarity <= Utils.itemsRarity && cost < sumValue) {
+                if (rarity <= params.itemsRarity && cost < sumValue) {
                     result.add(treasure)
                 }
             }
         } else {
-            for (treasure in treasures) {
+            for (treasure in params.treasureList) {
                 val rarity = treasure.rarity ?: 0
                 val cost = treasure.cost ?: 0
                 val types = treasure.types
-                if (rarity <= Utils.itemsRarity && cost < sumValue && types != null && types.contains(Utils.monsterType)) {
+                if (rarity <= params.itemsRarity && cost < sumValue && types != null && types.contains(
+                        params.monsterType
+                    )
+                ) {
                     result.add(treasure)
                 }
             }
@@ -42,19 +47,29 @@ internal object Treasure {
     }
 
     @JvmStatic
-    fun getTreasure(): String {
-        if (floor(Math.random() * 100) > Utils.treasurePercentage) {
+    fun getTreasure(params: DungeonParams): String {
+        if (floor(Math.random() * 100) > params.treasurePercentage) {
             return "${BASE}Empty"
         }
-        getAllCost()
-        val filteredTreasures = getFiltered(Utils.treasureList)
-        return BASE + calcTreasure(filteredTreasures)
+        val sumValue = (treasureGP[params.partyLevel] * params.treasureValue).toInt()
+        val filteredTreasures = getFiltered(params, sumValue)
+        return BASE + calcTreasure(
+            filteredTreasures,
+            params.dungeonDifficulty,
+            params.partyLevel,
+            sumValue
+        )
     }
 
-    private fun calcTreasure(filteredTreasures: List<Treasures>): String {
+    private fun calcTreasure(
+        filteredTreasures: List<Treasures>,
+        dungeonDifficulty: Int,
+        partyLevel: Int,
+        sumValue: Int
+    ): String {
         val sb = StringBuilder()
         var currentValue = 0
-        val targetItemCount = getItemsCount()
+        val targetItemCount = getItemsCount(dungeonDifficulty, partyLevel)
         var currentCount = 0
         var maxAttempt = filteredTreasures.size * 2
         val finalList = mutableListOf<Treasures>()
@@ -83,17 +98,13 @@ internal object Treasure {
         return sb.toString()
     }
 
-    private fun getItemsCount(): Int {
-        return when (Utils.dungeonDifficulty) {
-            0 -> Utils.getRandomInt(0, itemCount[Utils.partyLevel])
-            1 -> Utils.getRandomInt(2, itemCount[Utils.partyLevel])
-            2 -> Utils.getRandomInt(3, itemCount[Utils.partyLevel])
-            3 -> Utils.getRandomInt(4, itemCount[Utils.partyLevel])
+    private fun getItemsCount(dungeonDifficulty: Int, partyLevel: Int): Int {
+        return when (dungeonDifficulty) {
+            0 -> Utils.getRandomInt(0, itemCount[partyLevel])
+            1 -> Utils.getRandomInt(2, itemCount[partyLevel])
+            2 -> Utils.getRandomInt(3, itemCount[partyLevel])
+            3 -> Utils.getRandomInt(4, itemCount[partyLevel])
             else -> 0
         }
-    }
-
-    private fun getAllCost() {
-        sumValue = (treasureGP[Utils.partyLevel] * Utils.treasureValue).toInt()
     }
 }

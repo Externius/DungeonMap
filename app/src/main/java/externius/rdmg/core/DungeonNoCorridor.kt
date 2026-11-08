@@ -3,6 +3,7 @@ package externius.rdmg.core
 import externius.rdmg.helpers.Door
 import externius.rdmg.helpers.RoomPosition
 import externius.rdmg.helpers.Utils
+import externius.rdmg.models.DungeonParams
 import externius.rdmg.models.DungeonTile
 import externius.rdmg.models.Textures
 import kotlin.math.abs
@@ -19,8 +20,19 @@ class DungeonNoCorridor : Dungeon {
         dungeonWidth: Int,
         dungeonHeight: Int,
         dungeonSize: Int,
-        roomSizePercent: Int
-    ) : super() {
+        roomSizePercent: Int,
+        params: DungeonParams = DungeonParams()
+    ) : super(
+        dungeonWidth = dungeonWidth,
+        dungeonHeight = dungeonHeight,
+        dungeonSize = dungeonSize,
+        roomDensity = 0,
+        roomSizePercent = roomSizePercent,
+        trapPercent = 0,
+        hasDeadEnds = false,
+        roamingPercent = 0,
+        params = params
+    ) {
         this.dungeonWidth = dungeonWidth
         this.dungeonHeight = dungeonHeight
         this.dungeonSize = dungeonSize
@@ -172,14 +184,15 @@ class DungeonNoCorridor : Dungeon {
                 room.i,
                 room.j,
                 roomDescription,
-                Door.getNCDoorDescription(dungeonTiles, closedList)
+                Door.getNCDoorDescription(dungeonTiles, closedList),
+                params
             )
         }
     }
 
     private fun setDoorsDescriptions() {
         for (door in doors) {
-            door.description = Door.getNCDoor(door)
+            door.description = Door.getNCDoor(door, params.dungeonDifficulty, params.partyLevel)
         }
     }
 

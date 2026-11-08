@@ -84,13 +84,23 @@ class DungeonMapView @JvmOverloads constructor(
     }
 
     fun generateDungeon() {
-        init()
+        val params = Utils.createParams(
+            partyLevel = partyLevel,
+            partySize = partySize,
+            dungeonDifficulty = dungeonDifficulty,
+            treasureValue = treasureValue,
+            itemsRarity = itemsRarity,
+            monsterType = monsterType ?: "",
+            jsonMonster = jsonMonster ?: "",
+            jsonTreasure = jsonTreasure ?: ""
+        )
         setPaint()
         setBitmaps(hasCorridor)
         if (hasCorridor) {
             val dungeon = Dungeon(
                 dungeonWidth, dungeonHeight, dungeonSize, roomDensity,
-                roomSizePercent, trapPercent, hasDeadEnds, roamingPercent
+                roomSizePercent, trapPercent, hasDeadEnds, roamingPercent,
+                params
             )
             dungeon.generate()
             roomDescription = dungeon.roomDescription
@@ -99,7 +109,8 @@ class DungeonMapView @JvmOverloads constructor(
             dungeonTiles = dungeon.dungeonTiles
         } else {
             val dungeonNoCorridor = DungeonNoCorridor(
-                dungeonWidth, dungeonHeight, dungeonSize, roomSizePercent
+                dungeonWidth, dungeonHeight, dungeonSize, roomSizePercent,
+                params
             )
             dungeonNoCorridor.generate()
             roomDescription = dungeonNoCorridor.roomDescription
@@ -109,17 +120,6 @@ class DungeonMapView @JvmOverloads constructor(
 
     private fun setPaint() {
         paint.textSize = getFontSize(dungeonSize).toFloat()
-    }
-
-    private fun init() {
-        Utils.partySize = partySize
-        Utils.partyLevel = partyLevel
-        Utils.dungeonDifficulty = dungeonDifficulty
-        Utils.monsterType = monsterType ?: ""
-        Utils.setJsonMonster(jsonMonster ?: "")
-        Utils.setJsonTreasure(jsonTreasure ?: "")
-        Utils.treasureValue = treasureValue
-        Utils.itemsRarity = itemsRarity
     }
 
     private fun setBitmaps(hasCorridor: Boolean) {

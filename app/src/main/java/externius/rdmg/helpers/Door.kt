@@ -17,8 +17,8 @@ object Door {
     private val doorHP = intArrayOf(10, 10, 15, 15, 18, 18, 27)
     private val lockDifficulty = intArrayOf(5, 10, 15, 20, 25, 25, 30)
 
-    private fun getDoorDC(): Int {
-        return when (Utils.dungeonDifficulty) {
+    private fun getDoorDC(dungeonDifficulty: Int): Int {
+        return when (dungeonDifficulty) {
             0 -> Utils.getRandomInt(0, 2)
             1 -> Utils.getRandomInt(1, 4)
             2 -> Utils.getRandomInt(1, 6)
@@ -27,30 +27,59 @@ object Door {
         }
     }
 
-    private fun getState(texture: Textures, x: Int): String {
+    private fun getState(
+        texture: Textures,
+        x: Int,
+        dungeonDifficulty: Int,
+        partyLevel: Int
+    ): String {
         return when (texture) {
             Textures.NO_CORRIDOR_DOOR_LOCKED, Textures.DOOR_LOCKED ->
                 " Locked Door (AC ${doorAC[x]}, HP ${doorHP[x]}, DC ${lockDifficulty[x]} to unlock)"
+
             Textures.NO_CORRIDOR_DOOR_TRAPPED, Textures.DOOR_TRAPPED ->
-                " Trapped Door (AC ${doorAC[x]}, HP ${doorHP[x]}) ${Trap.getCurrentTrap(true)}"
+                " Trapped Door (AC ${doorAC[x]}, HP ${doorHP[x]}) ${
+                    Trap.getCurrentTrap(
+                        true,
+                        dungeonDifficulty,
+                        partyLevel
+                    )
+                }"
+
             else -> " Open Door (AC ${doorAC[x]}, HP ${doorHP[x]})"
         }
     }
 
-    private fun getDoorText(texture: Textures, x: Int): String {
+    private fun getDoorText(
+        texture: Textures,
+        x: Int,
+        dungeonDifficulty: Int,
+        partyLevel: Int
+    ): String {
+        val state = getState(
+            texture,
+            x,
+            dungeonDifficulty,
+            partyLevel
+        )
         return if (RoomPosition.isUp) {
-            "South Entry #${sCount++}: ${doorTypes[x]}${getState(texture, x)}\n"
+            "South Entry #${sCount++}: ${doorTypes[x]}${state}\n"
         } else if (RoomPosition.isDown) {
-            "North Entry #${nCount++}: ${doorTypes[x]}${getState(texture, x)}\n"
+            "North Entry #${nCount++}: ${doorTypes[x]}${state}\n"
         } else if (RoomPosition.isRight) {
-            "West Entry #${wCount++}: ${doorTypes[x]}${getState(texture, x)}\n"
+            "West Entry #${wCount++}: ${doorTypes[x]}${state}\n"
         } else {
-            "East Entry #${eCount++}: ${doorTypes[x]}${getState(texture, x)}\n"
+            "East Entry #${eCount++}: ${doorTypes[x]}${state}\n"
         }
     }
 
     @JvmStatic
-    fun getDoorDescription(dungeon: Array<Array<DungeonTile>>, doorList: List<DungeonTile>): String {
+    fun getDoorDescription(
+        dungeon: Array<Array<DungeonTile>>,
+        doorList: List<DungeonTile>,
+        dungeonDifficulty: Int,
+        partyLevel: Int
+    ): String {
         val sb = StringBuilder()
         var start: Int
         var end: Int
@@ -61,7 +90,14 @@ object Door {
         for (door in doorList) {
             start = sb.length
             RoomPosition.checkRoomPosition(dungeon, door.i, door.j)
-            sb.append(getDoorText(door.texture, getDoorDC()))
+            sb.append(
+                getDoorText(
+                    door.texture,
+                    getDoorDC(dungeonDifficulty),
+                    dungeonDifficulty,
+                    partyLevel
+                )
+            )
             end = sb.length
             dungeon[door.i][door.j].description = sb.substring(start, end)
         }
@@ -72,13 +108,16 @@ object Door {
     }
 
     @JvmStatic
-    fun getNCDoor(door: DungeonTile): String {
-        val x = getDoorDC()
-        return ": ${doorTypes[x]}${getState(door.texture, x)}\n"
+    fun getNCDoor(door: DungeonTile, dungeonDifficulty: Int, partyLevel: Int): String {
+        val x = getDoorDC(dungeonDifficulty)
+        return ": ${doorTypes[x]}${getState(door.texture, x, dungeonDifficulty, partyLevel)}\n"
     }
 
     @JvmStatic
-    fun getNCDoorDescription(dungeon: Array<Array<DungeonTile>>, closedList: List<DungeonTile>): String {
+    fun getNCDoorDescription(
+        dungeon: Array<Array<DungeonTile>>,
+        closedList: List<DungeonTile>
+    ): String {
         wCount = 1
         sCount = 1
         eCount = 1
