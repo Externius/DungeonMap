@@ -161,14 +161,14 @@ object Utils {
         val result = mutableListOf<Monster>()
         if (monsterType.equals("any", ignoreCase = true)) {
             for (monster in monsters) {
-                val cr = parseRatio(monster.challengeRating ?: "0")
+                val cr = parseChallengeRating(monster.challengeRating ?: "0")
                 if (cr <= partyLevel + 2 && cr >= floor((partyLevel / 4).toDouble())) {
                     result.add(monster)
                 }
             }
         } else {
             for (monster in monsters) {
-                val cr = parseRatio(monster.challengeRating ?: "0")
+                val cr = parseChallengeRating(monster.challengeRating ?: "0")
                 if (cr <= partyLevel + 2 && cr >= floor((partyLevel / 4).toDouble())
                     && checkType(monster.type, monsterType)
                 ) {
@@ -190,7 +190,7 @@ object Utils {
         return false
     }
 
-    private fun parseRatio(ratio: String): Double {
+    private fun parseChallengeRating(ratio: String): Double {
         return try {
             if (ratio.contains("/")) {
                 val rat = ratio.split("/")
