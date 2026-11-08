@@ -2,6 +2,7 @@ package externius.rdmg
 
 import externius.rdmg.core.DungeonNoCorridor
 import externius.rdmg.helpers.Utils
+import externius.rdmg.models.DungeonParams
 import externius.rdmg.models.DungeonTile
 import externius.rdmg.models.Textures
 import org.hamcrest.MatcherAssert.assertThat
@@ -20,21 +21,26 @@ import org.junit.Test
 import org.junit.rules.TestName
 
 class DungeonNoCorridorTest {
-    private val dungeonNoCorridor = DungeonNoCorridor(800, 800, 15, 15)
+
+    private lateinit var dungeonNoCorridor: DungeonNoCorridor
+    private lateinit var params: DungeonParams
 
     @get:Rule
     val name = TestName()
 
     @Before
     fun setup() {
-        Utils.dungeonDifficulty = 1
-        Utils.partySize = 4
-        Utils.partyLevel = 1
-        Utils.monsterType = "any"
-        Utils.treasureValue = 1.0
-        Utils.itemsRarity = 3
-        Utils.setJsonMonster(UtilsTest.readJSON("monsters.json") ?: "")
-        Utils.setJsonTreasure(UtilsTest.readJSON("treasures.json") ?: "")
+        params = Utils.createParams(
+            partyLevel = 1,
+            partySize = 4,
+            dungeonDifficulty = 1,
+            treasureValue = 1.0,
+            itemsRarity = 3,
+            monsterType = "any",
+            jsonMonster = UtilsTest.readJSON("monsters.json") ?: "",
+            jsonTreasure = UtilsTest.readJSON("treasures.json") ?: ""
+        )
+        dungeonNoCorridor = DungeonNoCorridor(800, 800, 15, 15, params)
         dungeonNoCorridor.init()
     }
 

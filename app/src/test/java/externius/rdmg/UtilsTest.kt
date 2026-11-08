@@ -3,6 +3,7 @@ package externius.rdmg
 import android.util.Log
 import externius.rdmg.activities.MainActivity
 import externius.rdmg.helpers.Utils
+import externius.rdmg.models.DungeonParams
 import externius.rdmg.models.DungeonTile
 import externius.rdmg.models.RoomDescription
 import externius.rdmg.models.Textures
@@ -17,19 +18,23 @@ import java.util.Scanner
 
 class UtilsTest {
 
+    private lateinit var params: DungeonParams
+
     @get:Rule
     val name = TestName()
 
     @Before
     fun setup() {
-        Utils.dungeonDifficulty = 1
-        Utils.partySize = 4
-        Utils.partyLevel = 1
-        Utils.monsterType = "any"
-        Utils.treasureValue = 1.0
-        Utils.itemsRarity = 3
-        Utils.setJsonMonster(readJSON("monsters.json") ?: "")
-        Utils.setJsonTreasure(readJSON("treasures.json") ?: "")
+        params = Utils.createParams(
+            partyLevel = 1,
+            partySize = 4,
+            dungeonDifficulty = 1,
+            treasureValue = 1.0,
+            itemsRarity = 3,
+            monsterType = "any",
+            jsonMonster = readJSON("monsters.json") ?: "",
+            jsonTreasure = readJSON("treasures.json") ?: ""
+        )
     }
 
     @Test
@@ -54,7 +59,14 @@ class UtilsTest {
         val dungeon = getTiles()
         val trapDescription = ArrayList<TrapDescription>()
         for (i in 0 until 3) {
-            Utils.addTrapDescription(dungeon, i + 1, i + 1, trapDescription)
+            Utils.addTrapDescription(
+                dungeon,
+                i + 1,
+                i + 1,
+                trapDescription,
+                params.dungeonDifficulty,
+                params.partyLevel
+            )
         }
         assertEquals(name.methodName + " size isn't right", 3, trapDescription.size)
     }
@@ -68,7 +80,7 @@ class UtilsTest {
         dungeon[3][3].texture = Textures.DOOR
         dungeon[3][4].texture = Textures.ROOM
         for (i in 0 until 3) {
-            Utils.addRoomDescription(dungeon, i + 1, i + 1, roomDescription, doors)
+            Utils.addRoomDescription(dungeon, i + 1, i + 1, roomDescription, doors, params)
         }
         assertEquals(name.methodName + " size isn't right", 3, roomDescription.size)
     }
@@ -77,7 +89,7 @@ class UtilsTest {
     fun testAddNCRoomDescription() {
         val dungeon = getTiles()
         val roomDescription = ArrayList<RoomDescription>()
-        Utils.addNCRoomDescription(dungeon, 5, 5, roomDescription, "Example door text")
+        Utils.addNCRoomDescription(dungeon, 5, 5, roomDescription, "Example door text", params)
         assertEquals(name.methodName + " size isn't right", 1, roomDescription.size)
     }
 
@@ -93,7 +105,14 @@ class UtilsTest {
             val imgSizeY = 20
             for (i in 1 until max - 1) {
                 for (j in 1 until max - 1) {
-                    dungeon[i][j] = DungeonTile(i, j, (j - 1) * imgSizeX, (i - 1) * imgSizeY, imgSizeX, imgSizeY)
+                    dungeon[i][j] = DungeonTile(
+                        i,
+                        j,
+                        (j - 1) * imgSizeX,
+                        (i - 1) * imgSizeY,
+                        imgSizeX,
+                        imgSizeY
+                    )
                 }
             }
             return dungeon

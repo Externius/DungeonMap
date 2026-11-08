@@ -1,5 +1,6 @@
 package externius.rdmg.helpers
 
+import externius.rdmg.models.DungeonParams
 import externius.rdmg.models.Monster
 import kotlin.math.floor
 
@@ -7,9 +8,6 @@ internal object Encounter {
     private const val BASE = "Monsters: "
     private const val NONE = "None"
     private const val NOT_SUITABLE = "No suitable monsters with this settings"
-
-    private var filteredMonsters: MutableList<Monster>? = null
-    private var sumXP = 0
 
     private val challengeRatingXP = intArrayOf(
         10, 25, 50, 100, 200, 450, 700, 1100, 1800, 2300, 2900, 3900, 5000, 5900, 7200, 8400,
@@ -57,22 +55,19 @@ internal object Encounter {
         intArrayOf(2800, 5700, 8500, 12700)
     )
 
-    private val difficulty = intArrayOf(0, 0, 0, 0)
-
     private fun getMonsterXP(monster: Monster): Int {
         val index = challengeRating.indexOf(monster.challengeRating)
         return if (index != -1) challengeRatingXP[index] else 0
     }
 
-    private fun addMonster(currentXP: Int): String {
-        val list = filteredMonsters ?: return NONE
-        val monsterCount = list.size
+    private fun addMonster(filteredMonsters: MutableList<Monster>, currentXP: Int): String {
+        val monsterCount = filteredMonsters.size
         var monster = 0
         var count: Int
         var allXP: Double
         while (monster < monsterCount) {
-            val currentMonster = list[Utils.getRandomInt(0, list.size)]
-            list.remove(currentMonster)
+            val currentMonster = filteredMonsters[Utils.getRandomInt(0, filteredMonsters.size)]
+            filteredMonsters.remove(currentMonster)
             val monsterXP = getMonsterXP(currentMonster)
             for (i in multipliers.indices.reversed()) {
                 count = multipliers[i][0].toInt()
@@ -88,9 +83,8 @@ internal object Encounter {
         return NONE
     }
 
-    private fun checkPossible(): Boolean {
-        val list = filteredMonsters ?: return false
-        for (monster in list) {
+    private fun checkPossible(filteredMonsters: List<Monster>, sumXP: Int): Boolean {
+        for (monster in filteredMonsters) {
             if (sumXP > getMonsterXP(monster)) {
                 return true
             }
@@ -98,15 +92,19 @@ internal object Encounter {
         return false
     }
 
-    private fun calcEncounter(): String {
+    private fun calcEncounter(
+        filteredMonsters: MutableList<Monster>,
+        sumXP: Int,
+        params: DungeonParams
+    ): String {
         val result = StringBuilder()
         result.append(BASE)
         if (floor(Math.random() * 100) > 50) {
-            result.append(addMonster(sumXP))
+            result.append(addMonster(filteredMonsters, sumXP))
         } else {
-            val x = Utils.getRandomInt(2, Utils.dungeonDifficulty + 3)
+            val x = Utils.getRandomInt(2, params.dungeonDifficulty + 3)
             repeat(x) {
-                result.append(addMonster(sumXP / x))
+                result.append(addMonster(filteredMonsters, sumXP / x))
                 result.append(", ")
             }
             if (result.length >= 2) {
@@ -116,25 +114,27 @@ internal object Encounter {
         return result.toString().replace(", $NONE", "")
     }
 
-    private fun init() {
-        difficulty[0] = thresholds[Utils.partyLevel][0] * Utils.partySize
-        difficulty[1] = thresholds[Utils.partyLevel][1] * Utils.partySize
-        difficulty[2] = thresholds[Utils.partyLevel][2] * Utils.partySize
-        difficulty[3] = thresholds[Utils.partyLevel][3] * Utils.partySize
-        val list = Utils.monsterList
-        filteredMonsters = if (list != null) ArrayList(list) else mutableListOf()
-        sumXP = difficulty[Utils.dungeonDifficulty]
+    private fun initEncounter(params: DungeonParams): Pair<MutableList<Monster>, Int> {
+        val difficulty = intArrayOf(0, 0, 0, 0)
+        difficulty[0] = thresholds[params.partyLevel][0] * params.partySize
+        difficulty[1] = thresholds[params.partyLevel][1] * params.partySize
+        difficulty[2] = thresholds[params.partyLevel][2] * params.partySize
+        difficulty[3] = thresholds[params.partyLevel][3] * params.partySize
+        val list = params.monsterList
+        val filteredMonsters = ArrayList(list)
+        val sumXP = difficulty[params.dungeonDifficulty]
+        return Pair(filteredMonsters, sumXP)
     }
 
     @JvmStatic
-    fun getMonster(): String {
-        if (Utils.monsterType.equals("none", ignoreCase = true)) {
+    fun getMonster(params: DungeonParams): String {
+        if (params.monsterType.equals("none", ignoreCase = true)) {
             return BASE + NONE
         }
-        init()
-        val checkResult = checkPossible()
-        return if (checkResult && floor(Math.random() * 100) <= Utils.monsterPercentage) {
-            calcEncounter()
+        val (filteredMonsters, sumXP) = initEncounter(params)
+        val checkResult = checkPossible(filteredMonsters, sumXP)
+        return if (checkResult && floor(Math.random() * 100) <= params.monsterPercentage) {
+            calcEncounter(filteredMonsters, sumXP, params)
         } else if (!checkResult) {
             BASE + NOT_SUITABLE
         } else {
@@ -148,10 +148,10 @@ internal object Encounter {
     }
 
     @JvmStatic
-    fun getRoamingMonster(): String {
-        init()
-        return if (checkPossible()) {
-            calcEncounter().substring(10) // remove "Monsters: "
+    fun getRoamingMonster(params: DungeonParams): String {
+        val (filteredMonsters, sumXP) = initEncounter(params)
+        return if (checkPossible(filteredMonsters, sumXP)) {
+            calcEncounter(filteredMonsters, sumXP, params).substring(10)
         } else {
             NOT_SUITABLE
         }

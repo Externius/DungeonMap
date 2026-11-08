@@ -1,6 +1,7 @@
 package externius.rdmg.core
 
 import externius.rdmg.helpers.Utils
+import externius.rdmg.models.DungeonParams
 import externius.rdmg.models.DungeonTile
 import externius.rdmg.models.RoamingMonsterDescription
 import externius.rdmg.models.RoomDescription
@@ -19,6 +20,7 @@ open class Dungeon {
     var roomSizePercent: Int = 0
     var roomSize: Int = 0
     var doors: MutableList<DungeonTile> = ArrayList()
+    var params: DungeonParams = DungeonParams()
 
     private var result: MutableList<DungeonTile> = ArrayList()
     private var corridors: MutableList<DungeonTile> = ArrayList()
@@ -45,7 +47,8 @@ open class Dungeon {
         roomSizePercent: Int,
         trapPercent: Int,
         hasDeadEnds: Boolean,
-        roamingPercent: Int
+        roamingPercent: Int,
+        params: DungeonParams = DungeonParams()
     ) {
         this.dungeonWidth = dungeonWidth
         this.dungeonHeight = dungeonHeight
@@ -55,6 +58,7 @@ open class Dungeon {
         this.trapPercent = trapPercent
         this.roamingPercent = roamingPercent
         this.hasDeadEnds = hasDeadEnds
+        this.params = params
     }
 
     open fun generate() {
@@ -120,12 +124,19 @@ open class Dungeon {
 
     private fun addTrap(x: Int, y: Int) {
         dungeonTiles[x][y].texture = Textures.TRAP
-        Utils.addTrapDescription(dungeonTiles, x, y, trapDescription)
+        Utils.addTrapDescription(
+            dungeonTiles,
+            x,
+            y,
+            trapDescription,
+            params.dungeonDifficulty,
+            params.partyLevel
+        )
     }
 
     private fun addRoamingMonster(x: Int, y: Int) {
         dungeonTiles[x][y].texture = Textures.ROAMING_MONSTER
-        Utils.addRoamingMonsterDescription(dungeonTiles, x, y, roamingMonsterDescriptions)
+        Utils.addRoamingMonsterDescription(dungeonTiles, x, y, roamingMonsterDescriptions, params)
     }
 
     fun addDeadEnds() {
@@ -367,7 +378,7 @@ open class Dungeon {
         }
         val newSize = doors.size
         val currentDoors = ArrayList(doors.subList(currentSize, newSize))
-        Utils.addRoomDescription(dungeonTiles, x, y, roomDescription, currentDoors)
+        Utils.addRoomDescription(dungeonTiles, x, y, roomDescription, currentDoors, params)
     }
 
     internal open fun addDoor(x: Int, y: Int, down: Int, right: Int) {
