@@ -2,42 +2,41 @@ package externius.rdmg.activities
 
 import android.app.AlertDialog
 import android.app.Dialog
-import android.content.DialogInterface
+import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.database.Cursor
-import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Button
-import android.widget.CursorAdapter
 import android.widget.ListView
-import android.widget.SimpleCursorAdapter
 import android.widget.Spinner
+import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.loader.app.LoaderManager
-import androidx.loader.content.CursorLoader
-import androidx.loader.content.Loader
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import externius.rdmg.R
 import externius.rdmg.database.DBOpenHelper
-import externius.rdmg.database.DungeonsProvider
+import externius.rdmg.database.DungeonEntity
+import externius.rdmg.database.DungeonSummary
 import externius.rdmg.helpers.MultiSelectMonster
 import externius.rdmg.helpers.ThemeHelper
 import externius.rdmg.helpers.applyPrimaryStyle
-import androidx.core.net.toUri
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
+import externius.rdmg.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
-class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> {
+class MainActivity : AppCompatActivity() {
     private lateinit var spinnerDifficulty: Spinner
     private lateinit var spinnerPartyLevel: Spinner
     private lateinit var spinnerPartySize: Spinner
@@ -53,10 +52,9 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
     private lateinit var spinnerDeadEnds: Spinner
     private lateinit var spinnerTheme: Spinner
 
+    private val viewModel: MainViewModel by viewModels()
     private var loadDialog: Dialog? = null
-    private var cursorAdapter: CursorAdapter? = null
-    private var filter: String? = null
-    private var uri: Uri? = null
+    private var dungeonAdapter: DungeonSummaryAdapter? = null
     private var list: ListView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,7 +64,6 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
         getSpinners()
         setDefaultValues()
         addListeners()
-        initDB()
         if (savedInstanceState != null) {
             val monsterType = savedInstanceState.getString(DBOpenHelper.MONSTER_TYPE)
             if (monsterType != null) {
@@ -113,14 +110,6 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
         }
     }
 
-    private fun initDB() {
-        val from = arrayOf(DBOpenHelper.DUNGEON_NAME)
-        val to = intArrayOf(android.R.id.text1)
-        cursorAdapter =
-            SimpleCursorAdapter(this, R.layout.list_item_dungeon, null, from, to, 0)
-        LoaderManager.getInstance(this).initLoader(0, null, this)
-    }
-
     private fun addListeners() {
         spinnerCorridors.onItemSelectedListener = getCorridorItemSelectedListener()
         spinnerMonsterType.addTextChangedListener(object : TextWatcher {
@@ -133,7 +122,7 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
         val generateButton: Button = findViewById(R.id.generate_button)
         generateButton.setOnClickListener { generateDungeon() }
         val loadButton: Button = findViewById(R.id.load_button)
-        loadButton.setOnClickListener(loadListener())
+        loadButton.setOnClickListener { showLoadDialog() }
     }
 
     private fun checkMonsterType() {
@@ -177,10 +166,6 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
         spinnerMonsterType.dialog?.dismiss()
     }
 
-    private fun loadListener(): View.OnClickListener {
-        return View.OnClickListener { showLoadDialog() }
-    }
-
     private fun showLoadDialog() {
         val dlg = Dialog(this, R.style.Dialog)
         loadDialog = dlg
@@ -190,178 +175,129 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
         val deleteAllBtn: Button = dlg.findViewById(R.id.delete_all_dungeon_button)
         closePopupBtn.applyPrimaryStyle()
         deleteAllBtn.applyPrimaryStyle()
-        getDataFromDB(dlg)
+        setupLoadDialogList(dlg)
         closePopupBtn.setOnClickListener { dlg.dismiss() }
         deleteAllBtn.setOnClickListener { deleteAllData() }
         dlg.show()
     }
 
-    private fun deleteAllData() {
-        val dialogClickListener = DialogInterface.OnClickListener { _, button ->
-            if (button == DialogInterface.BUTTON_POSITIVE) {
-                lifecycleScope.launch(Dispatchers.IO) {
-                    contentResolver.delete(DungeonsProvider.CONTENT_URI, null, null)
-                    withContext(Dispatchers.Main) {
-                        restartLoader()
-                        Toast.makeText(
-                            this@MainActivity,
-                            getString(R.string.all_deleted),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+    private fun setupLoadDialogList(dialog: Dialog) {
+        val listView: ListView = dialog.findViewById(R.id.load_dungeon_list)
+        list = listView
+        val adapter = DungeonSummaryAdapter(this, mutableListOf())
+        dungeonAdapter = adapter
+        listView.adapter = adapter
+
+        listView.setOnItemClickListener { _, _, position, _ ->
+            val summary = adapter.getItem(position) ?: return@setOnItemClickListener
+            getSelectedDungeon(summary.id)
+        }
+        listView.setOnItemLongClickListener { _, _, position, _ ->
+            val summary = adapter.getItem(position) ?: return@setOnItemLongClickListener true
+            deleteSingleDungeon(summary.id)
+            true
+        }
+
+        val collectorJob = lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.dungeonSummaries.collect { summaries ->
+                    adapter.clear()
+                    adapter.addAll(summaries)
                 }
             }
         }
+        dialog.setOnDismissListener {
+            collectorJob.cancel()
+            list = null
+            dungeonAdapter = null
+            loadDialog = null
+        }
+    }
+
+    private fun deleteAllData() {
         val listView = list
         if (listView != null && listView.count > 0) {
             AlertDialog.Builder(this)
                 .setMessage(getString(R.string.delete_confirmation_text))
-                .setPositiveButton(getString(android.R.string.ok), dialogClickListener)
-                .setNegativeButton(getString(android.R.string.cancel), dialogClickListener)
+                .setPositiveButton(getString(android.R.string.ok)) { _, _ ->
+                    viewModel.deleteAllDungeons()
+                    Toast.makeText(
+                        this@MainActivity,
+                        getString(R.string.all_deleted),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                .setNegativeButton(getString(android.R.string.cancel), null)
                 .show()
         }
     }
 
-    private fun getDataFromDB(dialog: Dialog) {
-        restartLoader()
-        val listView: ListView = dialog.findViewById(R.id.load_dungeon_list)
-        list = listView
-        listView.adapter = cursorAdapter
-        listView.setOnItemClickListener { _, _, _, l -> getSelectedDungeon(l) }
-        listView.setOnItemLongClickListener { _, _, _, l ->
-            deleteSingleDungeon(l)
-            true
-        }
-    }
-
     private fun deleteSingleDungeon(id: Long) {
-        getUriAndFilter(id)
-        val dialogClickListener = DialogInterface.OnClickListener { _, button ->
-            if (button == DialogInterface.BUTTON_POSITIVE) {
-                lifecycleScope.launch(Dispatchers.IO) {
-                    contentResolver.delete(DungeonsProvider.CONTENT_URI, filter, null)
-                    withContext(Dispatchers.Main) {
-                        restartLoader()
-                        Toast.makeText(
-                            this@MainActivity,
-                            getString(R.string.selected_deleted),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-            }
-        }
         AlertDialog.Builder(this)
             .setMessage(getString(R.string.delete_confirmation_single_text))
-            .setPositiveButton(getString(android.R.string.ok), dialogClickListener)
-            .setNegativeButton(getString(android.R.string.cancel), dialogClickListener)
+            .setPositiveButton(getString(android.R.string.ok)) { _, _ ->
+                viewModel.deleteDungeon(id)
+                Toast.makeText(
+                    this@MainActivity,
+                    getString(R.string.selected_deleted),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            .setNegativeButton(getString(android.R.string.cancel), null)
             .show()
     }
 
     private fun getSelectedDungeon(id: Long) {
-        getUriAndFilter(id)
-        val u = uri ?: return
-        lifecycleScope.launch(Dispatchers.IO) {
-            val cursor = contentResolver.query(u, DBOpenHelper.ALL_COLUMNS, filter, null, null)
-            withContext(Dispatchers.Main) {
-                cursor?.use { c ->
-                    if (c.moveToFirst()) {
-                        loadDungeon(c)
-                    }
-                }
+        lifecycleScope.launch {
+            val entity = viewModel.getDungeonById(id)
+            if (entity != null) {
+                loadDungeon(entity)
             }
         }
     }
 
-    private fun getUriAndFilter(id: Long) {
-        uri = "${DungeonsProvider.CONTENT_URI}/$id".toUri()
-        filter = "${DBOpenHelper.DUNGEON_ID}=${uri?.lastPathSegment}"
-    }
-
-    private fun restartLoader() {
-        LoaderManager.getInstance(this).restartLoader(0, null, this)
-    }
-
-    private fun loadDungeon(cursor: Cursor) {
-        val dungeon = Intent(this, DungeonActivity::class.java)
-        val extras = Bundle()
-        for (column in DBOpenHelper.TO_BUNDLE) {
-            extras.putString(column, cursor.getString(cursor.getColumnIndexOrThrow(column)))
+    private fun loadDungeon(dungeon: DungeonEntity) {
+        val intent = Intent(this, DungeonActivity::class.java).apply {
+            putExtra("DUNGEON_ID", dungeon.id)
+            putExtra("THEME", spinnerTheme.selectedItem.toString())
+            putExtra(DBOpenHelper.CORRIDORS, dungeon.corridors)
+            putExtra(DBOpenHelper.DEAD_ENDS, dungeon.deadEnds)
+            putExtra(DBOpenHelper.DUNGEON_DIFFICULTY, dungeon.dungeonDifficulty)
+            putExtra(DBOpenHelper.DUNGEON_SIZE, dungeon.dungeonSize)
+            putExtra(DBOpenHelper.ITEMS_RARITY, dungeon.itemsRarity)
+            putExtra(DBOpenHelper.MONSTER_TYPE, dungeon.monsterType)
+            putExtra(DBOpenHelper.PARTY_LEVEL, dungeon.partyLevel)
+            putExtra(DBOpenHelper.PARTY_SIZE, dungeon.partySize)
+            putExtra(DBOpenHelper.ROAMING_MONSTERS, dungeon.roamingMonsters)
+            putExtra(DBOpenHelper.ROOM_DENSITY, dungeon.roomDensity)
+            putExtra(DBOpenHelper.ROOM_SIZE, dungeon.roomSize)
+            putExtra(DBOpenHelper.TRAPS, dungeon.traps)
+            putExtra(DBOpenHelper.TREASURE_VALUE, dungeon.treasureValue)
         }
-        extras.putString("URI", uri.toString())
-        extras.putString("FILTER", filter)
-        extras.putString("THEME", spinnerTheme.selectedItem.toString())
-        dungeon.putExtras(extras)
-        setSpinners(extras)
-        startActivity(dungeon)
+        setSpinnersFromEntity(dungeon)
+        startActivity(intent)
         loadDialog?.dismiss()
     }
 
-    private fun setSpinners(extras: Bundle) {
-        spinnerDifficulty.setSelection(
-            getIndex(
-                spinnerDifficulty,
-                extras.getString(DBOpenHelper.DUNGEON_DIFFICULTY)
-            )
-        )
-        spinnerPartyLevel.setSelection(
-            getIndex(
-                spinnerPartyLevel,
-                extras.getString(DBOpenHelper.PARTY_LEVEL)
-            )
-        )
-        spinnerPartySize.setSelection(
-            getIndex(
-                spinnerPartySize,
-                extras.getString(DBOpenHelper.PARTY_SIZE)
-            )
-        )
-        spinnerTreasureValue.setSelection(
-            getIndex(
-                spinnerTreasureValue,
-                extras.getString(DBOpenHelper.TREASURE_VALUE)
-            )
-        )
-        spinnerItemsRarity.setSelection(
-            getIndex(
-                spinnerItemsRarity,
-                extras.getString(DBOpenHelper.ITEMS_RARITY)
-            )
-        )
-        spinnerSize.setSelection(getIndex(spinnerSize, extras.getString(DBOpenHelper.DUNGEON_SIZE)))
-        spinnerRoomDens.setSelection(
-            getIndex(
-                spinnerRoomDens,
-                extras.getString(DBOpenHelper.ROOM_DENSITY)
-            )
-        )
-        spinnerRoomSize.setSelection(
-            getIndex(
-                spinnerRoomSize,
-                extras.getString(DBOpenHelper.ROOM_SIZE)
-            )
-        )
-        spinnerTraps.setSelection(getIndex(spinnerTraps, extras.getString(DBOpenHelper.TRAPS)))
-        spinnerCorridors.setSelection(
-            getIndex(
-                spinnerCorridors,
-                extras.getString(DBOpenHelper.CORRIDORS)
-            )
-        )
-        val mt = extras.getString(DBOpenHelper.MONSTER_TYPE)
-        if (mt != null) {
-            spinnerMonsterType.setAllText(mt)
+    private fun setSpinnersFromEntity(dungeon: DungeonEntity) {
+        spinnerDifficulty.setSelection(getIndex(spinnerDifficulty, dungeon.dungeonDifficulty))
+        spinnerPartyLevel.setSelection(getIndex(spinnerPartyLevel, dungeon.partyLevel))
+        spinnerPartySize.setSelection(getIndex(spinnerPartySize, dungeon.partySize))
+        spinnerTreasureValue.setSelection(getIndex(spinnerTreasureValue, dungeon.treasureValue))
+        spinnerItemsRarity.setSelection(getIndex(spinnerItemsRarity, dungeon.itemsRarity))
+        spinnerSize.setSelection(getIndex(spinnerSize, dungeon.dungeonSize))
+        spinnerRoomDens.setSelection(getIndex(spinnerRoomDens, dungeon.roomDensity))
+        spinnerRoomSize.setSelection(getIndex(spinnerRoomSize, dungeon.roomSize))
+        spinnerTraps.setSelection(getIndex(spinnerTraps, dungeon.traps))
+        spinnerCorridors.setSelection(getIndex(spinnerCorridors, dungeon.corridors))
+        if (dungeon.monsterType != null) {
+            spinnerMonsterType.setAllText(dungeon.monsterType)
         }
-        spinnerDeadEnds.setSelection(
-            getIndex(
-                spinnerDeadEnds,
-                extras.getString(DBOpenHelper.DEAD_ENDS)
-            )
-        )
+        spinnerDeadEnds.setSelection(getIndex(spinnerDeadEnds, dungeon.deadEnds))
         spinnerRoamingMonsters.setSelection(
             getIndex(
                 spinnerRoamingMonsters,
-                extras.getString(DBOpenHelper.ROAMING_MONSTERS)
+                dungeon.roamingMonsters
             )
         )
     }
@@ -379,10 +315,7 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
     private fun generateDungeon() {
         val dungeon = Intent(this, DungeonActivity::class.java)
         val extras = Bundle().apply {
-            putString(DBOpenHelper.LOADED_DUNGEON, null)
-            putString(DBOpenHelper.LOADED_ROOM_DESCRIPTION, null)
-            putString(DBOpenHelper.LOADED_TRAP_DESCRIPTION, null)
-            putString(DBOpenHelper.LOADED_ROAMING_MONSTERS, null)
+            putLong("DUNGEON_ID", -1L)
             putString(DBOpenHelper.DUNGEON_DIFFICULTY, spinnerDifficulty.selectedItem.toString())
             putString(DBOpenHelper.PARTY_LEVEL, spinnerPartyLevel.selectedItem.toString())
             putString(DBOpenHelper.PARTY_SIZE, spinnerPartySize.selectedItem.toString())
@@ -471,15 +404,32 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
             .show()
     }
 
-    override fun onCreateLoader(id: Int, args: Bundle?): Loader<Cursor> {
-        return CursorLoader(this, DungeonsProvider.CONTENT_URI, null, null, null, null)
-    }
+    private class ViewHolder(val textView: TextView)
 
-    override fun onLoadFinished(loader: Loader<Cursor>, data: Cursor?) {
-        cursorAdapter?.swapCursor(data)
-    }
-
-    override fun onLoaderReset(loader: Loader<Cursor>) {
-        cursorAdapter?.changeCursor(null)
+    private class DungeonSummaryAdapter(
+        context: Context,
+        summaries: MutableList<DungeonSummary>
+    ) : ArrayAdapter<DungeonSummary>(
+        context,
+        R.layout.list_item_dungeon,
+        android.R.id.text1,
+        summaries
+    ) {
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            val view: View
+            val holder: ViewHolder
+            if (convertView == null) {
+                view =
+                    LayoutInflater.from(context).inflate(R.layout.list_item_dungeon, parent, false)
+                holder = ViewHolder(view.findViewById(android.R.id.text1))
+                view.tag = holder
+            } else {
+                view = convertView
+                holder = view.tag as ViewHolder
+            }
+            val item = getItem(position)
+            holder.textView.text = item?.dungeonName ?: ""
+            return view
+        }
     }
 }
