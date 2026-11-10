@@ -18,7 +18,8 @@ object Export {
         roamingMonsterDescription: List<RoamingMonsterDescription>?
     ): String {
         val stringBuilder = StringBuilder()
-        stringBuilder.append("""
+        stringBuilder.append(
+            """
             <html>
             <head>
             <title>DungeonMap</title>
@@ -27,7 +28,8 @@ object Export {
             <body>
             <div>
             <img src="data:image/png;base64,
-        """.trimIndent())
+        """.trimIndent()
+        )
         stringBuilder.append(bitmapToBase64String(bmp))
         stringBuilder.append("\">\n<table id=\"table_description\" class=\"wrap\">")
         if (roomDescription != null) {
@@ -35,12 +37,14 @@ object Export {
         }
         addTrapDescription(trapDescription, stringBuilder)
         addRoamingMonsters(roamingMonsterDescription, stringBuilder)
-        stringBuilder.append("""
+        stringBuilder.append(
+            """
             </table>
             </div>
             </body>
             </html>
-        """.trimIndent())
+        """.trimIndent()
+        )
         return stringBuilder.toString()
     }
 
@@ -97,10 +101,10 @@ object Export {
 
     private fun bitmapToBase64String(bmp: Bitmap): String {
         try {
-            ByteArrayOutputStream().use { byteArrayOutputStream ->
+            val initialCapacity = (bmp.width * bmp.height / 2).coerceAtLeast(1024)
+            ByteArrayOutputStream(initialCapacity).use { byteArrayOutputStream ->
                 bmp.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
-                val bytes = byteArrayOutputStream.toByteArray()
-                return Base64.encodeToString(bytes, Base64.NO_WRAP)
+                return Base64.encodeToString(byteArrayOutputStream.toByteArray(), Base64.NO_WRAP)
             }
         } catch (e: IOException) {
             Log.e("Export", "Bitmap to string failed: $e")

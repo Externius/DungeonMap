@@ -1,7 +1,6 @@
 package externius.rdmg.activities
 
 import android.app.Dialog
-import android.content.ContentValues
 import android.content.Intent
 import android.database.sqlite.SQLiteConstraintException
 import android.graphics.Bitmap
@@ -28,20 +27,19 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
-import androidx.core.net.toUri
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.drawable.toDrawable
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import externius.rdmg.R
 import externius.rdmg.database.DBOpenHelper
-import externius.rdmg.database.DungeonsProvider
+import externius.rdmg.database.DungeonEntity
 import externius.rdmg.helpers.Export
 import externius.rdmg.helpers.applyPrimaryStyle
 import externius.rdmg.models.DungeonTile
@@ -50,6 +48,10 @@ import externius.rdmg.models.RoomDescription
 import externius.rdmg.models.Textures
 import externius.rdmg.models.TrapDescription
 import externius.rdmg.views.DungeonMapView
+import externius.rdmg.viewmodels.DungeonViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.FileOutputStream
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -58,14 +60,13 @@ import java.util.Locale
 import java.util.Random
 import java.util.Scanner
 import kotlin.math.min
-import androidx.core.graphics.drawable.toDrawable
-import androidx.core.graphics.createBitmap
 
 const val SMALL = "Small"
 const val MEDIUM = "Medium"
 const val LARGE = "Large"
 
 class DungeonActivity : AppCompatActivity() {
+    private val viewModel: DungeonViewModel by viewModels()
     private val gson = Gson()
     private var exported = false
     private var dungeonDifficulty = 0
@@ -94,7 +95,8 @@ class DungeonActivity : AppCompatActivity() {
     private var jsonMonster: String? = null
     private var jsonTreasure: String? = null
     private var theme: String? = null
-    private var filter: String? = null
+    private var dungeonId: Long = -1L
+    private var loadedEntity: DungeonEntity? = null
     private var treasureValue = 0.0
     private var itemsRarity = 0
     private var loadedDungeon: Array<Array<DungeonTile>>? = null
@@ -116,16 +118,16 @@ class DungeonActivity : AppCompatActivity() {
         addLoadingScreen()
         addScreenText()
         mGestureDetector = GestureDetector(this, DungeonActivityGestureListener())
-        lifecycleScope.launch(Dispatchers.IO) {
+        lifecycleScope.launch {
             extras = intent.extras
-            setParameters()
-            jsonMonster = readJSON(R.raw.monsters)
-            jsonTreasure = readJSON(R.raw.treasures)
-            withContext(Dispatchers.Main) {
-                val dv = getDungeonView(loadedDungeon != null)
-                dungeonView = dv
-                drawDungeon(dv)
+            withContext(Dispatchers.IO) {
+                setParameters()
+                jsonMonster = readJSON(R.raw.monsters)
+                jsonTreasure = readJSON(R.raw.treasures)
             }
+            val dv = getDungeonView(loadedDungeon != null)
+            dungeonView = dv
+            drawDungeon(dv)
         }
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
@@ -172,7 +174,7 @@ class DungeonActivity : AppCompatActivity() {
         val text = resources.getStringArray(R.array.loading_screen_gen_array)
         val random = Random()
         val intentExtras = intent.extras
-        if (intentExtras?.getString("URI") != null) {
+        if (intentExtras?.getLong("DUNGEON_ID", -1L) != -1L) {
             screenText.setText(R.string.loading_text)
         } else {
             screenText.text = text[random.nextInt(text.size)]
@@ -206,16 +208,18 @@ class DungeonActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    private fun setParameters() {
+    private suspend fun setParameters() {
         val ex = extras ?: return
-        if (ex.getString("URI") != null) {
-            getLoadedColumns()
+        val id = ex.getLong("DUNGEON_ID", -1L)
+        if (id != -1L) {
+            getLoadedColumns(id)
         } else {
             loadedDungeon = null
             loadedRoomDescription = null
             loadedTrapDescription = null
             loadedRoamingMonsterDescription = null
-            filter = null
+            dungeonId = -1L
+            loadedEntity = null
         }
         val mt = ex.getString(DBOpenHelper.MONSTER_TYPE)
         val th = ex.getString("THEME")
@@ -226,8 +230,8 @@ class DungeonActivity : AppCompatActivity() {
         traps = setTraps(ex.getString(DBOpenHelper.TRAPS))
         hasDeadEnds = setBooleans(ex.getString(DBOpenHelper.DEAD_ENDS))
         hasCorridor = setBooleans(ex.getString(DBOpenHelper.CORRIDORS))
-        partySize = ex.getString(DBOpenHelper.PARTY_SIZE)?.toInt() ?: 4
-        partyLevel = ex.getString(DBOpenHelper.PARTY_LEVEL)?.toInt() ?: 1
+        partySize = ex.getString(DBOpenHelper.PARTY_SIZE)?.toIntOrNull() ?: 4
+        partyLevel = ex.getString(DBOpenHelper.PARTY_LEVEL)?.toIntOrNull() ?: 1
         treasureValue = setTreasureValue(ex.getString(DBOpenHelper.TREASURE_VALUE))
         itemsRarity = setItemsRarity(ex.getString(DBOpenHelper.ITEMS_RARITY))
         roamingMonsters = setRoamingMonsters(ex.getString(DBOpenHelper.ROAMING_MONSTERS))
@@ -352,35 +356,22 @@ class DungeonActivity : AppCompatActivity() {
         return 0
     }
 
-    private fun getLoadedColumns() {
-        val ex = extras ?: return
-        val uriStr = ex.getString("URI") ?: return
-        val uri = uriStr.toUri()
-        filter = ex.getString("FILTER")
-        contentResolver.query(uri, DBOpenHelper.ALL_COLUMNS, filter, null, null)?.use { cursor ->
-            if (cursor.moveToFirst()) {
-                loadedDungeon = gson.fromJson(
-                    cursor.getString(cursor.getColumnIndexOrThrow(DBOpenHelper.LOADED_DUNGEON)),
-                    Array<Array<DungeonTile>>::class.java
-                )
-                val roomListType = object : TypeToken<ArrayList<RoomDescription>>() {}.type
-                loadedRoomDescription = gson.fromJson(
-                    cursor.getString(cursor.getColumnIndexOrThrow(DBOpenHelper.LOADED_ROOM_DESCRIPTION)),
-                    roomListType
-                )
-                val trapListType = object : TypeToken<ArrayList<TrapDescription>>() {}.type
-                loadedTrapDescription = gson.fromJson(
-                    cursor.getString(cursor.getColumnIndexOrThrow(DBOpenHelper.LOADED_TRAP_DESCRIPTION)),
-                    trapListType
-                )
-                val monsterListType =
-                    object : TypeToken<ArrayList<RoamingMonsterDescription>>() {}.type
-                loadedRoamingMonsterDescription = gson.fromJson(
-                    cursor.getString(cursor.getColumnIndexOrThrow(DBOpenHelper.LOADED_ROAMING_MONSTERS)),
-                    monsterListType
-                )
-            }
-        }
+    private suspend fun getLoadedColumns(id: Long) {
+        dungeonId = id
+        val entity = viewModel.getDungeonById(id) ?: return
+        loadedEntity = entity
+        loadedDungeon = gson.fromJson(
+            entity.loadedDungeon,
+            Array<Array<DungeonTile>>::class.java
+        )
+        val roomListType = object : TypeToken<ArrayList<RoomDescription>>() {}.type
+        loadedRoomDescription = gson.fromJson(entity.loadedRoomDescription, roomListType)
+        val trapListType = object : TypeToken<ArrayList<TrapDescription>>() {}.type
+        loadedTrapDescription = gson.fromJson(entity.loadedTrapDescription, trapListType)
+        val monsterListType =
+            object : TypeToken<ArrayList<RoamingMonsterDescription>>() {}.type
+        loadedRoamingMonsterDescription =
+            gson.fromJson(entity.loadedRoamingMonsters, monsterListType)
     }
 
     private fun generateDungeon() {
@@ -400,7 +391,8 @@ class DungeonActivity : AppCompatActivity() {
             dv.roamingMonsterDescription
         )
         addTouchListener()
-        filter = null
+        dungeonId = -1L
+        loadedEntity = null
     }
 
     private fun addTouchListener() {
@@ -596,61 +588,85 @@ class DungeonActivity : AppCompatActivity() {
     }
 
     private fun saveData() {
-        val currentFilter = filter
+        val id = dungeonId
+        val currentEntity = loadedEntity
 
-        if (currentFilter != null) {
-            val updateValues = getUpdateValues()
-            lifecycleScope.launch(Dispatchers.IO) {
+        if (id != -1L && currentEntity != null) {
+            val updatedEntity = currentEntity.copy(
+                loadedRoomDescription = gson.toJson(loadedRoomDescription),
+                loadedTrapDescription = gson.toJson(loadedTrapDescription),
+                loadedRoamingMonsters = gson.toJson(loadedRoamingMonsterDescription)
+            )
+            lifecycleScope.launch {
                 try {
-                    contentResolver.update(
-                        DungeonsProvider.CONTENT_URI,
-                        updateValues,
-                        currentFilter,
-                        null
-                    )
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(this@DungeonActivity, getString(R.string.dungeon_updated), Toast.LENGTH_SHORT)
-                            .show()
-                    }
-                } catch (_: Exception) {
-                    withContext(Dispatchers.Main) {
+                    val count = viewModel.updateDungeon(updatedEntity)
+                    if (count > 0) {
+                        loadedEntity = updatedEntity
                         Toast.makeText(
                             this@DungeonActivity,
-                            getString(R.string.dungeon_update_error),
+                            getString(R.string.dungeon_updated),
                             Toast.LENGTH_SHORT
                         ).show()
                     }
+                } catch (_: Exception) {
+                    Toast.makeText(
+                        this@DungeonActivity,
+                        getString(R.string.dungeon_update_error),
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         } else {
-            val insertValues = getDungeonContentValues()
-            lifecycleScope.launch(Dispatchers.IO) {
+            val ex = extras
+            val dv = dungeonView
+            val createdTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).apply {
+                timeZone = java.util.TimeZone.getTimeZone("UTC")
+            }.format(java.util.Date())
+            val newEntity = DungeonEntity(
+                dungeonName = "Dungeon_${getFormattedDate()}",
+                loadedDungeon = gson.toJson(dv?.dungeonTiles),
+                loadedRoomDescription = gson.toJson(dv?.roomDescription),
+                loadedTrapDescription = gson.toJson(dv?.trapDescription),
+                loadedRoamingMonsters = gson.toJson(dv?.roamingMonsterDescription),
+                dungeonDifficulty = ex?.getString(DBOpenHelper.DUNGEON_DIFFICULTY),
+                partyLevel = ex?.getString(DBOpenHelper.PARTY_LEVEL),
+                partySize = ex?.getString(DBOpenHelper.PARTY_SIZE),
+                treasureValue = ex?.getString(DBOpenHelper.TREASURE_VALUE),
+                itemsRarity = ex?.getString(DBOpenHelper.ITEMS_RARITY),
+                dungeonSize = ex?.getString(DBOpenHelper.DUNGEON_SIZE),
+                roomDensity = ex?.getString(DBOpenHelper.ROOM_DENSITY),
+                roomSize = ex?.getString(DBOpenHelper.ROOM_SIZE),
+                traps = ex?.getString(DBOpenHelper.TRAPS),
+                corridors = if (hasCorridor) "YES" else "NO",
+                monsterType = ex?.getString(DBOpenHelper.MONSTER_TYPE),
+                deadEnds = if (hasDeadEnds) "YES" else "NO",
+                roamingMonsters = ex?.getString(DBOpenHelper.ROAMING_MONSTERS),
+                dungeonCreated = createdTime
+            )
+            lifecycleScope.launch {
                 try {
-                    val uriInserted =
-                        contentResolver.insert(DungeonsProvider.CONTENT_URI, insertValues)
-                    withContext(Dispatchers.Main) {
-                        if (uriInserted != null) {
-                            filter = "${DBOpenHelper.DUNGEON_ID}=${uriInserted.lastPathSegment}"
-                        }
-                        Toast.makeText(this@DungeonActivity, getString(R.string.dungeon_saved), Toast.LENGTH_SHORT)
-                            .show()
+                    val newId = viewModel.insertDungeon(newEntity)
+                    if (newId > 0) {
+                        dungeonId = newId
+                        loadedEntity = newEntity.copy(id = newId)
+                        Toast.makeText(
+                            this@DungeonActivity,
+                            getString(R.string.dungeon_saved),
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 } catch (_: SQLiteConstraintException) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(
-                            this@DungeonActivity,
-                            getString(R.string.dungeon_already_saved),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+                    Toast.makeText(
+                        this@DungeonActivity,
+                        getString(R.string.dungeon_already_saved),
+                        Toast.LENGTH_SHORT
+                    ).show()
                 } catch (_: Exception) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(
-                            this@DungeonActivity,
-                            getString(R.string.dungeon_save_error),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+                    Toast.makeText(
+                        this@DungeonActivity,
+                        getString(R.string.dungeon_save_error),
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
@@ -689,42 +705,6 @@ class DungeonActivity : AppCompatActivity() {
             )
         }
         addTouchListener()
-    }
-
-    private fun getUpdateValues(): ContentValues {
-        val values = ContentValues()
-        values.put(DBOpenHelper.LOADED_ROOM_DESCRIPTION, gson.toJson(loadedRoomDescription))
-        values.put(DBOpenHelper.LOADED_TRAP_DESCRIPTION, gson.toJson(loadedTrapDescription))
-        values.put(
-            DBOpenHelper.LOADED_ROAMING_MONSTERS,
-            gson.toJson(loadedRoamingMonsterDescription)
-        )
-        return values
-    }
-
-    private fun getDungeonContentValues(): ContentValues {
-        val values = ContentValues()
-        val ex = extras
-        val dv = dungeonView
-        values.put(DBOpenHelper.DUNGEON_NAME, "Dungeon_${getFormattedDate()}")
-        values.put(DBOpenHelper.LOADED_DUNGEON, gson.toJson(dv?.dungeonTiles))
-        values.put(DBOpenHelper.LOADED_ROOM_DESCRIPTION, gson.toJson(dv?.roomDescription))
-        values.put(DBOpenHelper.LOADED_TRAP_DESCRIPTION, gson.toJson(dv?.trapDescription))
-        values.put(DBOpenHelper.LOADED_ROAMING_MONSTERS, gson.toJson(dv?.roamingMonsterDescription))
-        values.put(DBOpenHelper.DUNGEON_DIFFICULTY, ex?.getString(DBOpenHelper.DUNGEON_DIFFICULTY))
-        values.put(DBOpenHelper.PARTY_LEVEL, ex?.getString(DBOpenHelper.PARTY_LEVEL))
-        values.put(DBOpenHelper.PARTY_SIZE, ex?.getString(DBOpenHelper.PARTY_SIZE))
-        values.put(DBOpenHelper.TREASURE_VALUE, ex?.getString(DBOpenHelper.TREASURE_VALUE))
-        values.put(DBOpenHelper.ITEMS_RARITY, ex?.getString(DBOpenHelper.ITEMS_RARITY))
-        values.put(DBOpenHelper.DUNGEON_SIZE, ex?.getString(DBOpenHelper.DUNGEON_SIZE))
-        values.put(DBOpenHelper.ROOM_DENSITY, ex?.getString(DBOpenHelper.ROOM_DENSITY))
-        values.put(DBOpenHelper.ROOM_SIZE, ex?.getString(DBOpenHelper.ROOM_SIZE))
-        values.put(DBOpenHelper.TRAPS, ex?.getString(DBOpenHelper.TRAPS))
-        values.put(DBOpenHelper.CORRIDORS, ex?.getString(DBOpenHelper.CORRIDORS))
-        values.put(DBOpenHelper.MONSTER_TYPE, ex?.getString(DBOpenHelper.MONSTER_TYPE))
-        values.put(DBOpenHelper.DEAD_ENDS, ex?.getString(DBOpenHelper.DEAD_ENDS))
-        values.put(DBOpenHelper.ROAMING_MONSTERS, ex?.getString(DBOpenHelper.ROAMING_MONSTERS))
-        return values
     }
 
     private fun getFormattedDate(): String {
@@ -811,7 +791,8 @@ class DungeonActivity : AppCompatActivity() {
 
     private fun export() {
         if (exported) {
-            Toast.makeText(this, getString(R.string.dungeon_already_exported), Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.dungeon_already_exported), Toast.LENGTH_SHORT)
+                .show()
             return
         }
         if (isExternalStorageWritableAndHasSpace()) {
@@ -844,6 +825,7 @@ class DungeonActivity : AppCompatActivity() {
                 trapDesc,
                 monsterDesc
             )
+            dungeonBitmap.recycle()
             writeDocument(uri, html)
             withContext(Dispatchers.Main) {
                 exported = true
