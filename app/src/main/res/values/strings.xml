@@ -159,6 +159,7 @@
     <string name="theme_light">Light Mode</string>
     <string name="theme_dark">Dark Mode</string>
     <string name="select_saved_dungeon">Select saved dungeon</string>
+    <string name="no_saved_dungeons">No saved dungeons</string>
     <string name="select_monster_type">Select monster type</string>
     <string name="dungeon_entry">Dungeon Entry</string>
     <string name="dungeon_updated">Dungeon updated</string>

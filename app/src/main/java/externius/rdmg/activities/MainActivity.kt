@@ -2,7 +2,6 @@ package externius.rdmg.activities
 
 import android.app.AlertDialog
 import android.app.Dialog
-import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
@@ -13,19 +12,23 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import android.widget.Button
-import android.widget.ListView
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
 import externius.rdmg.R
 import externius.rdmg.database.DBOpenHelper
 import externius.rdmg.database.DungeonEntity
@@ -55,7 +58,6 @@ class MainActivity : AppCompatActivity() {
     private val viewModel: MainViewModel by viewModels()
     private var loadDialog: Dialog? = null
     private var dungeonAdapter: DungeonSummaryAdapter? = null
-    private var list: ListView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -169,8 +171,8 @@ class MainActivity : AppCompatActivity() {
     private fun showLoadDialog() {
         val dlg = Dialog(this, R.style.Dialog)
         loadDialog = dlg
+        dlg.requestWindowFeature(Window.FEATURE_NO_TITLE)
         dlg.setContentView(R.layout.load_dungeons_popup)
-        dlg.setTitle(getString(R.string.select_saved_dungeon))
         val closePopupBtn: Button = dlg.findViewById(R.id.popup_close_button)
         val deleteAllBtn: Button = dlg.findViewById(R.id.delete_all_dungeon_button)
         closePopupBtn.applyPrimaryStyle()
@@ -182,41 +184,38 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupLoadDialogList(dialog: Dialog) {
-        val listView: ListView = dialog.findViewById(R.id.load_dungeon_list)
-        list = listView
-        val adapter = DungeonSummaryAdapter(this, mutableListOf())
+        val rv: RecyclerView = dialog.findViewById(R.id.load_dungeon_list)
+        val emptyTextView: TextView = dialog.findViewById(R.id.empty_text_view)
+        val deleteAllBtn: Button = dialog.findViewById(R.id.delete_all_dungeon_button)
+        rv.layoutManager = LinearLayoutManager(this)
+        val adapter = DungeonSummaryAdapter(
+            onItemClick = { summary -> getSelectedDungeon(summary.id) },
+            onItemLongClick = { summary -> deleteSingleDungeon(summary.id) }
+        )
         dungeonAdapter = adapter
-        listView.adapter = adapter
-
-        listView.setOnItemClickListener { _, _, position, _ ->
-            val summary = adapter.getItem(position) ?: return@setOnItemClickListener
-            getSelectedDungeon(summary.id)
-        }
-        listView.setOnItemLongClickListener { _, _, position, _ ->
-            val summary = adapter.getItem(position) ?: return@setOnItemLongClickListener true
-            deleteSingleDungeon(summary.id)
-            true
-        }
+        rv.adapter = adapter
 
         val collectorJob = lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.dungeonSummaries.collect { summaries ->
-                    adapter.clear()
-                    adapter.addAll(summaries)
+                    adapter.submitList(summaries)
+                    val hasItems = summaries.isNotEmpty()
+                    deleteAllBtn.isVisible = hasItems
+                    rv.isVisible = hasItems
+                    emptyTextView.isVisible = !hasItems
                 }
             }
         }
         dialog.setOnDismissListener {
             collectorJob.cancel()
-            list = null
             dungeonAdapter = null
             loadDialog = null
         }
     }
 
     private fun deleteAllData() {
-        val listView = list
-        if (listView != null && listView.count > 0) {
+        val adapter = dungeonAdapter
+        if (adapter != null && adapter.itemCount > 0) {
             AlertDialog.Builder(this)
                 .setMessage(getString(R.string.delete_confirmation_text))
                 .setPositiveButton(getString(android.R.string.ok)) { _, _ ->
@@ -404,32 +403,49 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    private class ViewHolder(val textView: TextView)
-
     private class DungeonSummaryAdapter(
-        context: Context,
-        summaries: MutableList<DungeonSummary>
-    ) : ArrayAdapter<DungeonSummary>(
-        context,
-        R.layout.list_item_dungeon,
-        android.R.id.text1,
-        summaries
-    ) {
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            val view: View
-            val holder: ViewHolder
-            if (convertView == null) {
-                view =
-                    LayoutInflater.from(context).inflate(R.layout.list_item_dungeon, parent, false)
-                holder = ViewHolder(view.findViewById(android.R.id.text1))
-                view.tag = holder
-            } else {
-                view = convertView
-                holder = view.tag as ViewHolder
-            }
+        private val onItemClick: (DungeonSummary) -> Unit,
+        private val onItemLongClick: (DungeonSummary) -> Unit
+    ) : ListAdapter<DungeonSummary, DungeonSummaryAdapter.ViewHolder>(DungeonDiffCallback) {
+
+        class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            val textView: TextView = itemView.findViewById(android.R.id.text1)
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.list_item_dungeon, parent, false)
+            return ViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val item = getItem(position)
             holder.textView.text = item?.dungeonName ?: ""
-            return view
+            holder.itemView.setOnClickListener {
+                val pos = holder.bindingAdapterPosition
+                if (pos != RecyclerView.NO_POSITION) {
+                    val currentItem = getItem(pos)
+                    if (currentItem != null) onItemClick(currentItem)
+                }
+            }
+            holder.itemView.setOnLongClickListener {
+                val pos = holder.bindingAdapterPosition
+                if (pos != RecyclerView.NO_POSITION) {
+                    val currentItem = getItem(pos)
+                    if (currentItem != null) onItemLongClick(currentItem)
+                }
+                true
+            }
+        }
+    }
+
+    private object DungeonDiffCallback : DiffUtil.ItemCallback<DungeonSummary>() {
+        override fun areItemsTheSame(oldItem: DungeonSummary, newItem: DungeonSummary): Boolean {
+            return oldItem.id == newItem.id
+        }
+
+        override fun areContentsTheSame(oldItem: DungeonSummary, newItem: DungeonSummary): Boolean {
+            return oldItem == newItem
         }
     }
 }
