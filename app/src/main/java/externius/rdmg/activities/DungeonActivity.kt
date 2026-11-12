@@ -32,6 +32,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.widget.doAfterTextChanged
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toDrawable
 import androidx.lifecycle.lifecycleScope
@@ -43,6 +44,7 @@ import externius.rdmg.database.DungeonEntity
 import externius.rdmg.helpers.Export
 import externius.rdmg.helpers.applyPrimaryStyle
 import externius.rdmg.models.DungeonTile
+import externius.rdmg.models.EditPopupState
 import externius.rdmg.models.RoamingMonsterDescription
 import externius.rdmg.models.RoomDescription
 import externius.rdmg.models.Textures
@@ -95,14 +97,45 @@ class DungeonActivity : AppCompatActivity() {
     private var jsonMonster: String? = null
     private var jsonTreasure: String? = null
     private var theme: String? = null
-    private var dungeonId: Long = -1L
-    private var loadedEntity: DungeonEntity? = null
+
+    private var dungeonId: Long
+        get() = viewModel.dungeonId
+        set(value) {
+            viewModel.dungeonId = value
+        }
+
+    private var loadedEntity: DungeonEntity?
+        get() = viewModel.loadedEntity
+        set(value) {
+            viewModel.loadedEntity = value
+        }
+
+    private var loadedDungeon: Array<Array<DungeonTile>>?
+        get() = viewModel.loadedDungeon
+        set(value) {
+            viewModel.loadedDungeon = value
+        }
+
+    private var loadedRoomDescription: MutableList<RoomDescription>?
+        get() = viewModel.loadedRoomDescription
+        set(value) {
+            viewModel.loadedRoomDescription = value
+        }
+
+    private var loadedTrapDescription: MutableList<TrapDescription>?
+        get() = viewModel.loadedTrapDescription
+        set(value) {
+            viewModel.loadedTrapDescription = value
+        }
+
+    private var loadedRoamingMonsterDescription: MutableList<RoamingMonsterDescription>?
+        get() = viewModel.loadedRoamingMonsterDescription
+        set(value) {
+            viewModel.loadedRoamingMonsterDescription = value
+        }
+
     private var treasureValue = 0.0
     private var itemsRarity = 0
-    private var loadedDungeon: Array<Array<DungeonTile>>? = null
-    private var loadedRoomDescription: MutableList<RoomDescription>? = null
-    private var loadedTrapDescription: MutableList<TrapDescription>? = null
-    private var loadedRoamingMonsterDescription: MutableList<RoamingMonsterDescription>? = null
     private var extras: Bundle? = null
     private var mLastClickTime: Long = 0
     private var area = 0
@@ -128,6 +161,9 @@ class DungeonActivity : AppCompatActivity() {
             val dv = getDungeonView(loadedDungeon != null)
             dungeonView = dv
             drawDungeon(dv)
+            viewModel.editPopupState?.let { popupState ->
+                editPopUp(popupState.index, popupState.texture, popupState)
+            }
         }
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
@@ -212,14 +248,18 @@ class DungeonActivity : AppCompatActivity() {
         val ex = extras ?: return
         val id = ex.getLong("DUNGEON_ID", -1L)
         if (id != -1L) {
-            getLoadedColumns(id)
+            if (viewModel.loadedDungeon == null) {
+                getLoadedColumns(id)
+            }
         } else {
-            loadedDungeon = null
-            loadedRoomDescription = null
-            loadedTrapDescription = null
-            loadedRoamingMonsterDescription = null
-            dungeonId = -1L
-            loadedEntity = null
+            if (viewModel.loadedDungeon == null) {
+                loadedDungeon = null
+                loadedRoomDescription = null
+                loadedTrapDescription = null
+                loadedRoamingMonsterDescription = null
+                dungeonId = -1L
+                loadedEntity = null
+            }
         }
         val mt = ex.getString(DBOpenHelper.MONSTER_TYPE)
         val th = ex.getString("THEME")
@@ -380,6 +420,13 @@ class DungeonActivity : AppCompatActivity() {
             layoutView.removeAllViews()
             exported = false
         }
+        viewModel.editPopupState = null
+        loadedDungeon = null
+        loadedRoomDescription = null
+        loadedTrapDescription = null
+        loadedRoamingMonsterDescription = null
+        dungeonId = -1L
+        loadedEntity = null
         val dv = getDungeonView(false)
         dungeonView = dv
         layoutView.addView(dv)
@@ -391,8 +438,6 @@ class DungeonActivity : AppCompatActivity() {
             dv.roamingMonsterDescription
         )
         addTouchListener()
-        dungeonId = -1L
-        loadedEntity = null
     }
 
     private fun addTouchListener() {
@@ -446,24 +491,52 @@ class DungeonActivity : AppCompatActivity() {
         }
     }
 
-    private fun editPopUp(index: Int, texture: Textures) {
+    private fun editPopUp(index: Int, texture: Textures, restoredState: EditPopupState? = null) {
         val dlg = Dialog(this, R.style.Dialog)
         dialog = dlg
         val descriptionView: EditText
         val saveButton: Button
         when (texture) {
             Textures.ROOM -> {
-                val roomsList = loadedRoomDescription ?: return
-                if (index < 0 || index >= roomsList.size) return
+                val roomsList = loadedRoomDescription ?: run {
+                    viewModel.editPopupState = null
+                    return
+                }
+                if (index < 0 || index >= roomsList.size) {
+                    viewModel.editPopupState = null
+                    return
+                }
                 val room = roomsList[index]
                 dlg.setContentView(R.layout.room_edit_popup)
                 dlg.setTitle(room.name)
                 val monsters: EditText = dlg.findViewById(R.id.edit_monster)
-                monsters.setText((room.monster ?: "").removePrefix("Monsters: "))
+                val initialMonster =
+                    restoredState?.monsterText ?: (room.monster ?: "").removePrefix("Monsters: ")
+                monsters.setText(initialMonster)
                 setTextStyle(monsters, false)
+
                 val treasures: EditText = dlg.findViewById(R.id.edit_treasure)
-                treasures.setText((room.treasure ?: "").removePrefix("Treasures: "))
+                val initialTreasure =
+                    restoredState?.treasureText ?: (room.treasure ?: "").removePrefix("Treasures: ")
+                treasures.setText(initialTreasure)
                 setTextStyle(treasures, false)
+
+                viewModel.editPopupState = EditPopupState(
+                    index = index,
+                    texture = texture,
+                    monsterText = monsters.text.toString(),
+                    treasureText = treasures.text.toString()
+                )
+
+                val updateState = {
+                    viewModel.editPopupState = viewModel.editPopupState?.copy(
+                        monsterText = monsters.text.toString(),
+                        treasureText = treasures.text.toString()
+                    )
+                }
+                monsters.doAfterTextChanged { updateState() }
+                treasures.doAfterTextChanged { updateState() }
+
                 saveButton = dlg.findViewById(R.id.editDialogSaveButton)
                 saveButton.setOnClickListener {
                     val newRoom = RoomDescription(
@@ -473,54 +546,108 @@ class DungeonActivity : AppCompatActivity() {
                         room.doors
                     )
                     loadedRoomDescription?.set(index, newRoom)
+                    viewModel.editPopupState = null
                     drawDungeon(null)
                     dlg.dismiss()
                 }
             }
 
             Textures.TRAP -> {
-                val trapsList = loadedTrapDescription ?: return
-                if (index < 0 || index >= trapsList.size) return
+                val trapsList = loadedTrapDescription ?: run {
+                    viewModel.editPopupState = null
+                    return
+                }
+                if (index < 0 || index >= trapsList.size) {
+                    viewModel.editPopupState = null
+                    return
+                }
                 val trap = trapsList[index]
                 dlg.setContentView(R.layout.trap_edit_popup)
                 dlg.setTitle(trap.name)
                 descriptionView = dlg.findViewById(R.id.edit_trap)
-                descriptionView.setText(trap.description)
+                val initialDesc = restoredState?.descriptionText ?: trap.description
+                descriptionView.setText(initialDesc)
                 setTextStyle(descriptionView, false)
+
+                viewModel.editPopupState = EditPopupState(
+                    index = index,
+                    texture = texture,
+                    descriptionText = descriptionView.text.toString()
+                )
+
+                descriptionView.doAfterTextChanged {
+                    viewModel.editPopupState = viewModel.editPopupState?.copy(
+                        descriptionText = descriptionView.text.toString()
+                    )
+                }
+
                 saveButton = dlg.findViewById(R.id.editDialogSaveButton)
                 saveButton.setOnClickListener {
                     val newTrap = TrapDescription(trap.name, descriptionView.text.toString())
                     loadedTrapDescription?.set(index, newTrap)
+                    viewModel.editPopupState = null
                     drawDungeon(null)
                     dlg.dismiss()
                 }
             }
 
             Textures.ROAMING_MONSTER -> {
-                val monstersList = loadedRoamingMonsterDescription ?: return
-                if (index < 0 || index >= monstersList.size) return
+                val monstersList = loadedRoamingMonsterDescription ?: run {
+                    viewModel.editPopupState = null
+                    return
+                }
+                if (index < 0 || index >= monstersList.size) {
+                    viewModel.editPopupState = null
+                    return
+                }
                 val monster = monstersList[index]
                 dlg.setContentView(R.layout.trap_edit_popup)
                 dlg.setTitle(monster.name)
                 descriptionView = dlg.findViewById(R.id.edit_trap)
-                descriptionView.setText(monster.description)
+                val initialDesc = restoredState?.descriptionText ?: monster.description
+                descriptionView.setText(initialDesc)
                 setTextStyle(descriptionView, false)
+
+                viewModel.editPopupState = EditPopupState(
+                    index = index,
+                    texture = texture,
+                    descriptionText = descriptionView.text.toString()
+                )
+
+                descriptionView.doAfterTextChanged {
+                    viewModel.editPopupState = viewModel.editPopupState?.copy(
+                        descriptionText = descriptionView.text.toString()
+                    )
+                }
+
                 saveButton = dlg.findViewById(R.id.editDialogSaveButton)
                 saveButton.setOnClickListener {
                     val newMonster =
                         RoamingMonsterDescription(monster.name, descriptionView.text.toString())
                     loadedRoamingMonsterDescription?.set(index, newMonster)
+                    viewModel.editPopupState = null
                     drawDungeon(null)
                     dlg.dismiss()
                 }
             }
 
-            else -> return
+            else -> {
+                viewModel.editPopupState = null
+                return
+            }
         }
         saveButton.applyPrimaryStyle()
         val cancelButton: Button = dlg.findViewById(R.id.editDialogCancelButton)
         cancelButton.applyPrimaryStyle()
-        cancelButton.setOnClickListener { dlg.dismiss() }
+        cancelButton.setOnClickListener {
+            viewModel.editPopupState = null
+            dlg.dismiss()
+        }
+        dlg.setOnCancelListener {
+            if (!isChangingConfigurations) {
+                viewModel.editPopupState = null
+            }
+        }
         dlg.show()
     }
 

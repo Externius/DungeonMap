@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.devtools.ksp'
+apply plugin: 'kotlin-parcelize'
 
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
