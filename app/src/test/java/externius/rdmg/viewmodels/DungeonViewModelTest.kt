@@ -1,6 +1,7 @@
 package externius.rdmg.viewmodels
 
 import android.app.Application
+import androidx.lifecycle.SavedStateHandle
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import externius.rdmg.database.AppDatabase
@@ -8,6 +9,7 @@ import externius.rdmg.database.DungeonEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -27,7 +29,7 @@ class DungeonViewModelTest {
     @Before
     fun setUp() {
         application = ApplicationProvider.getApplicationContext()
-        viewModel = DungeonViewModel(application)
+        viewModel = DungeonViewModel(application, SavedStateHandle())
     }
 
     @Test
@@ -61,6 +63,58 @@ class DungeonViewModelTest {
 
         val reFetched = viewModel.getDungeonById(id)
         assertEquals("Hard", reFetched?.dungeonDifficulty)
+    }
+
+    @Test
+    fun testRetainDungeonDataInViewModel() {
+        val tiles = arrayOf(arrayOf(externius.rdmg.models.DungeonTile(0, 0)))
+        val roomDesc = mutableListOf(
+            externius.rdmg.models.RoomDescription(
+                "Room 1",
+                "10 Gp",
+                "Giant Wolf Spider (CR: 1/4) 50 XP",
+                "Door N",
+            )
+        )
+        val trapDesc = mutableListOf(externius.rdmg.models.TrapDescription("Trap 1", "Pit"))
+        val monsterDesc =
+            mutableListOf(externius.rdmg.models.RoamingMonsterDescription("Monster 1", "Orc"))
+
+        viewModel.loadedDungeon = tiles
+        viewModel.loadedRoomDescription = roomDesc
+        viewModel.loadedTrapDescription = trapDesc
+        viewModel.loadedRoamingMonsterDescription = monsterDesc
+
+        assertArrayEquals(tiles, viewModel.loadedDungeon)
+        assertEquals(roomDesc, viewModel.loadedRoomDescription)
+        assertEquals(trapDesc, viewModel.loadedTrapDescription)
+        assertEquals(monsterDesc, viewModel.loadedRoamingMonsterDescription)
+    }
+
+    @Test
+    fun testRetainEditPopupStateInSavedStateHandle() {
+        val roomPopupState = externius.rdmg.models.EditPopupState(
+            index = 1,
+            texture = externius.rdmg.models.Textures.ROOM,
+            monsterText = "Updated Monster",
+            treasureText = "Updated Treasure",
+        )
+        viewModel.editPopupState = roomPopupState
+
+        assertEquals(roomPopupState, viewModel.editPopupState)
+
+        // Create a new ViewModel with the same SavedStateHandle (simulating recreation/rotation)
+        var recreatedViewModel = DungeonViewModel(application, viewModel.savedStateHandle)
+        assertEquals(roomPopupState, recreatedViewModel.editPopupState)
+
+        val trapPopupState = externius.rdmg.models.EditPopupState(
+            index = 0,
+            texture = externius.rdmg.models.Textures.TRAP,
+            descriptionText = "Updated Trap Description",
+        )
+        viewModel.editPopupState = trapPopupState
+        recreatedViewModel = DungeonViewModel(application, viewModel.savedStateHandle)
+        assertEquals(trapPopupState, recreatedViewModel.editPopupState)
     }
 
     private fun createTestEntity(name: String, loadedDungeon: String): DungeonEntity {
