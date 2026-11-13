@@ -946,16 +946,19 @@ class DungeonActivity : AppCompatActivity() {
         val monsterDesc = dv.roamingMonsterDescription
 
         lifecycleScope.launch(Dispatchers.IO) {
-            val html = Export.generateHTML(
-                dungeonBitmap,
-                roomDesc,
-                trapDesc,
-                monsterDesc
-            )
-            dungeonBitmap.recycle()
-            writeDocument(uri, html)
-            withContext(Dispatchers.Main) {
-                exported = true
+            try {
+                val html = Export.generateHTML(
+                    dungeonBitmap,
+                    roomDesc,
+                    trapDesc,
+                    monsterDesc
+                )
+                writeDocument(uri, html)
+                withContext(Dispatchers.Main) {
+                    exported = true
+                }
+            } finally {
+                dungeonBitmap?.takeIf { !it.isRecycled }?.recycle()
             }
         }
     }
@@ -972,17 +975,31 @@ class DungeonActivity : AppCompatActivity() {
         }
     }
 
-    private fun getBitmapFromView(view: View): Bitmap {
-        val returnedBitmap = createBitmap(view.width, view.height)
-        val canvas = Canvas(returnedBitmap)
-        val bgDrawable = view.background
-        if (bgDrawable != null) {
-            bgDrawable.draw(canvas)
-        } else {
+    private fun getBitmapFromView(view: View): Bitmap? {
+        val width = view.width
+        val height = view.height
+        if (width <= 0 || height <= 0) return null
+
+        return runCatching {
+            val maxDim = maxOf(width, height)
+            val scale = if (maxDim > Export.MAX_EXPORT_BITMAP_DIMENSION) {
+                Export.MAX_EXPORT_BITMAP_DIMENSION.toFloat() / maxDim
+            } else {
+                1.0f
+            }
+            val targetWidth = (width * scale).toInt().coerceAtLeast(1)
+            val targetHeight = (height * scale).toInt().coerceAtLeast(1)
+            val returnedBitmap = createBitmap(targetWidth, targetHeight)
+            val canvas = Canvas(returnedBitmap)
+            if (scale < 1.0f) {
+                canvas.scale(scale, scale)
+            }
             canvas.drawColor(Color.WHITE)
-        }
-        view.draw(canvas)
-        return returnedBitmap
+            view.draw(canvas)
+            returnedBitmap
+        }.onFailure { e ->
+            Log.e("DungeonActivity", "Failed to capture bitmap from view: $e")
+        }.getOrNull()
     }
 
     private fun isExternalStorageWritableAndHasSpace(): Boolean {

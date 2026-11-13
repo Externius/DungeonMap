@@ -3,19 +3,21 @@ package externius.rdmg.helpers
 import android.graphics.Bitmap
 import android.util.Base64
 import android.util.Log
+import androidx.core.graphics.scale
 import externius.rdmg.models.RoamingMonsterDescription
 import externius.rdmg.models.RoomDescription
 import externius.rdmg.models.TrapDescription
 import java.io.ByteArrayOutputStream
-import java.io.IOException
 
 object Export {
+    const val MAX_EXPORT_BITMAP_DIMENSION = 2048
+
     @JvmStatic
     fun generateHTML(
-        bmp: Bitmap,
+        bmp: Bitmap?,
         roomDescription: List<RoomDescription>?,
         trapDescription: List<TrapDescription>?,
-        roamingMonsterDescription: List<RoamingMonsterDescription>?
+        roamingMonsterDescription: List<RoamingMonsterDescription>?,
     ): String {
         val stringBuilder = StringBuilder()
         stringBuilder.append(
@@ -27,13 +29,17 @@ object Export {
             </head>
             <body>
             <div>
-            <img src="data:image/png;base64,
         """.trimIndent()
         )
-        stringBuilder.append(bitmapToBase64String(bmp))
-        stringBuilder.append("\">\n<table id=\"table_description\" class=\"wrap\">")
-        if (roomDescription != null) {
-            addRoomDescription(roomDescription, stringBuilder)
+        val base64Img = bitmapToBase64String(bmp)
+        if (base64Img.isNotEmpty()) {
+            stringBuilder.append("<img src=\"data:image/png;base64,")
+                .append(base64Img)
+                .append("\">\n")
+        }
+        stringBuilder.append("<table id=\"table_description\" class=\"wrap\">")
+        roomDescription?.let {
+            addRoomDescription(it, stringBuilder)
         }
         addTrapDescription(trapDescription, stringBuilder)
         addRoamingMonsters(roamingMonsterDescription, stringBuilder)
@@ -99,16 +105,34 @@ object Export {
         stringBuilder.append("</td></tr>")
     }
 
-    private fun bitmapToBase64String(bmp: Bitmap): String {
-        try {
-            val initialCapacity = (bmp.width * bmp.height / 2).coerceAtLeast(1024)
-            ByteArrayOutputStream(initialCapacity).use { byteArrayOutputStream ->
-                bmp.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
-                return Base64.encodeToString(byteArrayOutputStream.toByteArray(), Base64.NO_WRAP)
+    private fun bitmapToBase64String(bmp: Bitmap?): String {
+        if ((bmp == null) || bmp.isRecycled) return ""
+        return runCatching {
+            val processedBmp = getScaledBitmapIfNeeded(bmp)
+            val shouldRecycleProcessed = processedBmp != bmp
+            try {
+                val initialCapacity =
+                    (processedBmp.width * processedBmp.height / 2).coerceAtLeast(1024)
+                ByteArrayOutputStream(initialCapacity).use { byteArrayOutputStream ->
+                    processedBmp.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+                    Base64.encodeToString(byteArrayOutputStream.toByteArray(), Base64.NO_WRAP)
+                }
+            } finally {
+                if (shouldRecycleProcessed && !processedBmp.isRecycled) {
+                    processedBmp.recycle()
+                }
             }
-        } catch (e: IOException) {
+        }.onFailure { e ->
             Log.e("Export", "Bitmap to string failed: $e")
-        }
-        return ""
+        }.getOrDefault("")
+    }
+
+    private fun getScaledBitmapIfNeeded(bmp: Bitmap): Bitmap {
+        val maxDim = maxOf(bmp.width, bmp.height)
+        if (maxDim <= MAX_EXPORT_BITMAP_DIMENSION) return bmp
+        val scale = MAX_EXPORT_BITMAP_DIMENSION.toFloat() / maxDim
+        val targetW = (bmp.width * scale).toInt().coerceAtLeast(1)
+        val targetH = (bmp.height * scale).toInt().coerceAtLeast(1)
+        return bmp.scale(targetW, targetH)
     }
 }
