@@ -1,22 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:fillViewport="true"
     app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
     tools:context="externius.rdmg.activities.DungeonActivity"
-    tools:showIn="@layout/activity_dungeon"
-    android:fillViewport="true">
+    tools:showIn="@layout/activity_dungeon">
 
-    <RelativeLayout
+    <LinearLayout
+        android:id="@+id/dungeon_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="start"
-        android:orientation="horizontal"
-        android:id="@+id/dungeon_layout">
+        android:orientation="vertical">
 
-    </RelativeLayout>
+    </LinearLayout>
 
-</ScrollView>
+</androidx.core.widget.NestedScrollView>
