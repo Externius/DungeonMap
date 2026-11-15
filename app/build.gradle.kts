@@ -17,8 +17,8 @@ android {
         applicationId = "externius.rdmg"
         minSdk = 30
         targetSdk = 37
-        versionCode = 59
-        versionName = "1.2.0"
+        versionCode = 60
+        versionName = "1.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
