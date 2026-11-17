@@ -168,4 +168,5 @@
     <string name="dungeon_already_saved">Dungeon already saved</string>
     <string name="dungeon_save_error">Something went wrong during save</string>
     <string name="dungeon_already_exported">You have already exported this dungeon</string>
+    <string name="export_error_no_app">No file manager app found to save the file</string>
 </resources>
