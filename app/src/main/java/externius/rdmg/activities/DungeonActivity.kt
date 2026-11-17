@@ -1,6 +1,7 @@
 package externius.rdmg.activities
 
 import android.app.Dialog
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.database.sqlite.SQLiteConstraintException
 import android.graphics.Bitmap
@@ -934,7 +935,15 @@ class DungeonActivity : AppCompatActivity() {
             type = "text/html"
             putExtra(Intent.EXTRA_TITLE, "dungeon.html")
         }
-        exportActivityResultLauncher.launch(intent)
+        try {
+            exportActivityResultLauncher.launch(intent)
+        } catch (e: ActivityNotFoundException) {
+            Log.e("DungeonActivity", "No activity found to handle document export", e)
+            Toast.makeText(this, getString(R.string.export_error_no_app), Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Log.e("DungeonActivity", "Failed to launch document picker", e)
+            Toast.makeText(this, getString(R.string.dungeon_save_error), Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun saveDungeonMap(data: Intent?) {
