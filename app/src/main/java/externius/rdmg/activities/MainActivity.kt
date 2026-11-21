@@ -14,13 +14,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import android.widget.AdapterView
-import android.widget.Button
 import android.widget.Spinner
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -29,59 +26,49 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import dagger.hilt.android.AndroidEntryPoint
 import externius.rdmg.R
+import externius.rdmg.databinding.ActivityMainBinding
+import externius.rdmg.databinding.ListItemDungeonBinding
+import externius.rdmg.databinding.LoadDungeonsPopupBinding
 import externius.rdmg.database.DBOpenHelper
 import externius.rdmg.database.DungeonEntity
 import externius.rdmg.database.DungeonSummary
-import externius.rdmg.helpers.MultiSelectMonster
 import externius.rdmg.helpers.ThemeHelper
 import externius.rdmg.helpers.applyPrimaryStyle
 import externius.rdmg.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
-    private lateinit var spinnerDifficulty: Spinner
-    private lateinit var spinnerPartyLevel: Spinner
-    private lateinit var spinnerPartySize: Spinner
-    private lateinit var spinnerTreasureValue: Spinner
-    private lateinit var spinnerItemsRarity: Spinner
-    private lateinit var spinnerSize: Spinner
-    private lateinit var spinnerRoomDens: Spinner
-    private lateinit var spinnerRoomSize: Spinner
-    private lateinit var spinnerTraps: Spinner
-    private lateinit var spinnerCorridors: Spinner
-    private lateinit var spinnerRoamingMonsters: Spinner
-    private lateinit var spinnerMonsterType: MultiSelectMonster
-    private lateinit var spinnerDeadEnds: Spinner
-    private lateinit var spinnerTheme: Spinner
 
+    private lateinit var binding: ActivityMainBinding
     private val viewModel: MainViewModel by viewModels()
     private var loadDialog: Dialog? = null
     private var dungeonAdapter: DungeonSummaryAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         setToolbar()
-        getSpinners()
         setDefaultValues()
         addListeners()
         if (savedInstanceState != null) {
             val monsterType = savedInstanceState.getString(DBOpenHelper.MONSTER_TYPE)
             if (monsterType != null) {
-                spinnerMonsterType.setAllText(monsterType)
+                binding.contentMain.monsterType.setAllText(monsterType)
             }
         }
     }
 
     private fun setToolbar() {
-        val toolbar: Toolbar = findViewById(R.id.toolbar)
-        setSupportActionBar(toolbar)
+        setSupportActionBar(binding.toolbar)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        val text = spinnerMonsterType.allText
+        val text = binding.contentMain.monsterType.allText
         if (text != null) {
             outState.putString(DBOpenHelper.MONSTER_TYPE, text)
         }
@@ -95,15 +82,17 @@ class MainActivity : AppCompatActivity() {
                 i: Int,
                 l: Long
             ) {
-                if (spinnerCorridors.selectedItem.toString().equals("no", ignoreCase = true)) {
-                    spinnerTraps.isEnabled = false
-                    spinnerRoomDens.isEnabled = false
-                    spinnerDeadEnds.isEnabled = false
-                    spinnerRoamingMonsters.isEnabled = false
+                if (binding.contentMain.corridors.selectedItem.toString()
+                        .equals("no", ignoreCase = true)
+                ) {
+                    binding.contentMain.traps.isEnabled = false
+                    binding.contentMain.roomDensity.isEnabled = false
+                    binding.contentMain.deadEnd.isEnabled = false
+                    binding.contentMain.roamingMonsters.isEnabled = false
                 } else {
-                    spinnerTraps.isEnabled = true
-                    spinnerRoomDens.isEnabled = true
-                    spinnerDeadEnds.isEnabled = true
+                    binding.contentMain.traps.isEnabled = true
+                    binding.contentMain.roomDensity.isEnabled = true
+                    binding.contentMain.deadEnd.isEnabled = true
                     checkMonsterType()
                 }
             }
@@ -113,96 +102,75 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun addListeners() {
-        spinnerCorridors.onItemSelectedListener = getCorridorItemSelectedListener()
-        spinnerMonsterType.addTextChangedListener(object : TextWatcher {
+        binding.contentMain.corridors.onItemSelectedListener = getCorridorItemSelectedListener()
+        binding.contentMain.monsterType.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
                 checkMonsterType()
             }
         })
-        val generateButton: Button = findViewById(R.id.generate_button)
-        generateButton.setOnClickListener { generateDungeon() }
-        val loadButton: Button = findViewById(R.id.load_button)
-        loadButton.setOnClickListener { showLoadDialog() }
+        binding.contentMain.generateButton.setOnClickListener { generateDungeon() }
+        binding.contentMain.loadButton.setOnClickListener { showLoadDialog() }
     }
 
     private fun checkMonsterType() {
-        val allText = spinnerMonsterType.allText ?: ""
+        val allText = binding.contentMain.monsterType.allText ?: ""
         if (allText.equals("none", ignoreCase = true)) {
-            spinnerRoamingMonsters.isEnabled = false
-            spinnerRoamingMonsters.setSelection(0)
-        } else if (spinnerCorridors.selectedItem.toString().equals("yes", ignoreCase = true)) {
-            spinnerRoamingMonsters.isEnabled = true
+            binding.contentMain.roamingMonsters.isEnabled = false
+            binding.contentMain.roamingMonsters.setSelection(0)
+        } else if (binding.contentMain.corridors.selectedItem.toString()
+                .equals("yes", ignoreCase = true)
+        ) {
+            binding.contentMain.roamingMonsters.isEnabled = true
         }
     }
 
     private fun setDefaultValues() {
-        spinnerDifficulty.setSelection(1)
-        spinnerPartySize.setSelection(3)
-        spinnerTraps.setSelection(1)
-        spinnerTreasureValue.setSelection(1)
-        spinnerItemsRarity.setSelection(1)
-    }
-
-    private fun getSpinners() {
-        spinnerDifficulty = findViewById(R.id.dungeon_difficulty)
-        spinnerPartyLevel = findViewById(R.id.party_level)
-        spinnerPartySize = findViewById(R.id.party_size)
-        spinnerTreasureValue = findViewById(R.id.treasure_value)
-        spinnerItemsRarity = findViewById(R.id.items_rarity)
-        spinnerSize = findViewById(R.id.dungeon_size)
-        spinnerRoomDens = findViewById(R.id.room_density)
-        spinnerRoomSize = findViewById(R.id.room_size)
-        spinnerTraps = findViewById(R.id.traps)
-        spinnerCorridors = findViewById(R.id.corridors)
-        spinnerMonsterType = findViewById(R.id.monster_type)
-        spinnerDeadEnds = findViewById(R.id.dead_end)
-        spinnerTheme = findViewById(R.id.theme)
-        spinnerRoamingMonsters = findViewById(R.id.roaming_monsters)
+        binding.contentMain.dungeonDifficulty.setSelection(1)
+        binding.contentMain.partySize.setSelection(3)
+        binding.contentMain.traps.setSelection(1)
+        binding.contentMain.treasureValue.setSelection(1)
+        binding.contentMain.itemsRarity.setSelection(1)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         loadDialog?.dismiss()
-        spinnerMonsterType.dialog?.dismiss()
+        binding.contentMain.monsterType.dialog?.dismiss()
     }
 
     private fun showLoadDialog() {
         val dlg = Dialog(this, R.style.Dialog)
         loadDialog = dlg
         dlg.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        dlg.setContentView(R.layout.load_dungeons_popup)
-        val closePopupBtn: Button = dlg.findViewById(R.id.popup_close_button)
-        val deleteAllBtn: Button = dlg.findViewById(R.id.delete_all_dungeon_button)
-        closePopupBtn.applyPrimaryStyle()
-        deleteAllBtn.applyPrimaryStyle()
-        setupLoadDialogList(dlg)
-        closePopupBtn.setOnClickListener { dlg.dismiss() }
-        deleteAllBtn.setOnClickListener { deleteAllData() }
+        val popupBinding = LoadDungeonsPopupBinding.inflate(layoutInflater)
+        dlg.setContentView(popupBinding.root)
+        popupBinding.popupCloseButton.applyPrimaryStyle()
+        popupBinding.deleteAllDungeonButton.applyPrimaryStyle()
+        setupLoadDialogList(dlg, popupBinding)
+        popupBinding.popupCloseButton.setOnClickListener { dlg.dismiss() }
+        popupBinding.deleteAllDungeonButton.setOnClickListener { deleteAllData() }
         dlg.show()
     }
 
-    private fun setupLoadDialogList(dialog: Dialog) {
-        val rv: RecyclerView = dialog.findViewById(R.id.load_dungeon_list)
-        val emptyTextView: TextView = dialog.findViewById(R.id.empty_text_view)
-        val deleteAllBtn: Button = dialog.findViewById(R.id.delete_all_dungeon_button)
-        rv.layoutManager = LinearLayoutManager(this)
+    private fun setupLoadDialogList(dialog: Dialog, popupBinding: LoadDungeonsPopupBinding) {
+        popupBinding.loadDungeonList.layoutManager = LinearLayoutManager(this)
         val adapter = DungeonSummaryAdapter(
             onItemClick = { summary -> getSelectedDungeon(summary.id) },
             onItemLongClick = { summary -> deleteSingleDungeon(summary.id) }
         )
         dungeonAdapter = adapter
-        rv.adapter = adapter
+        popupBinding.loadDungeonList.adapter = adapter
 
         val collectorJob = lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.dungeonSummaries.collect { summaries ->
                     adapter.submitList(summaries)
                     val hasItems = summaries.isNotEmpty()
-                    deleteAllBtn.isVisible = hasItems
-                    rv.isVisible = hasItems
-                    emptyTextView.isVisible = !hasItems
+                    popupBinding.deleteAllDungeonButton.isVisible = hasItems
+                    popupBinding.loadDungeonList.isVisible = hasItems
+                    popupBinding.emptyTextView.isVisible = !hasItems
                 }
             }
         }
@@ -258,7 +226,7 @@ class MainActivity : AppCompatActivity() {
     private fun loadDungeon(dungeon: DungeonEntity) {
         val intent = Intent(this, DungeonActivity::class.java).apply {
             putExtra("DUNGEON_ID", dungeon.id)
-            putExtra("THEME", spinnerTheme.selectedItem.toString())
+            putExtra("THEME", binding.contentMain.theme.selectedItem.toString())
             putExtra(DBOpenHelper.CORRIDORS, dungeon.corridors)
             putExtra(DBOpenHelper.DEAD_ENDS, dungeon.deadEnds)
             putExtra(DBOpenHelper.DUNGEON_DIFFICULTY, dungeon.dungeonDifficulty)
@@ -279,23 +247,73 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setSpinnersFromEntity(dungeon: DungeonEntity) {
-        spinnerDifficulty.setSelection(getIndex(spinnerDifficulty, dungeon.dungeonDifficulty))
-        spinnerPartyLevel.setSelection(getIndex(spinnerPartyLevel, dungeon.partyLevel))
-        spinnerPartySize.setSelection(getIndex(spinnerPartySize, dungeon.partySize))
-        spinnerTreasureValue.setSelection(getIndex(spinnerTreasureValue, dungeon.treasureValue))
-        spinnerItemsRarity.setSelection(getIndex(spinnerItemsRarity, dungeon.itemsRarity))
-        spinnerSize.setSelection(getIndex(spinnerSize, dungeon.dungeonSize))
-        spinnerRoomDens.setSelection(getIndex(spinnerRoomDens, dungeon.roomDensity))
-        spinnerRoomSize.setSelection(getIndex(spinnerRoomSize, dungeon.roomSize))
-        spinnerTraps.setSelection(getIndex(spinnerTraps, dungeon.traps))
-        spinnerCorridors.setSelection(getIndex(spinnerCorridors, dungeon.corridors))
-        if (dungeon.monsterType != null) {
-            spinnerMonsterType.setAllText(dungeon.monsterType)
-        }
-        spinnerDeadEnds.setSelection(getIndex(spinnerDeadEnds, dungeon.deadEnds))
-        spinnerRoamingMonsters.setSelection(
+        binding.contentMain.dungeonDifficulty.setSelection(
             getIndex(
-                spinnerRoamingMonsters,
+                binding.contentMain.dungeonDifficulty,
+                dungeon.dungeonDifficulty
+            )
+        )
+        binding.contentMain.partyLevel.setSelection(
+            getIndex(
+                binding.contentMain.partyLevel,
+                dungeon.partyLevel
+            )
+        )
+        binding.contentMain.partySize.setSelection(
+            getIndex(
+                binding.contentMain.partySize,
+                dungeon.partySize
+            )
+        )
+        binding.contentMain.treasureValue.setSelection(
+            getIndex(
+                binding.contentMain.treasureValue,
+                dungeon.treasureValue
+            )
+        )
+        binding.contentMain.itemsRarity.setSelection(
+            getIndex(
+                binding.contentMain.itemsRarity,
+                dungeon.itemsRarity
+            )
+        )
+        binding.contentMain.dungeonSize.setSelection(
+            getIndex(
+                binding.contentMain.dungeonSize,
+                dungeon.dungeonSize
+            )
+        )
+        binding.contentMain.roomDensity.setSelection(
+            getIndex(
+                binding.contentMain.roomDensity,
+                dungeon.roomDensity
+            )
+        )
+        binding.contentMain.roomSize.setSelection(
+            getIndex(
+                binding.contentMain.roomSize,
+                dungeon.roomSize
+            )
+        )
+        binding.contentMain.traps.setSelection(getIndex(binding.contentMain.traps, dungeon.traps))
+        binding.contentMain.corridors.setSelection(
+            getIndex(
+                binding.contentMain.corridors,
+                dungeon.corridors
+            )
+        )
+        if (dungeon.monsterType != null) {
+            binding.contentMain.monsterType.setAllText(dungeon.monsterType)
+        }
+        binding.contentMain.deadEnd.setSelection(
+            getIndex(
+                binding.contentMain.deadEnd,
+                dungeon.deadEnds
+            )
+        )
+        binding.contentMain.roamingMonsters.setSelection(
+            getIndex(
+                binding.contentMain.roamingMonsters,
                 dungeon.roamingMonsters
             )
         )
@@ -315,20 +333,44 @@ class MainActivity : AppCompatActivity() {
         val dungeon = Intent(this, DungeonActivity::class.java)
         val extras = Bundle().apply {
             putLong("DUNGEON_ID", -1L)
-            putString(DBOpenHelper.DUNGEON_DIFFICULTY, spinnerDifficulty.selectedItem.toString())
-            putString(DBOpenHelper.PARTY_LEVEL, spinnerPartyLevel.selectedItem.toString())
-            putString(DBOpenHelper.PARTY_SIZE, spinnerPartySize.selectedItem.toString())
-            putString(DBOpenHelper.TREASURE_VALUE, spinnerTreasureValue.selectedItem.toString())
-            putString(DBOpenHelper.ITEMS_RARITY, spinnerItemsRarity.selectedItem.toString())
-            putString(DBOpenHelper.DUNGEON_SIZE, spinnerSize.selectedItem.toString())
-            putString(DBOpenHelper.ROOM_DENSITY, spinnerRoomDens.selectedItem.toString())
-            putString(DBOpenHelper.ROOM_SIZE, spinnerRoomSize.selectedItem.toString())
-            putString(DBOpenHelper.TRAPS, spinnerTraps.selectedItem.toString())
-            putString(DBOpenHelper.CORRIDORS, spinnerCorridors.selectedItem.toString())
-            putString(DBOpenHelper.MONSTER_TYPE, spinnerMonsterType.allText)
-            putString(DBOpenHelper.DEAD_ENDS, spinnerDeadEnds.selectedItem.toString())
-            putString(DBOpenHelper.ROAMING_MONSTERS, spinnerRoamingMonsters.selectedItem.toString())
-            putString("THEME", spinnerTheme.selectedItem.toString())
+            putString(
+                DBOpenHelper.DUNGEON_DIFFICULTY,
+                binding.contentMain.dungeonDifficulty.selectedItem.toString()
+            )
+            putString(
+                DBOpenHelper.PARTY_LEVEL,
+                binding.contentMain.partyLevel.selectedItem.toString()
+            )
+            putString(
+                DBOpenHelper.PARTY_SIZE,
+                binding.contentMain.partySize.selectedItem.toString()
+            )
+            putString(
+                DBOpenHelper.TREASURE_VALUE,
+                binding.contentMain.treasureValue.selectedItem.toString()
+            )
+            putString(
+                DBOpenHelper.ITEMS_RARITY,
+                binding.contentMain.itemsRarity.selectedItem.toString()
+            )
+            putString(
+                DBOpenHelper.DUNGEON_SIZE,
+                binding.contentMain.dungeonSize.selectedItem.toString()
+            )
+            putString(
+                DBOpenHelper.ROOM_DENSITY,
+                binding.contentMain.roomDensity.selectedItem.toString()
+            )
+            putString(DBOpenHelper.ROOM_SIZE, binding.contentMain.roomSize.selectedItem.toString())
+            putString(DBOpenHelper.TRAPS, binding.contentMain.traps.selectedItem.toString())
+            putString(DBOpenHelper.CORRIDORS, binding.contentMain.corridors.selectedItem.toString())
+            putString(DBOpenHelper.MONSTER_TYPE, binding.contentMain.monsterType.allText)
+            putString(DBOpenHelper.DEAD_ENDS, binding.contentMain.deadEnd.selectedItem.toString())
+            putString(
+                DBOpenHelper.ROAMING_MONSTERS,
+                binding.contentMain.roamingMonsters.selectedItem.toString()
+            )
+            putString("THEME", binding.contentMain.theme.selectedItem.toString())
         }
         dungeon.putExtras(extras)
         startActivity(dungeon)
@@ -408,19 +450,21 @@ class MainActivity : AppCompatActivity() {
         private val onItemLongClick: (DungeonSummary) -> Unit
     ) : ListAdapter<DungeonSummary, DungeonSummaryAdapter.ViewHolder>(DungeonDiffCallback) {
 
-        class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            val textView: TextView = itemView.findViewById(android.R.id.text1)
-        }
+        class ViewHolder(val binding: ListItemDungeonBinding) :
+            RecyclerView.ViewHolder(binding.root)
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.list_item_dungeon, parent, false)
-            return ViewHolder(view)
+            val binding = ListItemDungeonBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false
+            )
+            return ViewHolder(binding)
         }
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val item = getItem(position)
-            holder.textView.text = item?.dungeonName ?: ""
+            holder.binding.text1.text = item?.dungeonName ?: ""
             holder.itemView.setOnClickListener {
                 val pos = holder.bindingAdapterPosition
                 if (pos != RecyclerView.NO_POSITION) {

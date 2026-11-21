@@ -21,7 +21,9 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <include layout="@layout/content_dungeon" />
+    <include
+        android:id="@+id/content_dungeon"
+        layout="@layout/content_dungeon" />
 
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

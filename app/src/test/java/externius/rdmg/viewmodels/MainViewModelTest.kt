@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import externius.rdmg.database.AppDatabase
+import externius.rdmg.database.DungeonDao
 import externius.rdmg.database.DungeonEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -50,12 +51,14 @@ class MainViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private lateinit var application: Application
+    private lateinit var dungeonDao: DungeonDao
     private lateinit var viewModel: MainViewModel
 
     @Before
     fun setUp() {
         application = ApplicationProvider.getApplicationContext()
-        viewModel = MainViewModel(application)
+        dungeonDao = AppDatabase.getInstance(application).dungeonDao()
+        viewModel = MainViewModel(dungeonDao)
     }
 
     @Test
@@ -64,9 +67,8 @@ class MainViewModelTest {
             viewModel.dungeonSummaries.collect {}
         }
         withContext(Dispatchers.IO) {
-            val dao = AppDatabase.getInstance(application).dungeonDao()
-            dao.deleteAll()
-            dao.insert(createTestEntity("Dungeon MVM 1", "{\"tiles\":[201]}"))
+            dungeonDao.deleteAll()
+            dungeonDao.insert(createTestEntity("Dungeon MVM 1", "{\"tiles\":[201]}"))
         }
 
         val summaries = viewModel.dungeonSummaries.first { it.isNotEmpty() }
@@ -78,9 +80,8 @@ class MainViewModelTest {
     fun testGetDungeonById() = runTest {
         val id: Long
         withContext(Dispatchers.IO) {
-            val dao = AppDatabase.getInstance(application).dungeonDao()
-            dao.deleteAll()
-            id = dao.insert(createTestEntity("Dungeon MVM 2", "{\"tiles\":[202]}"))
+            dungeonDao.deleteAll()
+            id = dungeonDao.insert(createTestEntity("Dungeon MVM 2", "{\"tiles\":[202]}"))
         }
 
         val retrieved = viewModel.getDungeonById(id)
@@ -92,9 +93,8 @@ class MainViewModelTest {
     fun testDeleteDungeon() = runTest {
         val id: Long
         withContext(Dispatchers.IO) {
-            val dao = AppDatabase.getInstance(application).dungeonDao()
-            dao.deleteAll()
-            id = dao.insert(createTestEntity("Dungeon to delete", "{\"tiles\":[203]}"))
+            dungeonDao.deleteAll()
+            id = dungeonDao.insert(createTestEntity("Dungeon to delete", "{\"tiles\":[203]}"))
         }
 
         assertNotNull(viewModel.getDungeonById(id))
@@ -117,10 +117,9 @@ class MainViewModelTest {
             viewModel.dungeonSummaries.collect {}
         }
         withContext(Dispatchers.IO) {
-            val dao = AppDatabase.getInstance(application).dungeonDao()
-            dao.deleteAll()
-            dao.insert(createTestEntity("Dungeon A", "{\"tiles\":[204]}"))
-            dao.insert(createTestEntity("Dungeon B", "{\"tiles\":[205]}"))
+            dungeonDao.deleteAll()
+            dungeonDao.insert(createTestEntity("Dungeon A", "{\"tiles\":[204]}"))
+            dungeonDao.insert(createTestEntity("Dungeon B", "{\"tiles\":[205]}"))
         }
 
         viewModel.deleteAllDungeons()
