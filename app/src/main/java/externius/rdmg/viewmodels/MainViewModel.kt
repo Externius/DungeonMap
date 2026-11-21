@@ -1,9 +1,9 @@
 package externius.rdmg.viewmodels
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import externius.rdmg.database.AppDatabase
+import dagger.hilt.android.lifecycle.HiltViewModel
+import externius.rdmg.database.DungeonDao
 import externius.rdmg.database.DungeonEntity
 import externius.rdmg.database.DungeonSummary
 import kotlinx.coroutines.Dispatchers
@@ -12,10 +12,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-class MainViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val dungeonDao = AppDatabase.getInstance(application).dungeonDao()
+@HiltViewModel
+class MainViewModel @Inject constructor(
+    private val dungeonDao: DungeonDao
+) : ViewModel() {
 
     val dungeonSummaries: StateFlow<List<DungeonSummary>> = dungeonDao.getDungeonSummariesFlow()
         .stateIn(

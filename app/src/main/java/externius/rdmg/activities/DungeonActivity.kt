@@ -32,18 +32,29 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
-import androidx.core.widget.doAfterTextChanged
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toDrawable
+import androidx.core.view.isNotEmpty
+import androidx.core.widget.doAfterTextChanged
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import dagger.hilt.android.AndroidEntryPoint
 import externius.rdmg.R
+import externius.rdmg.databinding.ActivityDungeonBinding
+import externius.rdmg.databinding.ItemDescriptionCardBinding
+import externius.rdmg.databinding.ItemRoomCardBinding
+import externius.rdmg.databinding.RoomDetailsPopupBinding
+import externius.rdmg.databinding.RoomEditPopupBinding
+import externius.rdmg.databinding.TrapEditPopupBinding
 import externius.rdmg.database.DBOpenHelper
 import externius.rdmg.database.DungeonEntity
 import externius.rdmg.helpers.Export
@@ -55,8 +66,8 @@ import externius.rdmg.models.RoamingMonsterDescription
 import externius.rdmg.models.RoomDescription
 import externius.rdmg.models.Textures
 import externius.rdmg.models.TrapDescription
-import externius.rdmg.views.DungeonMapView
 import externius.rdmg.viewmodels.DungeonViewModel
+import externius.rdmg.views.DungeonMapView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -73,7 +84,10 @@ const val SMALL = "Small"
 const val MEDIUM = "Medium"
 const val LARGE = "Large"
 
+@AndroidEntryPoint
 class DungeonActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityDungeonBinding
     private val viewModel: DungeonViewModel by viewModels()
     private val gson = Gson()
     private var exported = false
@@ -122,19 +136,19 @@ class DungeonActivity : AppCompatActivity() {
             viewModel.loadedDungeon = value
         }
 
-    private var loadedRoomDescription: MutableList<RoomDescription>?
+    private var loadedRoomDescription: List<RoomDescription>?
         get() = viewModel.loadedRoomDescription
         set(value) {
             viewModel.loadedRoomDescription = value
         }
 
-    private var loadedTrapDescription: MutableList<TrapDescription>?
+    private var loadedTrapDescription: List<TrapDescription>?
         get() = viewModel.loadedTrapDescription
         set(value) {
             viewModel.loadedTrapDescription = value
         }
 
-    private var loadedRoamingMonsterDescription: MutableList<RoamingMonsterDescription>?
+    private var loadedRoamingMonsterDescription: List<RoamingMonsterDescription>?
         get() = viewModel.loadedRoamingMonsterDescription
         set(value) {
             viewModel.loadedRoamingMonsterDescription = value
@@ -147,40 +161,72 @@ class DungeonActivity : AppCompatActivity() {
     private var area = 0
     private var dialog: Dialog? = null
     private var mGestureDetector: GestureDetector? = null
-    private var layout: LinearLayout? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_dungeon)
-        val toolbar: Toolbar = findViewById(R.id.toolbar)
-        setSupportActionBar(toolbar)
+        binding = ActivityDungeonBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         addLoadingScreen()
         addScreenText()
         mGestureDetector = GestureDetector(this, DungeonActivityGestureListener())
         lifecycleScope.launch {
             extras = intent.extras
+            setParameters()
             withContext(Dispatchers.IO) {
-                setParameters()
                 jsonMonster = readJSON(R.raw.monsters)
                 jsonTreasure = readJSON(R.raw.treasures)
             }
             val dv = getDungeonView(loadedDungeon != null)
             dungeonView = dv
+            if (loadedDungeon == null) {
+                fillLoadedVariables()
+            }
             drawDungeon(dv)
             viewModel.editPopupState?.let { popupState ->
                 editPopUp(popupState.index, popupState.texture, popupState)
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    dungeonView?.let { dv ->
+                        var updated = false
+                        state.loadedRoomDescription?.let {
+                            if (dv.roomDescription != it) {
+                                dv.roomDescription = it.toMutableList()
+                                updated = true
+                            }
+                        }
+                        state.loadedTrapDescription?.let {
+                            if (dv.trapDescription != it) {
+                                dv.trapDescription = it.toMutableList()
+                                updated = true
+                            }
+                        }
+                        state.loadedRoamingMonsterDescription?.let {
+                            if (dv.roamingMonsterDescription != it) {
+                                dv.roamingMonsterDescription = it.toMutableList()
+                                updated = true
+                            }
+                        }
+                        if (updated) {
+                            drawDungeon(dv)
+                        }
+                    }
+                }
             }
         }
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
     private fun addScreenText() {
-        layout = findViewById(R.id.dungeon_layout)
         val screenText = TextView(this)
         setScreenText(screenText)
         val params = getScreenTextLayoutParams()
         screenText.layoutParams = params
-        layout?.addView(screenText)
+        binding.contentDungeon.dungeonLayout.addView(screenText)
     }
 
     private fun getScreenTextLayoutParams(): LinearLayout.LayoutParams {
@@ -224,7 +270,6 @@ class DungeonActivity : AppCompatActivity() {
     }
 
     private fun addLoadingScreen() {
-        layout = findViewById(R.id.dungeon_layout)
         val imageView = ImageView(this)
         imageView.setImageResource(R.drawable.generating_screen)
         val linearParams = LinearLayout.LayoutParams(
@@ -233,7 +278,7 @@ class DungeonActivity : AppCompatActivity() {
         )
         imageView.layoutParams = linearParams
         imageView.scaleType = ImageView.ScaleType.FIT_XY
-        layout?.addView(imageView)
+        binding.contentDungeon.dungeonLayout.addView(imageView)
     }
 
     override fun onDestroy() {
@@ -258,12 +303,7 @@ class DungeonActivity : AppCompatActivity() {
             }
         } else {
             if (viewModel.loadedDungeon == null) {
-                loadedDungeon = null
-                loadedRoomDescription = null
-                loadedTrapDescription = null
-                loadedRoamingMonsterDescription = null
-                dungeonId = -1L
-                loadedEntity = null
+                viewModel.resetDungeonState()
             }
         }
         val mt = ex.getString(DBOpenHelper.MONSTER_TYPE)
@@ -402,53 +442,50 @@ class DungeonActivity : AppCompatActivity() {
     }
 
     private suspend fun getLoadedColumns(id: Long) {
-        dungeonId = id
         val entity = viewModel.getDungeonById(id) ?: return
-        loadedEntity = entity
-        loadedDungeon = gson.fromJson(
+        val tiles = gson.fromJson(
             entity.loadedDungeon,
             Array<Array<DungeonTile>>::class.java
         )
         val roomListType = object : TypeToken<ArrayList<RoomDescription>>() {}.type
-        loadedRoomDescription = gson.fromJson(entity.loadedRoomDescription, roomListType)
+        val rooms: List<RoomDescription>? =
+            gson.fromJson(entity.loadedRoomDescription, roomListType)
         val trapListType = object : TypeToken<ArrayList<TrapDescription>>() {}.type
-        loadedTrapDescription = gson.fromJson(entity.loadedTrapDescription, trapListType)
+        val traps: List<TrapDescription>? =
+            gson.fromJson(entity.loadedTrapDescription, trapListType)
         val monsterListType =
             object : TypeToken<ArrayList<RoamingMonsterDescription>>() {}.type
-        loadedRoamingMonsterDescription =
+        val monsters: List<RoamingMonsterDescription>? =
             gson.fromJson(entity.loadedRoamingMonsters, monsterListType)
+
+        viewModel.setLoadedDungeonData(
+            dungeonId = id,
+            entity = entity,
+            dungeon = tiles,
+            rooms = rooms,
+            traps = traps,
+            monsters = monsters
+        )
     }
 
     private fun generateDungeon() {
-        val layoutView: LinearLayout = findViewById(R.id.dungeon_layout)
-        if (findViewById<View>(R.id.dungeonMap_view) != null) {
+        val layoutView = binding.contentDungeon.dungeonLayout
+        if (dungeonView != null || layoutView.isNotEmpty()) {
             layoutView.removeAllViews()
             exported = false
         }
         viewModel.editPopupState = null
-        loadedDungeon = null
-        loadedRoomDescription = null
-        loadedTrapDescription = null
-        loadedRoamingMonsterDescription = null
-        dungeonId = -1L
-        loadedEntity = null
+        viewModel.resetDungeonState()
         val dv = getDungeonView(false)
         dungeonView = dv
-        layoutView.addView(dv)
-        addButtons(layoutView)
-        addDescription(
-            layoutView,
-            dv.roomDescription,
-            dv.trapDescription,
-            dv.roamingMonsterDescription
-        )
-        addTouchListener()
+        fillLoadedVariables()
+        drawDungeon(dv)
     }
 
     private fun addTouchListener() {
-        fillLoadedVariables()
-        val view: DungeonMapView = findViewById(R.id.dungeonMap_view)
-        view.setOnTouchListener { v, event ->
+        val view: DungeonMapView? =
+            dungeonView ?: binding.contentDungeon.dungeonLayout.findViewById(R.id.dungeonMap_view)
+        view?.setOnTouchListener { v, event ->
             mGestureDetector?.onTouchEvent(event)
             v.performClick()
             true
@@ -457,10 +494,12 @@ class DungeonActivity : AppCompatActivity() {
 
     private fun fillLoadedVariables() {
         val dv = dungeonView ?: return
-        loadedTrapDescription = dv.trapDescription.toMutableList()
-        loadedRoomDescription = dv.roomDescription.toMutableList()
-        loadedRoamingMonsterDescription = dv.roamingMonsterDescription.toMutableList()
-        loadedDungeon = dv.dungeonTiles
+        viewModel.setGeneratedDungeonData(
+            dungeon = dv.dungeonTiles,
+            rooms = dv.roomDescription,
+            traps = dv.trapDescription,
+            monsters = dv.roamingMonsterDescription
+        )
     }
 
     private fun checkMotion(motionEvent: MotionEvent) {
@@ -512,15 +551,16 @@ class DungeonActivity : AppCompatActivity() {
                     return
                 }
                 val room = roomsList[index]
-                dlg.setContentView(R.layout.room_edit_popup)
+                val popupBinding = RoomEditPopupBinding.inflate(layoutInflater)
+                dlg.setContentView(popupBinding.root)
                 dlg.setTitle(room.name)
-                val monsters: EditText = dlg.findViewById(R.id.edit_monster)
+                val monsters = popupBinding.editMonster
                 val initialMonster =
                     restoredState?.monsterText ?: (room.monster ?: "").removePrefix("Monsters: ")
                 monsters.setText(initialMonster)
                 setPrimaryTextColor(monsters)
 
-                val treasures: EditText = dlg.findViewById(R.id.edit_treasure)
+                val treasures = popupBinding.editTreasure
                 val initialTreasure =
                     restoredState?.treasureText ?: (room.treasure ?: "").removePrefix("Treasures: ")
                 treasures.setText(initialTreasure)
@@ -542,7 +582,7 @@ class DungeonActivity : AppCompatActivity() {
                 monsters.doAfterTextChanged { updateState() }
                 treasures.doAfterTextChanged { updateState() }
 
-                saveButton = dlg.findViewById(R.id.editDialogSaveButton)
+                saveButton = popupBinding.editDialogSaveButton
                 saveButton.setOnClickListener {
                     val newRoom = RoomDescription(
                         room.name,
@@ -550,9 +590,14 @@ class DungeonActivity : AppCompatActivity() {
                         "Monsters: " + monsters.text.toString(),
                         room.doors
                     )
-                    loadedRoomDescription?.set(index, newRoom)
+                    viewModel.updateRoomDescriptionAt(index, newRoom)
                     viewModel.editPopupState = null
-                    drawDungeon(null)
+                    dlg.dismiss()
+                }
+
+                popupBinding.editDialogCancelButton.applyPrimaryStyle()
+                popupBinding.editDialogCancelButton.setOnClickListener {
+                    viewModel.editPopupState = null
                     dlg.dismiss()
                 }
             }
@@ -567,9 +612,10 @@ class DungeonActivity : AppCompatActivity() {
                     return
                 }
                 val trap = trapsList[index]
-                dlg.setContentView(R.layout.trap_edit_popup)
+                val popupBinding = TrapEditPopupBinding.inflate(layoutInflater)
+                dlg.setContentView(popupBinding.root)
                 dlg.setTitle(trap.name)
-                descriptionView = dlg.findViewById(R.id.edit_trap)
+                descriptionView = popupBinding.editTrap
                 val initialDesc = restoredState?.descriptionText ?: trap.description
                 descriptionView.setText(initialDesc)
                 setPrimaryTextColor(descriptionView)
@@ -586,12 +632,17 @@ class DungeonActivity : AppCompatActivity() {
                     )
                 }
 
-                saveButton = dlg.findViewById(R.id.editDialogSaveButton)
+                saveButton = popupBinding.editDialogSaveButton
                 saveButton.setOnClickListener {
                     val newTrap = TrapDescription(trap.name, descriptionView.text.toString())
-                    loadedTrapDescription?.set(index, newTrap)
+                    viewModel.updateTrapDescriptionAt(index, newTrap)
                     viewModel.editPopupState = null
-                    drawDungeon(null)
+                    dlg.dismiss()
+                }
+
+                popupBinding.editDialogCancelButton.applyPrimaryStyle()
+                popupBinding.editDialogCancelButton.setOnClickListener {
+                    viewModel.editPopupState = null
                     dlg.dismiss()
                 }
             }
@@ -606,9 +657,10 @@ class DungeonActivity : AppCompatActivity() {
                     return
                 }
                 val monster = monstersList[index]
-                dlg.setContentView(R.layout.trap_edit_popup)
+                val popupBinding = TrapEditPopupBinding.inflate(layoutInflater)
+                dlg.setContentView(popupBinding.root)
                 dlg.setTitle(monster.name)
-                descriptionView = dlg.findViewById(R.id.edit_trap)
+                descriptionView = popupBinding.editTrap
                 val initialDesc = restoredState?.descriptionText ?: monster.description
                 descriptionView.setText(initialDesc)
                 setPrimaryTextColor(descriptionView)
@@ -625,13 +677,18 @@ class DungeonActivity : AppCompatActivity() {
                     )
                 }
 
-                saveButton = dlg.findViewById(R.id.editDialogSaveButton)
+                saveButton = popupBinding.editDialogSaveButton
                 saveButton.setOnClickListener {
                     val newMonster =
                         RoamingMonsterDescription(monster.name, descriptionView.text.toString())
-                    loadedRoamingMonsterDescription?.set(index, newMonster)
+                    viewModel.updateRoamingMonsterDescriptionAt(index, newMonster)
                     viewModel.editPopupState = null
-                    drawDungeon(null)
+                    dlg.dismiss()
+                }
+
+                popupBinding.editDialogCancelButton.applyPrimaryStyle()
+                popupBinding.editDialogCancelButton.setOnClickListener {
+                    viewModel.editPopupState = null
                     dlg.dismiss()
                 }
             }
@@ -642,12 +699,6 @@ class DungeonActivity : AppCompatActivity() {
             }
         }
         saveButton.applyPrimaryStyle()
-        val cancelButton: Button = dlg.findViewById(R.id.editDialogCancelButton)
-        cancelButton.applyPrimaryStyle()
-        cancelButton.setOnClickListener {
-            viewModel.editPopupState = null
-            dlg.dismiss()
-        }
         dlg.setOnCancelListener {
             if (!isChangingConfigurations) {
                 viewModel.editPopupState = null
@@ -708,7 +759,8 @@ class DungeonActivity : AppCompatActivity() {
         )
         val dlg = Dialog(this, R.style.Dialog)
         dialog = dlg
-        dlg.setContentView(R.layout.room_details_popup)
+        val popupBinding = RoomDetailsPopupBinding.inflate(layoutInflater)
+        dlg.setContentView(popupBinding.root)
         dlg.setTitle(title)
         if (view != null) {
             dlg.addContentView(view, params)
@@ -805,10 +857,12 @@ class DungeonActivity : AppCompatActivity() {
     }
 
     private fun drawDungeon(result: Any?) {
-        val layoutView: LinearLayout = findViewById(R.id.dungeon_layout)
+        val layoutView = binding.contentDungeon.dungeonLayout
         layoutView.removeAllViews()
         val typedValue = android.util.TypedValue()
-        getTheme().resolveAttribute(android.R.attr.colorBackground, typedValue, true)
+        theme?.let { _ ->
+            getTheme().resolveAttribute(android.R.attr.colorBackground, typedValue, true)
+        }
         val backgroundColor = if (typedValue.resourceId != 0) {
             ContextCompat.getColor(this, typedValue.resourceId)
         } else {
@@ -949,8 +1003,7 @@ class DungeonActivity : AppCompatActivity() {
     private fun saveDungeonMap(data: Intent?) {
         val uri = data?.data ?: return
         val dv = dungeonView ?: return
-        val dungeonMapWidget: View = findViewById(R.id.dungeonMap_view) ?: return
-        val dungeonBitmap = getBitmapFromView(dungeonMapWidget)
+        val dungeonBitmap = getBitmapFromView(dv)
         val roomDesc = dv.roomDescription
         val trapDesc = dv.trapDescription
         val monsterDesc = dv.roamingMonsterDescription
@@ -1081,6 +1134,7 @@ class DungeonActivity : AppCompatActivity() {
         }
         if (items.isEmpty()) return
 
+        val descriptionAdapter = DungeonDescriptionAdapter()
         val recyclerView = RecyclerView(this).apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -1091,8 +1145,9 @@ class DungeonActivity : AppCompatActivity() {
             }
             isNestedScrollingEnabled = false
             layoutManager = LinearLayoutManager(this@DungeonActivity)
-            adapter = DungeonDescriptionAdapter(items)
+            adapter = descriptionAdapter
         }
+        descriptionAdapter.submitList(items)
         layoutView.addView(recyclerView)
     }
 
@@ -1100,9 +1155,8 @@ class DungeonActivity : AppCompatActivity() {
         textView.setTextColor(getColor(R.color.primaryText))
     }
 
-    class DungeonDescriptionAdapter(
-        private val items: List<DescriptionItem>
-    ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    class DungeonDescriptionAdapter :
+        ListAdapter<DescriptionItem, RecyclerView.ViewHolder>(DescriptionDiffCallback) {
 
         companion object {
             private const val TYPE_ROOM = 0
@@ -1111,7 +1165,7 @@ class DungeonActivity : AppCompatActivity() {
         }
 
         override fun getItemViewType(position: Int): Int {
-            return when (items[position]) {
+            return when (getItem(position)) {
                 is DescriptionItem.Room -> TYPE_ROOM
                 is DescriptionItem.Trap -> TYPE_TRAP
                 is DescriptionItem.Monster -> TYPE_MONSTER
@@ -1122,25 +1176,17 @@ class DungeonActivity : AppCompatActivity() {
             val inflater = LayoutInflater.from(parent.context)
             return when (viewType) {
                 TYPE_ROOM -> RoomViewHolder(
-                    inflater.inflate(
-                        R.layout.item_room_card,
-                        parent,
-                        false
-                    )
+                    ItemRoomCardBinding.inflate(inflater, parent, false)
                 )
 
                 else -> DescriptionViewHolder(
-                    inflater.inflate(
-                        R.layout.item_description_card,
-                        parent,
-                        false
-                    )
+                    ItemDescriptionCardBinding.inflate(inflater, parent, false)
                 )
             }
         }
 
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-            when (val item = items[position]) {
+            when (val item = getItem(position)) {
                 is DescriptionItem.Room -> (holder as RoomViewHolder).bind(item.room)
                 is DescriptionItem.Trap -> (holder as DescriptionViewHolder).bind(
                     item.trap.name,
@@ -1153,21 +1199,32 @@ class DungeonActivity : AppCompatActivity() {
                 )
             }
         }
-
-        override fun getItemCount(): Int = items.size
     }
 
-    class RoomViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val roomName: TextView = itemView.findViewById(R.id.text_room_name)
-        private val monster: TextView = itemView.findViewById(R.id.text_room_monster)
-        private val treasure: TextView = itemView.findViewById(R.id.text_room_treasure)
-        private val doors: TextView = itemView.findViewById(R.id.text_room_doors)
+    private object DescriptionDiffCallback : DiffUtil.ItemCallback<DescriptionItem>() {
+        override fun areItemsTheSame(oldItem: DescriptionItem, newItem: DescriptionItem): Boolean {
+            return when (oldItem) {
+                is DescriptionItem.Room if newItem is DescriptionItem.Room -> oldItem.room.name == newItem.room.name
+                is DescriptionItem.Trap if newItem is DescriptionItem.Trap -> oldItem.trap.name == newItem.trap.name
+                is DescriptionItem.Monster if newItem is DescriptionItem.Monster -> oldItem.monster.name == newItem.monster.name
+                else -> false
+            }
+        }
 
+        override fun areContentsTheSame(
+            oldItem: DescriptionItem,
+            newItem: DescriptionItem
+        ): Boolean {
+            return oldItem == newItem
+        }
+    }
+
+    class RoomViewHolder(val binding: ItemRoomCardBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(room: RoomDescription) {
-            roomName.text = room.name ?: ""
-            bindRoomText(monster, room.monster)
-            bindRoomText(treasure, room.treasure)
-            bindRoomText(doors, room.doors)
+            binding.textRoomName.text = room.name ?: ""
+            bindRoomText(binding.textRoomMonster, room.monster)
+            bindRoomText(binding.textRoomTreasure, room.treasure)
+            bindRoomText(binding.textRoomDoors, room.doors)
         }
 
         private fun bindRoomText(textView: TextView, rawText: String?) {
@@ -1200,17 +1257,15 @@ class DungeonActivity : AppCompatActivity() {
         }
     }
 
-    class DescriptionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val title: TextView = itemView.findViewById(R.id.text_card_title)
-        private val description: TextView = itemView.findViewById(R.id.text_card_description)
-
+    class DescriptionViewHolder(val binding: ItemDescriptionCardBinding) :
+        RecyclerView.ViewHolder(binding.root) {
         fun bind(name: String?, desc: String?) {
-            title.text = name ?: ""
+            binding.textCardTitle.text = name ?: ""
             if (desc.isNullOrEmpty()) {
-                description.visibility = View.GONE
+                binding.textCardDescription.visibility = View.GONE
             } else {
-                description.visibility = View.VISIBLE
-                description.text = desc
+                binding.textCardDescription.visibility = View.VISIBLE
+                binding.textCardDescription.text = desc
             }
         }
     }

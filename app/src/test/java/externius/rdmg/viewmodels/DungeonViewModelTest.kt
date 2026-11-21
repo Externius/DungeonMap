@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import externius.rdmg.database.AppDatabase
+import externius.rdmg.database.DungeonDao
 import externius.rdmg.database.DungeonEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
@@ -24,12 +25,14 @@ import java.time.LocalDate
 class DungeonViewModelTest {
 
     private lateinit var application: Application
+    private lateinit var dungeonDao: DungeonDao
     private lateinit var viewModel: DungeonViewModel
 
     @Before
     fun setUp() {
         application = ApplicationProvider.getApplicationContext()
-        viewModel = DungeonViewModel(application, SavedStateHandle())
+        dungeonDao = AppDatabase.getInstance(application).dungeonDao()
+        viewModel = DungeonViewModel(dungeonDao, SavedStateHandle())
     }
 
     @Test
@@ -92,6 +95,51 @@ class DungeonViewModelTest {
     }
 
     @Test
+    fun testDungeonUiStateFlowEmissions() {
+        assertEquals(-1L, viewModel.uiState.value.dungeonId)
+
+        viewModel.dungeonId = 42L
+        assertEquals(42L, viewModel.uiState.value.dungeonId)
+
+        val roomDesc = listOf(
+            externius.rdmg.models.RoomDescription("Room 1", "10 Gold", "Goblin", "Door E")
+        )
+        viewModel.loadedRoomDescription = roomDesc.toMutableList()
+
+        val state = viewModel.uiState.value
+        assertEquals(42L, state.dungeonId)
+        assertEquals(roomDesc, state.loadedRoomDescription)
+    }
+
+    @Test
+    fun testSetLoadedDungeonDataConsolidatedUpdate() {
+        val entity = createTestEntity("Consolidated Test", "{\"tiles\":[103]}")
+        val tiles = arrayOf(arrayOf(externius.rdmg.models.DungeonTile(1, 1)))
+        val roomDesc =
+            listOf(externius.rdmg.models.RoomDescription("Room A", "Gold", "Orc", "Door S"))
+        val trapDesc = listOf(externius.rdmg.models.TrapDescription("Trap A", "Arrow"))
+        val monsterDesc =
+            listOf(externius.rdmg.models.RoamingMonsterDescription("Monster A", "Zombie"))
+
+        viewModel.setLoadedDungeonData(
+            dungeonId = 99L,
+            entity = entity,
+            dungeon = tiles,
+            rooms = roomDesc,
+            traps = trapDesc,
+            monsters = monsterDesc
+        )
+
+        val state = viewModel.uiState.value
+        assertEquals(99L, state.dungeonId)
+        assertEquals(entity, state.loadedEntity)
+        assertEquals(roomDesc, state.loadedRoomDescription)
+        assertEquals(trapDesc, state.loadedTrapDescription)
+        assertEquals(monsterDesc, state.loadedRoamingMonsterDescription)
+        assertArrayEquals(tiles, viewModel.loadedDungeon)
+    }
+
+    @Test
     fun testRetainEditPopupStateInSavedStateHandle() {
         val roomPopupState = externius.rdmg.models.EditPopupState(
             index = 1,
@@ -103,8 +151,7 @@ class DungeonViewModelTest {
 
         assertEquals(roomPopupState, viewModel.editPopupState)
 
-        // Create a new ViewModel with the same SavedStateHandle (simulating recreation/rotation)
-        var recreatedViewModel = DungeonViewModel(application, viewModel.savedStateHandle)
+        var recreatedViewModel = DungeonViewModel(dungeonDao, viewModel.savedStateHandle)
         assertEquals(roomPopupState, recreatedViewModel.editPopupState)
 
         val trapPopupState = externius.rdmg.models.EditPopupState(
@@ -113,7 +160,7 @@ class DungeonViewModelTest {
             descriptionText = "Updated Trap Description",
         )
         viewModel.editPopupState = trapPopupState
-        recreatedViewModel = DungeonViewModel(application, viewModel.savedStateHandle)
+        recreatedViewModel = DungeonViewModel(dungeonDao, viewModel.savedStateHandle)
         assertEquals(trapPopupState, recreatedViewModel.editPopupState)
     }
 
