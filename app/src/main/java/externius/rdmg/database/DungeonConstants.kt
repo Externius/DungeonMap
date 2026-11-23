@@ -1,6 +1,6 @@
 package externius.rdmg.database
 
-object DBOpenHelper {
+object DungeonConstants {
     const val TABLE_DUNGEONS = "dungeons"
     const val DUNGEON_ID = "_id"
     const val DUNGEON_NAME = "DUNGEON_NAME"

@@ -10,12 +10,10 @@ import externius.rdmg.models.EditPopupState
 import externius.rdmg.models.RoamingMonsterDescription
 import externius.rdmg.models.RoomDescription
 import externius.rdmg.models.TrapDescription
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 data class DungeonUiState(
@@ -177,17 +175,11 @@ class DungeonViewModel @Inject constructor(
         _uiState.value = DungeonUiState()
     }
 
-    suspend fun getDungeonById(id: Long): DungeonEntity? = withContext(Dispatchers.IO) {
-        dungeonDao.getDungeonById(id)
-    }
+    suspend fun getDungeonById(id: Long): DungeonEntity? = dungeonDao.getDungeonById(id)
 
-    suspend fun updateDungeon(entity: DungeonEntity): Int = withContext(Dispatchers.IO) {
-        dungeonDao.update(entity)
-    }
+    suspend fun updateDungeon(entity: DungeonEntity): Int = dungeonDao.update(entity)
 
-    suspend fun insertDungeon(entity: DungeonEntity): Long = withContext(Dispatchers.IO) {
-        dungeonDao.insert(entity)
-    }
+    suspend fun insertDungeon(entity: DungeonEntity): Long = dungeonDao.insert(entity)
 
     companion object {
         private const val KEY_EDIT_POPUP_STATE = "edit_popup_state"

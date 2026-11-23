@@ -6,12 +6,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import externius.rdmg.database.DungeonDao
 import externius.rdmg.database.DungeonEntity
 import externius.rdmg.database.DungeonSummary
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,18 +25,16 @@ class MainViewModel @Inject constructor(
         )
 
     fun deleteDungeon(id: Long) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             dungeonDao.deleteById(id)
         }
     }
 
     fun deleteAllDungeons() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             dungeonDao.deleteAll()
         }
     }
 
-    suspend fun getDungeonById(id: Long): DungeonEntity? = withContext(Dispatchers.IO) {
-        dungeonDao.getDungeonById(id)
-    }
+    suspend fun getDungeonById(id: Long): DungeonEntity? = dungeonDao.getDungeonById(id)
 }

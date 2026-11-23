@@ -55,7 +55,7 @@ import externius.rdmg.databinding.ItemRoomCardBinding
 import externius.rdmg.databinding.RoomDetailsPopupBinding
 import externius.rdmg.databinding.RoomEditPopupBinding
 import externius.rdmg.databinding.TrapEditPopupBinding
-import externius.rdmg.database.DBOpenHelper
+import externius.rdmg.database.DungeonConstants
 import externius.rdmg.database.DungeonEntity
 import externius.rdmg.helpers.Export
 import externius.rdmg.helpers.applyPrimaryStyle
@@ -306,20 +306,20 @@ class DungeonActivity : AppCompatActivity() {
                 viewModel.resetDungeonState()
             }
         }
-        val mt = ex.getString(DBOpenHelper.MONSTER_TYPE)
+        val mt = ex.getString(DungeonConstants.MONSTER_TYPE)
         val th = ex.getString("THEME")
-        dungeonDifficulty = setDungeonDifficulty(ex.getString(DBOpenHelper.DUNGEON_DIFFICULTY))
-        dungeonSize = setDungeonSize(ex.getString(DBOpenHelper.DUNGEON_SIZE))
-        roomDensity = setRoomDensity(ex.getString(DBOpenHelper.ROOM_DENSITY))
-        roomSize = setRoomSize(ex.getString(DBOpenHelper.ROOM_SIZE))
-        traps = setTraps(ex.getString(DBOpenHelper.TRAPS))
-        hasDeadEnds = setBooleans(ex.getString(DBOpenHelper.DEAD_ENDS))
-        hasCorridor = setBooleans(ex.getString(DBOpenHelper.CORRIDORS))
-        partySize = ex.getString(DBOpenHelper.PARTY_SIZE)?.toIntOrNull() ?: 4
-        partyLevel = ex.getString(DBOpenHelper.PARTY_LEVEL)?.toIntOrNull() ?: 1
-        treasureValue = setTreasureValue(ex.getString(DBOpenHelper.TREASURE_VALUE))
-        itemsRarity = setItemsRarity(ex.getString(DBOpenHelper.ITEMS_RARITY))
-        roamingMonsters = setRoamingMonsters(ex.getString(DBOpenHelper.ROAMING_MONSTERS))
+        dungeonDifficulty = setDungeonDifficulty(ex.getString(DungeonConstants.DUNGEON_DIFFICULTY))
+        dungeonSize = setDungeonSize(ex.getString(DungeonConstants.DUNGEON_SIZE))
+        roomDensity = setRoomDensity(ex.getString(DungeonConstants.ROOM_DENSITY))
+        roomSize = setRoomSize(ex.getString(DungeonConstants.ROOM_SIZE))
+        traps = setTraps(ex.getString(DungeonConstants.TRAPS))
+        hasDeadEnds = setBooleans(ex.getString(DungeonConstants.DEAD_ENDS))
+        hasCorridor = setBooleans(ex.getString(DungeonConstants.CORRIDORS))
+        partySize = ex.getString(DungeonConstants.PARTY_SIZE)?.toIntOrNull() ?: 4
+        partyLevel = ex.getString(DungeonConstants.PARTY_LEVEL)?.toIntOrNull() ?: 1
+        treasureValue = setTreasureValue(ex.getString(DungeonConstants.TREASURE_VALUE))
+        itemsRarity = setItemsRarity(ex.getString(DungeonConstants.ITEMS_RARITY))
+        roamingMonsters = setRoamingMonsters(ex.getString(DungeonConstants.ROAMING_MONSTERS))
         if (!mt.isNullOrEmpty()) {
             monsterType = mt.lowercase()
         }
@@ -812,19 +812,19 @@ class DungeonActivity : AppCompatActivity() {
                 loadedRoomDescription = gson.toJson(dv?.roomDescription),
                 loadedTrapDescription = gson.toJson(dv?.trapDescription),
                 loadedRoamingMonsters = gson.toJson(dv?.roamingMonsterDescription),
-                dungeonDifficulty = ex?.getString(DBOpenHelper.DUNGEON_DIFFICULTY),
-                partyLevel = ex?.getString(DBOpenHelper.PARTY_LEVEL),
-                partySize = ex?.getString(DBOpenHelper.PARTY_SIZE),
-                treasureValue = ex?.getString(DBOpenHelper.TREASURE_VALUE),
-                itemsRarity = ex?.getString(DBOpenHelper.ITEMS_RARITY),
-                dungeonSize = ex?.getString(DBOpenHelper.DUNGEON_SIZE),
-                roomDensity = ex?.getString(DBOpenHelper.ROOM_DENSITY),
-                roomSize = ex?.getString(DBOpenHelper.ROOM_SIZE),
-                traps = ex?.getString(DBOpenHelper.TRAPS),
+                dungeonDifficulty = ex?.getString(DungeonConstants.DUNGEON_DIFFICULTY),
+                partyLevel = ex?.getString(DungeonConstants.PARTY_LEVEL),
+                partySize = ex?.getString(DungeonConstants.PARTY_SIZE),
+                treasureValue = ex?.getString(DungeonConstants.TREASURE_VALUE),
+                itemsRarity = ex?.getString(DungeonConstants.ITEMS_RARITY),
+                dungeonSize = ex?.getString(DungeonConstants.DUNGEON_SIZE),
+                roomDensity = ex?.getString(DungeonConstants.ROOM_DENSITY),
+                roomSize = ex?.getString(DungeonConstants.ROOM_SIZE),
+                traps = ex?.getString(DungeonConstants.TRAPS),
                 corridors = if (hasCorridor) "YES" else "NO",
-                monsterType = ex?.getString(DBOpenHelper.MONSTER_TYPE),
+                monsterType = ex?.getString(DungeonConstants.MONSTER_TYPE),
                 deadEnds = if (hasDeadEnds) "YES" else "NO",
-                roamingMonsters = ex?.getString(DBOpenHelper.ROAMING_MONSTERS),
+                roamingMonsters = ex?.getString(DungeonConstants.ROAMING_MONSTERS),
                 dungeonCreated = createdTime
             )
             lifecycleScope.launch {
