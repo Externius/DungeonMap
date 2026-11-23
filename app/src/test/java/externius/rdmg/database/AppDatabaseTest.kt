@@ -40,7 +40,7 @@ class AppDatabaseTest {
     }
 
     @Test
-    fun testInsertAndGetById() {
+    fun testInsertAndGetById() = runTest {
         val entity = createTestEntity("Dungeon 1", "{\"tiles\":[]}")
         val id = dungeonDao.insert(entity)
         assertTrue("Inserted Id should be positive", id > 0)
@@ -54,7 +54,7 @@ class AppDatabaseTest {
     }
 
     @Test
-    fun testGetDungeonSummaries() {
+    fun testGetDungeonSummaries() = runTest {
         val entity1 = createTestEntity("Dungeon_Alpha", "{\"tiles\":[1]}")
         val entity2 = createTestEntity("Dungeon_Beta", "{\"tiles\":[2]}")
 
@@ -83,7 +83,7 @@ class AppDatabaseTest {
     }
 
     @Test
-    fun testUpdateDungeon() {
+    fun testUpdateDungeon() = runTest {
         val entity = createTestEntity("Dungeon_Initial", "{\"tiles\":[]}")
         val id = dungeonDao.insert(entity)
 
@@ -103,7 +103,7 @@ class AppDatabaseTest {
     }
 
     @Test
-    fun testDeleteById() {
+    fun testDeleteById() = runTest {
         val id = dungeonDao.insert(createTestEntity("Dungeon_To_Delete", "{\"tiles\":[]}"))
         assertNotNull(dungeonDao.getDungeonById(id))
 
@@ -113,7 +113,7 @@ class AppDatabaseTest {
     }
 
     @Test
-    fun testDeleteAll() {
+    fun testDeleteAll() = runTest {
         dungeonDao.insert(createTestEntity("Test1", "{\"t\":1}"))
         dungeonDao.insert(createTestEntity("Test2", "{\"t\":2}"))
         assertEquals(2, dungeonDao.getDungeonSummaries().size)

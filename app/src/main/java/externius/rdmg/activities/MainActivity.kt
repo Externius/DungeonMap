@@ -31,7 +31,7 @@ import externius.rdmg.R
 import externius.rdmg.databinding.ActivityMainBinding
 import externius.rdmg.databinding.ListItemDungeonBinding
 import externius.rdmg.databinding.LoadDungeonsPopupBinding
-import externius.rdmg.database.DBOpenHelper
+import externius.rdmg.database.DungeonConstants
 import externius.rdmg.database.DungeonEntity
 import externius.rdmg.database.DungeonSummary
 import externius.rdmg.helpers.ThemeHelper
@@ -46,6 +46,7 @@ class MainActivity : AppCompatActivity() {
     private val viewModel: MainViewModel by viewModels()
     private var loadDialog: Dialog? = null
     private var dungeonAdapter: DungeonSummaryAdapter? = null
+    private var currentThemeMode: Int = ThemeHelper.MODE_SYSTEM
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,10 +55,22 @@ class MainActivity : AppCompatActivity() {
         setToolbar()
         setDefaultValues()
         addListeners()
+        observeTheme()
         if (savedInstanceState != null) {
-            val monsterType = savedInstanceState.getString(DBOpenHelper.MONSTER_TYPE)
+            val monsterType = savedInstanceState.getString(DungeonConstants.MONSTER_TYPE)
             if (monsterType != null) {
                 binding.contentMain.monsterType.setAllText(monsterType)
+            }
+        }
+    }
+
+    private fun observeTheme() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                ThemeHelper.getSavedThemeModeFlow(this@MainActivity).collect { mode ->
+                    currentThemeMode = mode
+                    invalidateOptionsMenu()
+                }
             }
         }
     }
@@ -70,7 +83,7 @@ class MainActivity : AppCompatActivity() {
         super.onSaveInstanceState(outState)
         val text = binding.contentMain.monsterType.allText
         if (text != null) {
-            outState.putString(DBOpenHelper.MONSTER_TYPE, text)
+            outState.putString(DungeonConstants.MONSTER_TYPE, text)
         }
     }
 
@@ -227,19 +240,19 @@ class MainActivity : AppCompatActivity() {
         val intent = Intent(this, DungeonActivity::class.java).apply {
             putExtra("DUNGEON_ID", dungeon.id)
             putExtra("THEME", binding.contentMain.theme.selectedItem.toString())
-            putExtra(DBOpenHelper.CORRIDORS, dungeon.corridors)
-            putExtra(DBOpenHelper.DEAD_ENDS, dungeon.deadEnds)
-            putExtra(DBOpenHelper.DUNGEON_DIFFICULTY, dungeon.dungeonDifficulty)
-            putExtra(DBOpenHelper.DUNGEON_SIZE, dungeon.dungeonSize)
-            putExtra(DBOpenHelper.ITEMS_RARITY, dungeon.itemsRarity)
-            putExtra(DBOpenHelper.MONSTER_TYPE, dungeon.monsterType)
-            putExtra(DBOpenHelper.PARTY_LEVEL, dungeon.partyLevel)
-            putExtra(DBOpenHelper.PARTY_SIZE, dungeon.partySize)
-            putExtra(DBOpenHelper.ROAMING_MONSTERS, dungeon.roamingMonsters)
-            putExtra(DBOpenHelper.ROOM_DENSITY, dungeon.roomDensity)
-            putExtra(DBOpenHelper.ROOM_SIZE, dungeon.roomSize)
-            putExtra(DBOpenHelper.TRAPS, dungeon.traps)
-            putExtra(DBOpenHelper.TREASURE_VALUE, dungeon.treasureValue)
+            putExtra(DungeonConstants.CORRIDORS, dungeon.corridors)
+            putExtra(DungeonConstants.DEAD_ENDS, dungeon.deadEnds)
+            putExtra(DungeonConstants.DUNGEON_DIFFICULTY, dungeon.dungeonDifficulty)
+            putExtra(DungeonConstants.DUNGEON_SIZE, dungeon.dungeonSize)
+            putExtra(DungeonConstants.ITEMS_RARITY, dungeon.itemsRarity)
+            putExtra(DungeonConstants.MONSTER_TYPE, dungeon.monsterType)
+            putExtra(DungeonConstants.PARTY_LEVEL, dungeon.partyLevel)
+            putExtra(DungeonConstants.PARTY_SIZE, dungeon.partySize)
+            putExtra(DungeonConstants.ROAMING_MONSTERS, dungeon.roamingMonsters)
+            putExtra(DungeonConstants.ROOM_DENSITY, dungeon.roomDensity)
+            putExtra(DungeonConstants.ROOM_SIZE, dungeon.roomSize)
+            putExtra(DungeonConstants.TRAPS, dungeon.traps)
+            putExtra(DungeonConstants.TREASURE_VALUE, dungeon.treasureValue)
         }
         setSpinnersFromEntity(dungeon)
         startActivity(intent)
@@ -334,40 +347,49 @@ class MainActivity : AppCompatActivity() {
         val extras = Bundle().apply {
             putLong("DUNGEON_ID", -1L)
             putString(
-                DBOpenHelper.DUNGEON_DIFFICULTY,
+                DungeonConstants.DUNGEON_DIFFICULTY,
                 binding.contentMain.dungeonDifficulty.selectedItem.toString()
             )
             putString(
-                DBOpenHelper.PARTY_LEVEL,
+                DungeonConstants.PARTY_LEVEL,
                 binding.contentMain.partyLevel.selectedItem.toString()
             )
             putString(
-                DBOpenHelper.PARTY_SIZE,
+                DungeonConstants.PARTY_SIZE,
                 binding.contentMain.partySize.selectedItem.toString()
             )
             putString(
-                DBOpenHelper.TREASURE_VALUE,
+                DungeonConstants.TREASURE_VALUE,
                 binding.contentMain.treasureValue.selectedItem.toString()
             )
             putString(
-                DBOpenHelper.ITEMS_RARITY,
+                DungeonConstants.ITEMS_RARITY,
                 binding.contentMain.itemsRarity.selectedItem.toString()
             )
             putString(
-                DBOpenHelper.DUNGEON_SIZE,
+                DungeonConstants.DUNGEON_SIZE,
                 binding.contentMain.dungeonSize.selectedItem.toString()
             )
             putString(
-                DBOpenHelper.ROOM_DENSITY,
+                DungeonConstants.ROOM_DENSITY,
                 binding.contentMain.roomDensity.selectedItem.toString()
             )
-            putString(DBOpenHelper.ROOM_SIZE, binding.contentMain.roomSize.selectedItem.toString())
-            putString(DBOpenHelper.TRAPS, binding.contentMain.traps.selectedItem.toString())
-            putString(DBOpenHelper.CORRIDORS, binding.contentMain.corridors.selectedItem.toString())
-            putString(DBOpenHelper.MONSTER_TYPE, binding.contentMain.monsterType.allText)
-            putString(DBOpenHelper.DEAD_ENDS, binding.contentMain.deadEnd.selectedItem.toString())
             putString(
-                DBOpenHelper.ROAMING_MONSTERS,
+                DungeonConstants.ROOM_SIZE,
+                binding.contentMain.roomSize.selectedItem.toString()
+            )
+            putString(DungeonConstants.TRAPS, binding.contentMain.traps.selectedItem.toString())
+            putString(
+                DungeonConstants.CORRIDORS,
+                binding.contentMain.corridors.selectedItem.toString()
+            )
+            putString(DungeonConstants.MONSTER_TYPE, binding.contentMain.monsterType.allText)
+            putString(
+                DungeonConstants.DEAD_ENDS,
+                binding.contentMain.deadEnd.selectedItem.toString()
+            )
+            putString(
+                DungeonConstants.ROAMING_MONSTERS,
                 binding.contentMain.roamingMonsters.selectedItem.toString()
             )
             putString("THEME", binding.contentMain.theme.selectedItem.toString())
@@ -383,8 +405,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         val menuItem = menu?.findItem(R.id.action_theme_toggle)
-        val currentMode = ThemeHelper.getSavedThemeMode(this)
-        val isNightMode = when (currentMode) {
+        val isNightMode = when (currentThemeMode) {
             ThemeHelper.MODE_NIGHT -> true
             ThemeHelper.MODE_LIGHT -> false
             else -> {
@@ -424,8 +445,7 @@ class MainActivity : AppCompatActivity() {
             getString(R.string.theme_light),
             getString(R.string.theme_dark)
         )
-        val currentMode = ThemeHelper.getSavedThemeMode(this)
-        val selectedIndex = when (currentMode) {
+        val selectedIndex = when (currentThemeMode) {
             ThemeHelper.MODE_LIGHT -> 1
             ThemeHelper.MODE_NIGHT -> 2
             else -> 0
@@ -439,7 +459,9 @@ class MainActivity : AppCompatActivity() {
                     2 -> ThemeHelper.MODE_NIGHT
                     else -> ThemeHelper.MODE_SYSTEM
                 }
-                ThemeHelper.setThemeMode(this, newMode)
+                lifecycleScope.launch {
+                    ThemeHelper.setThemeMode(this@MainActivity, newMode)
+                }
                 dialog.dismiss()
             }
             .show()
