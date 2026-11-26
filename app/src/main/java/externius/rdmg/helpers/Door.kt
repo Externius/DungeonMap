@@ -19,10 +19,10 @@ object Door {
 
     private fun getDoorDC(dungeonDifficulty: Int): Int {
         return when (dungeonDifficulty) {
-            0 -> Utils.getRandomInt(0, 2)
-            1 -> Utils.getRandomInt(1, 4)
-            2 -> Utils.getRandomInt(1, 6)
-            3 -> Utils.getRandomInt(2, 7)
+            0 -> DungeonHelper.getRandomInt(0, 2)
+            1 -> DungeonHelper.getRandomInt(1, 4)
+            2 -> DungeonHelper.getRandomInt(1, 6)
+            3 -> DungeonHelper.getRandomInt(2, 7)
             else -> 0
         }
     }

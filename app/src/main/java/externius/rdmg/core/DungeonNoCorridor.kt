@@ -2,7 +2,7 @@ package externius.rdmg.core
 
 import externius.rdmg.helpers.Door
 import externius.rdmg.helpers.RoomPosition
-import externius.rdmg.helpers.Utils
+import externius.rdmg.helpers.DungeonHelper
 import externius.rdmg.models.DungeonParams
 import externius.rdmg.models.DungeonTile
 import externius.rdmg.models.Textures
@@ -69,10 +69,10 @@ class DungeonNoCorridor : Dungeon {
     fun addFirstRoom() {
         roomStart = ArrayList()
         openDoorList = ArrayList()
-        val x = Utils.getRandomInt(5, dungeonTiles.size - (roomSize + 4))
-        val y = Utils.getRandomInt(5, dungeonTiles.size - (roomSize + 4))
-        val right = Utils.getRandomInt(2, roomSize + 1)
-        val down = Utils.getRandomInt(2, roomSize + 1)
+        val x = DungeonHelper.getRandomInt(5, dungeonTiles.size - (roomSize + 4))
+        val y = DungeonHelper.getRandomInt(5, dungeonTiles.size - (roomSize + 4))
+        val right = DungeonHelper.getRandomInt(2, roomSize + 1)
+        val down = DungeonHelper.getRandomInt(2, roomSize + 1)
         fillRoom(x, y, down, right)
         roomStart.add(dungeonTiles[x][y])
     }
@@ -106,8 +106,8 @@ class DungeonNoCorridor : Dungeon {
         var x: Int
         var y: Int
         do {
-            x = Utils.getRandomInt(1, dungeonTiles.size - 1)
-            y = Utils.getRandomInt(1, dungeonTiles.size - 1)
+            x = DungeonHelper.getRandomInt(1, dungeonTiles.size - 1)
+            y = DungeonHelper.getRandomInt(1, dungeonTiles.size - 1)
             RoomPosition.checkRoomPosition(dungeonTiles, x, y)
             entryIsOk =
                 dungeonTiles[x][y].texture == Textures.ROOM_EDGE && checkPos() && checkNearbyDoor(
@@ -179,7 +179,7 @@ class DungeonNoCorridor : Dungeon {
                 removeFromOpen(openList, start)
                 addToOpen(start, openList, closedList)
             }
-            Utils.addNCRoomDescription(
+            DungeonHelper.addNCRoomDescription(
                 dungeonTiles,
                 room.i,
                 room.j,
@@ -327,7 +327,7 @@ class DungeonNoCorridor : Dungeon {
         return if (abs(down) < 4 || abs(right) < 4) {
             2
         } else {
-            Utils.getRandomInt(3, 6)
+            DungeonHelper.getRandomInt(3, 6)
         }
     }
 
@@ -337,7 +337,7 @@ class DungeonNoCorridor : Dungeon {
         var maxTryNumber = edgeTileList.size
         do {
             if (edgeTileList.isEmpty()) break
-            val random = Utils.getRandomInt(0, edgeTileList.size)
+            val random = DungeonHelper.getRandomInt(0, edgeTileList.size)
             if (checkNearbyDoor(edgeTileList[random])) {
                 setDoor(edgeTileList[random].i, edgeTileList[random].j)
                 doorCount--
@@ -420,8 +420,8 @@ class DungeonNoCorridor : Dungeon {
     }
 
     private fun getDownRight(vertical: Int, horizontal: Int): IntArray {
-        var down = Utils.getRandomInt(2, min(abs(vertical), roomSize))
-        var right = Utils.getRandomInt(2, min(abs(horizontal), roomSize))
+        var down = DungeonHelper.getRandomInt(2, min(abs(vertical), roomSize))
+        var right = DungeonHelper.getRandomInt(2, min(abs(horizontal), roomSize))
         if (vertical < 0) {
             down = -down
         }
@@ -571,9 +571,9 @@ class DungeonNoCorridor : Dungeon {
     }
 
     override fun setDoor(x: Int, y: Int) {
-        if (Utils.getRandomInt(0, 101) < 40) {
+        if (DungeonHelper.getRandomInt(0, 101) < 40) {
             dungeonTiles[x][y].texture = Textures.NO_CORRIDOR_DOOR_TRAPPED
-        } else if (Utils.getRandomInt(0, 101) < 50) {
+        } else if (DungeonHelper.getRandomInt(0, 101) < 50) {
             dungeonTiles[x][y].texture = Textures.NO_CORRIDOR_DOOR_LOCKED
         } else {
             dungeonTiles[x][y].texture = Textures.NO_CORRIDOR_DOOR

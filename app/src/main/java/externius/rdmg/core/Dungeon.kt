@@ -1,6 +1,6 @@
 package externius.rdmg.core
 
-import externius.rdmg.helpers.Utils
+import externius.rdmg.helpers.DungeonHelper
 import externius.rdmg.models.DungeonParams
 import externius.rdmg.models.DungeonTile
 import externius.rdmg.models.RoamingMonsterDescription
@@ -103,7 +103,7 @@ open class Dungeon {
         var count = 0
         var maxAttempts = corridors.size
         while (inCount > count && corridors.isNotEmpty() && maxAttempts > 0) {
-            val x = Utils.getRandomInt(0, corridors.size)
+            val x = DungeonHelper.getRandomInt(0, corridors.size)
             val i = corridors[x].i
             val j = corridors[x].j
             if (dungeonTiles[i][j].texture == Textures.CORRIDOR) {
@@ -124,7 +124,7 @@ open class Dungeon {
 
     private fun addTrap(x: Int, y: Int) {
         dungeonTiles[x][y].texture = Textures.TRAP
-        Utils.addTrapDescription(
+        DungeonHelper.addTrapDescription(
             dungeonTiles,
             x,
             y,
@@ -136,7 +136,13 @@ open class Dungeon {
 
     private fun addRoamingMonster(x: Int, y: Int) {
         dungeonTiles[x][y].texture = Textures.ROAMING_MONSTER
-        Utils.addRoamingMonsterDescription(dungeonTiles, x, y, roamingMonsterDescriptions, params)
+        DungeonHelper.addRoamingMonsterDescription(
+            dungeonTiles,
+            x,
+            y,
+            roamingMonsterDescriptions,
+            params
+        )
     }
 
     fun addDeadEnds() {
@@ -167,7 +173,7 @@ open class Dungeon {
         var maxAttempt = dungeonList.size * 2
         do {
             if (dungeonList.isEmpty()) break
-            val tile = dungeonList[Utils.getRandomInt(0, dungeonList.size)]
+            val tile = dungeonList[DungeonHelper.getRandomInt(0, dungeonList.size)]
             if (checkTileForDeadEnd(tile.i, tile.j)) {
                 dungeonTiles[tile.i][tile.j].texture = Textures.CORRIDOR
                 deadEnds.add(dungeonTiles[tile.i][tile.j])
@@ -202,8 +208,8 @@ open class Dungeon {
         var x: Int
         var y: Int
         do {
-            x = Utils.getRandomInt(1, dungeonTiles.size - 1)
-            y = Utils.getRandomInt(1, dungeonTiles.size - 1)
+            x = DungeonHelper.getRandomInt(1, dungeonTiles.size - 1)
+            y = DungeonHelper.getRandomInt(1, dungeonTiles.size - 1)
             entryIsOk = dungeonTiles[x][y].texture == Textures.MARBLE
         } while (!entryIsOk)
         dungeonTiles[x][y].texture = Textures.ENTRY
@@ -219,7 +225,7 @@ open class Dungeon {
             val end = doors[d + 1]
             for (i in 1 until dungeonTiles.size - 1) {
                 for (j in 1 until dungeonTiles.size - 1) {
-                    dungeonTiles[i][j].h = Utils.manhattan(abs(i - end.i), abs(j - end.j))
+                    dungeonTiles[i][j].h = DungeonHelper.manhattan(abs(i - end.i), abs(j - end.j))
                     dungeonTiles[i][j].g = 0
                     dungeonTiles[i][j].parent = null
                     dungeonTiles[i][j].f = 9999
@@ -351,9 +357,9 @@ open class Dungeon {
 
     internal open fun getDoorCount(down: Int, right: Int): Int {
         return if (down < 4 || right < 4) {
-            Utils.getRandomInt(1, 3)
+            DungeonHelper.getRandomInt(1, 3)
         } else {
-            Utils.getRandomInt(2, 5)
+            DungeonHelper.getRandomInt(2, 5)
         }
     }
 
@@ -378,7 +384,7 @@ open class Dungeon {
         }
         val newSize = doors.size
         val currentDoors = ArrayList(doors.subList(currentSize, newSize))
-        Utils.addRoomDescription(dungeonTiles, x, y, roomDescription, currentDoors, params)
+        DungeonHelper.addRoomDescription(dungeonTiles, x, y, roomDescription, currentDoors, params)
     }
 
     internal open fun addDoor(x: Int, y: Int, down: Int, right: Int) {
@@ -386,8 +392,8 @@ open class Dungeon {
         var doorX: Int
         var doorY: Int
         do {
-            doorX = Utils.getRandomInt(x, x + down)
-            doorY = Utils.getRandomInt(y, y + right)
+            doorX = DungeonHelper.getRandomInt(x, x + down)
+            doorY = DungeonHelper.getRandomInt(y, y + right)
             doorIsOK = checkDoor(doorX, doorY)
         } while (!doorIsOK)
     }
@@ -422,9 +428,9 @@ open class Dungeon {
     }
 
     internal open fun setDoor(x: Int, y: Int) {
-        if (Utils.getRandomInt(0, 101) < 40) {
+        if (DungeonHelper.getRandomInt(0, 101) < 40) {
             dungeonTiles[x][y].texture = Textures.DOOR_TRAPPED
-        } else if (Utils.getRandomInt(0, 101) < 50) {
+        } else if (DungeonHelper.getRandomInt(0, 101) < 50) {
             dungeonTiles[x][y].texture = Textures.DOOR_LOCKED
         } else {
             dungeonTiles[x][y].texture = Textures.DOOR
@@ -441,10 +447,10 @@ open class Dungeon {
         var right: Int
         var down: Int
         do {
-            x = Utils.getRandomInt(3, max)
-            y = Utils.getRandomInt(3, max)
-            right = Utils.getRandomInt(2, roomSize + 1)
-            down = Utils.getRandomInt(2, roomSize + 1)
+            x = DungeonHelper.getRandomInt(3, max)
+            y = DungeonHelper.getRandomInt(3, max)
+            right = DungeonHelper.getRandomInt(2, roomSize + 1)
+            down = DungeonHelper.getRandomInt(2, roomSize + 1)
             roomIsOk = checkTileGoodForRoom(x - 2, y - 2, right + 2, down + 2)
             failSafeCount--
         } while (!roomIsOk && failSafeCount > 0)

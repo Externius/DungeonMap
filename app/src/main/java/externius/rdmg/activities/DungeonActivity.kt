@@ -45,8 +45,8 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import javax.inject.Inject
+import kotlinx.serialization.json.Json
 import dagger.hilt.android.AndroidEntryPoint
 import externius.rdmg.R
 import externius.rdmg.databinding.ActivityDungeonBinding
@@ -89,7 +89,9 @@ class DungeonActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityDungeonBinding
     private val viewModel: DungeonViewModel by viewModels()
-    private val gson = Gson()
+
+    @Inject
+    lateinit var json: Json
     private var exported = false
     private var dungeonDifficulty = 0
     private var partyLevel = 0
@@ -443,20 +445,47 @@ class DungeonActivity : AppCompatActivity() {
 
     private suspend fun getLoadedColumns(id: Long) {
         val entity = viewModel.getDungeonById(id) ?: return
-        val tiles = gson.fromJson(
-            entity.loadedDungeon,
-            Array<Array<DungeonTile>>::class.java
-        )
-        val roomListType = object : TypeToken<ArrayList<RoomDescription>>() {}.type
+        val tiles = entity.loadedDungeon.takeIf { it.isNotBlank() }?.let {
+            runCatching { json.decodeFromString<Array<Array<DungeonTile>>>(it) }
+                .onFailure { e -> Log.e("DungeonActivity", "Failed to decode dungeon tiles", e) }
+                .getOrNull()
+        }
         val rooms: List<RoomDescription>? =
-            gson.fromJson(entity.loadedRoomDescription, roomListType)
-        val trapListType = object : TypeToken<ArrayList<TrapDescription>>() {}.type
+            entity.loadedRoomDescription?.takeIf { it.isNotBlank() }?.let {
+                runCatching { json.decodeFromString<List<RoomDescription>>(it) }
+                    .onFailure { e ->
+                        Log.e(
+                            "DungeonActivity",
+                            "Failed to decode room descriptions",
+                            e
+                        )
+                    }
+                    .getOrNull()
+            }
         val traps: List<TrapDescription>? =
-            gson.fromJson(entity.loadedTrapDescription, trapListType)
-        val monsterListType =
-            object : TypeToken<ArrayList<RoamingMonsterDescription>>() {}.type
+            entity.loadedTrapDescription?.takeIf { it.isNotBlank() }?.let {
+                runCatching { json.decodeFromString<List<TrapDescription>>(it) }
+                    .onFailure { e ->
+                        Log.e(
+                            "DungeonActivity",
+                            "Failed to decode trap descriptions",
+                            e
+                        )
+                    }
+                    .getOrNull()
+            }
         val monsters: List<RoamingMonsterDescription>? =
-            gson.fromJson(entity.loadedRoamingMonsters, monsterListType)
+            entity.loadedRoamingMonsters?.takeIf { it.isNotBlank() }?.let {
+                runCatching { json.decodeFromString<List<RoamingMonsterDescription>>(it) }
+                    .onFailure { e ->
+                        Log.e(
+                            "DungeonActivity",
+                            "Failed to decode roaming monsters",
+                            e
+                        )
+                    }
+                    .getOrNull()
+            }
 
         viewModel.setLoadedDungeonData(
             dungeonId = id,
@@ -777,9 +806,13 @@ class DungeonActivity : AppCompatActivity() {
 
         if (id != -1L && currentEntity != null) {
             val updatedEntity = currentEntity.copy(
-                loadedRoomDescription = gson.toJson(loadedRoomDescription),
-                loadedTrapDescription = gson.toJson(loadedTrapDescription),
-                loadedRoamingMonsters = gson.toJson(loadedRoamingMonsterDescription)
+                loadedRoomDescription = loadedRoomDescription?.let { json.encodeToString(it) },
+                loadedTrapDescription = loadedTrapDescription?.let { json.encodeToString(it) },
+                loadedRoamingMonsters = loadedRoamingMonsterDescription?.let {
+                    json.encodeToString(
+                        it
+                    )
+                }
             )
             lifecycleScope.launch {
                 try {
@@ -792,7 +825,8 @@ class DungeonActivity : AppCompatActivity() {
                             Toast.LENGTH_SHORT
                         ).show()
                     }
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    Log.e("DungeonActivity", "Error updating dungeon", e)
                     Toast.makeText(
                         this@DungeonActivity,
                         getString(R.string.dungeon_update_error),
@@ -806,12 +840,13 @@ class DungeonActivity : AppCompatActivity() {
             val createdTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).apply {
                 timeZone = java.util.TimeZone.getTimeZone("UTC")
             }.format(java.util.Date())
+            val loadedDungeonJson = dv?.dungeonTiles?.let { json.encodeToString(it) } ?: "[]"
             val newEntity = DungeonEntity(
                 dungeonName = "Dungeon_${getFormattedDate()}",
-                loadedDungeon = gson.toJson(dv?.dungeonTiles),
-                loadedRoomDescription = gson.toJson(dv?.roomDescription),
-                loadedTrapDescription = gson.toJson(dv?.trapDescription),
-                loadedRoamingMonsters = gson.toJson(dv?.roamingMonsterDescription),
+                loadedDungeon = loadedDungeonJson,
+                loadedRoomDescription = dv?.roomDescription?.let { json.encodeToString(it) },
+                loadedTrapDescription = dv?.trapDescription?.let { json.encodeToString(it) },
+                loadedRoamingMonsters = dv?.roamingMonsterDescription?.let { json.encodeToString(it) },
                 dungeonDifficulty = ex?.getString(DungeonConstants.DUNGEON_DIFFICULTY),
                 partyLevel = ex?.getString(DungeonConstants.PARTY_LEVEL),
                 partySize = ex?.getString(DungeonConstants.PARTY_SIZE),

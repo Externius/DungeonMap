@@ -74,7 +74,8 @@ internal object Treasure {
         var maxAttempt = filteredTreasures.size * 2
         val finalList = mutableListOf<Treasures>()
         while (currentCount < targetItemCount && maxAttempt > 0 && filteredTreasures.isNotEmpty()) {
-            val currentTreasure = filteredTreasures[Utils.getRandomInt(0, filteredTreasures.size)]
+            val currentTreasure =
+                filteredTreasures[DungeonHelper.getRandomInt(0, filteredTreasures.size)]
             val cost = currentTreasure.cost ?: 0
             if (currentValue + cost < sumValue) {
                 currentValue += cost
@@ -93,17 +94,17 @@ internal object Treasure {
             }
             sb.append(key.name).append(", ")
         }
-        sb.append(Utils.getRandomInt(1, sumValue - currentValue))
+        sb.append(DungeonHelper.getRandomInt(1, sumValue - currentValue))
         sb.append(" gp")
         return sb.toString()
     }
 
     private fun getItemsCount(dungeonDifficulty: Int, partyLevel: Int): Int {
         return when (dungeonDifficulty) {
-            0 -> Utils.getRandomInt(0, itemCount[partyLevel])
-            1 -> Utils.getRandomInt(2, itemCount[partyLevel])
-            2 -> Utils.getRandomInt(3, itemCount[partyLevel])
-            3 -> Utils.getRandomInt(4, itemCount[partyLevel])
+            0 -> DungeonHelper.getRandomInt(0, itemCount[partyLevel])
+            1 -> DungeonHelper.getRandomInt(2, itemCount[partyLevel])
+            2 -> DungeonHelper.getRandomInt(3, itemCount[partyLevel])
+            3 -> DungeonHelper.getRandomInt(4, itemCount[partyLevel])
             else -> 0
         }
     }

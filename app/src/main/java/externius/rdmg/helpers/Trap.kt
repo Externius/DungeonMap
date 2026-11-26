@@ -91,7 +91,7 @@ internal object Trap {
         return if (trap[5].toBoolean()) {
             val min = trapAttackBonus[trapDanger]
             val max = trapAttackBonus[trapDanger + 1]
-            ", (attack bonus +" + Utils.getRandomInt(min, max) + ")."
+            ", (attack bonus +" + DungeonHelper.getRandomInt(min, max) + ")."
         } else {
             "."
         }
@@ -100,7 +100,7 @@ internal object Trap {
     private fun getTrapSaveDC(trapDanger: Int): Int {
         val min = trapSave[trapDanger]
         val max = trapSave[trapDanger + 1]
-        return Utils.getRandomInt(min, max)
+        return DungeonHelper.getRandomInt(min, max)
     }
 
     private fun getTrapDamage(trapDanger: Int, partyLevel: Int): Int {
@@ -122,9 +122,9 @@ internal object Trap {
 
     private fun getTrapDanger(dungeonDifficulty: Int): Int {
         return when (dungeonDifficulty) {
-            0 -> Utils.getRandomInt(0, 1)
-            1, 2 -> Utils.getRandomInt(0, 2)
-            3 -> Utils.getRandomInt(0, 3)
+            0 -> DungeonHelper.getRandomInt(0, 1)
+            1, 2 -> DungeonHelper.getRandomInt(0, 2)
+            3 -> DungeonHelper.getRandomInt(0, 3)
             else -> 0
         }
     }
@@ -133,9 +133,9 @@ internal object Trap {
     fun getCurrentTrap(door: Boolean, dungeonDifficulty: Int, partyLevel: Int): String {
         val trapDanger = getTrapDanger(dungeonDifficulty)
         val trap = if (door) {
-            trapDoorKind[Utils.getRandomInt(0, trapDoorKind.size)]
+            trapDoorKind[DungeonHelper.getRandomInt(0, trapDoorKind.size)]
         } else {
-            trapKind[Utils.getRandomInt(0, trapKind.size)]
+            trapKind[DungeonHelper.getRandomInt(0, trapKind.size)]
         }
         return if (trap[6].isNotEmpty()) {
             "${trap[0]} [${trapSeverity[trapDanger]}]: DC ${trap[2]} to spot, DC ${trap[3]} to disable (${trap[4]}), DC ${

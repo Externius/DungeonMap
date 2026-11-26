@@ -1,126 +1,38 @@
 package externius.rdmg.models
 
-import com.google.gson.annotations.Expose
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-class Monster {
-    @SerializedName("name")
-    @Expose
-    var name: String? = null
-
-    @SerializedName("size")
-    @Expose
-    var size: String? = null
-
-    @SerializedName("type")
-    @Expose
-    var type: String? = null
-
-    @SerializedName("subtype")
-    @Expose
-    var subtype: String? = null
-
-    @SerializedName("alignment")
-    @Expose
-    var alignment: String? = null
-
-    @SerializedName("armor_class")
-    @Expose
-    var armorClass: Int? = null
-
-    @SerializedName("hit_points")
-    @Expose
-    var hitPoints: Int? = null
-
-    @SerializedName("hit_dice")
-    @Expose
-    var hitDice: String? = null
-
-    @SerializedName("speed")
-    @Expose
-    var speed: String? = null
-
-    @SerializedName("strength")
-    @Expose
-    var strength: Int? = null
-
-    @SerializedName("dexterity")
-    @Expose
-    var dexterity: Int? = null
-
-    @SerializedName("constitution")
-    @Expose
-    var constitution: Int? = null
-
-    @SerializedName("intelligence")
-    @Expose
-    var intelligence: Int? = null
-
-    @SerializedName("wisdom")
-    @Expose
-    var wisdom: Int? = null
-
-    @SerializedName("charisma")
-    @Expose
-    var charisma: Int? = null
-
-    @SerializedName("constitution_save")
-    @Expose
-    var constitutionSave: Int? = null
-
-    @SerializedName("intelligence_save")
-    @Expose
-    var intelligenceSave: Int? = null
-
-    @SerializedName("wisdom_save")
-    @Expose
-    var wisdomSave: Int? = null
-
-    @SerializedName("history")
-    @Expose
-    var history: Int? = null
-
-    @SerializedName("perception")
-    @Expose
-    var perception: Int? = null
-
-    @SerializedName("damage_vulnerabilities")
-    @Expose
-    var damageVulnerabilities: String? = null
-
-    @SerializedName("damage_resistances")
-    @Expose
-    var damageResistances: String? = null
-
-    @SerializedName("damage_immunities")
-    @Expose
-    var damageImmunities: String? = null
-
-    @SerializedName("condition_immunities")
-    @Expose
-    var conditionImmunities: String? = null
-
-    @SerializedName("senses")
-    @Expose
-    var senses: String? = null
-
-    @SerializedName("languages")
-    @Expose
-    var languages: String? = null
-
-    @SerializedName("challenge_rating")
-    @Expose
-    var challengeRating: String? = null
-
-    @SerializedName("special_abilities")
-    @Expose
-    var specialAbilities: List<SpecialAbility>? = null
-
-    @SerializedName("actions")
-    @Expose
-    var actions: List<Action>? = null
-
-    @SerializedName("legendary_actions")
-    @Expose
-    var legendaryActions: List<LegendaryAction>? = null
-}
+@Serializable
+data class Monster(
+    @SerialName("name") val name: String? = null,
+    @SerialName("size") val size: String? = null,
+    @SerialName("type") val type: String? = null,
+    @SerialName("subtype") val subtype: String? = null,
+    @SerialName("alignment") val alignment: String? = null,
+    @SerialName("armor_class") val armorClass: Int? = null,
+    @SerialName("hit_points") val hitPoints: Int? = null,
+    @SerialName("hit_dice") val hitDice: String? = null,
+    @SerialName("speed") val speed: String? = null,
+    @SerialName("strength") val strength: Int? = null,
+    @SerialName("dexterity") val dexterity: Int? = null,
+    @SerialName("constitution") val constitution: Int? = null,
+    @SerialName("intelligence") val intelligence: Int? = null,
+    @SerialName("wisdom") val wisdom: Int? = null,
+    @SerialName("charisma") val charisma: Int? = null,
+    @SerialName("constitution_save") val constitutionSave: Int? = null,
+    @SerialName("intelligence_save") val intelligenceSave: Int? = null,
+    @SerialName("wisdom_save") val wisdomSave: Int? = null,
+    @SerialName("history") val history: Int? = null,
+    @SerialName("perception") val perception: Int? = null,
+    @SerialName("damage_vulnerabilities") val damageVulnerabilities: String? = null,
+    @SerialName("damage_resistances") val damageResistances: String? = null,
+    @SerialName("damage_immunities") val damageImmunities: String? = null,
+    @SerialName("condition_immunities") val conditionImmunities: String? = null,
+    @SerialName("senses") val senses: String? = null,
+    @SerialName("languages") val languages: String? = null,
+    @SerialName("challenge_rating") val challengeRating: String? = null,
+    @SerialName("special_abilities") val specialAbilities: List<SpecialAbility>? = null,
+    @SerialName("actions") val actions: List<Action>? = null,
+    @SerialName("legendary_actions") val legendaryActions: List<LegendaryAction>? = null
+)

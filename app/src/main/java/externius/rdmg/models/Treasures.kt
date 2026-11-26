@@ -1,26 +1,13 @@
 package externius.rdmg.models
 
-import com.google.gson.annotations.Expose
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-class Treasures {
-    @SerializedName("name")
-    @Expose
-    var name: String? = null
-
-    @SerializedName("cost")
-    @Expose
-    var cost: Int? = null
-
-    @SerializedName("rarity")
-    @Expose
-    var rarity: Int? = null
-
-    @SerializedName("magical")
-    @Expose
-    var magical: Boolean? = null
-
-    @SerializedName("types")
-    @Expose
-    var types: List<String>? = null
-}
+@Serializable
+data class Treasures(
+    @SerialName("name") val name: String? = null,
+    @SerialName("cost") val cost: Int? = null,
+    @SerialName("rarity") val rarity: Int? = null,
+    @SerialName("magical") val magical: Boolean? = null,
+    @SerialName("types") val types: List<String>? = null
+)

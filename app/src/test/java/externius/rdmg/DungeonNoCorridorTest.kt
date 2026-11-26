@@ -1,7 +1,8 @@
 package externius.rdmg
 
 import externius.rdmg.core.DungeonNoCorridor
-import externius.rdmg.helpers.Utils
+import externius.rdmg.helpers.DungeonHelper
+import externius.rdmg.helpers.DungeonHelperTest
 import externius.rdmg.models.DungeonParams
 import externius.rdmg.models.DungeonTile
 import externius.rdmg.models.Textures
@@ -30,15 +31,15 @@ class DungeonNoCorridorTest {
 
     @Before
     fun setup() {
-        params = Utils.createParams(
+        params = DungeonHelper.createParams(
             partyLevel = 1,
             partySize = 4,
             dungeonDifficulty = 1,
             treasureValue = 1.0,
             itemsRarity = 3,
             monsterType = "any",
-            jsonMonster = UtilsTest.readJSON("monsters.json") ?: "",
-            jsonTreasure = UtilsTest.readJSON("treasures.json") ?: ""
+            jsonMonster = DungeonHelperTest.readJSON("monsters.json") ?: "",
+            jsonTreasure = DungeonHelperTest.readJSON("treasures.json") ?: ""
         )
         dungeonNoCorridor = DungeonNoCorridor(800, 800, 15, 15, params)
         dungeonNoCorridor.init()
@@ -90,7 +91,7 @@ class DungeonNoCorridorTest {
         dungeonNoCorridor.addEntryPoint()
         println(name.methodName)
         DrawTestDungeon.draw(dungeonNoCorridor.dungeonTiles)
-        val dungeonList = UtilsTest.twoDArrayToList(dungeonNoCorridor.dungeonTiles)
+        val dungeonList = DungeonHelperTest.twoDArrayToList(dungeonNoCorridor.dungeonTiles)
         assertThat(
             dungeonList,
             hasItem(hasProperty<DungeonTile>("texture", equalTo(Textures.ENTRY)))
