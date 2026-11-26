@@ -1,18 +1,11 @@
 package externius.rdmg.models
 
-import com.google.gson.annotations.Expose
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-class LegendaryAction {
-    @SerializedName("name")
-    @Expose
-    var name: String? = null
-
-    @SerializedName("desc")
-    @Expose
-    var desc: String? = null
-
-    @SerializedName("attack_bonus")
-    @Expose
-    var attackBonus: Int? = null
-}
+@Serializable
+data class LegendaryAction(
+    @SerialName("name") val name: String? = null,
+    @SerialName("desc") val desc: String? = null,
+    @SerialName("attack_bonus") val attackBonus: Int? = null
+)

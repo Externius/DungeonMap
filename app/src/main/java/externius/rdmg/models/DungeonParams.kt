@@ -1,6 +1,6 @@
 package externius.rdmg.models
 
-import externius.rdmg.helpers.Utils
+import externius.rdmg.helpers.DungeonHelper
 
 data class DungeonParams(
     val partyLevel: Int = 0,
@@ -14,19 +14,19 @@ data class DungeonParams(
 ) {
     val treasurePercentage: Int
         get() = when (dungeonDifficulty) {
-            0 -> Utils.getRandomInt(20, 71)
-            1 -> Utils.getRandomInt(30, 81)
-            2 -> Utils.getRandomInt(40, 91)
-            3 -> Utils.getRandomInt(50, 101)
+            0 -> DungeonHelper.getRandomInt(20, 71)
+            1 -> DungeonHelper.getRandomInt(30, 81)
+            2 -> DungeonHelper.getRandomInt(40, 91)
+            3 -> DungeonHelper.getRandomInt(50, 101)
             else -> 0
         }
 
     val monsterPercentage: Int
         get() = when (dungeonDifficulty) {
-            0 -> Utils.getRandomInt(40, 81)
-            1 -> Utils.getRandomInt(50, 91)
-            2 -> Utils.getRandomInt(60, 101)
-            3 -> Utils.getRandomInt(70, 101)
+            0 -> DungeonHelper.getRandomInt(40, 81)
+            1 -> DungeonHelper.getRandomInt(50, 91)
+            2 -> DungeonHelper.getRandomInt(60, 101)
+            3 -> DungeonHelper.getRandomInt(70, 101)
             else -> 0
         }
 }

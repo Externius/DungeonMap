@@ -1,7 +1,8 @@
 package externius.rdmg
 
 import externius.rdmg.core.Dungeon
-import externius.rdmg.helpers.Utils
+import externius.rdmg.helpers.DungeonHelper
+import externius.rdmg.helpers.DungeonHelperTest
 import externius.rdmg.models.DungeonParams
 import externius.rdmg.models.DungeonTile
 import externius.rdmg.models.Textures
@@ -26,15 +27,15 @@ class DungeonTest {
 
     @Before
     fun setup() {
-        params = Utils.createParams(
+        params = DungeonHelper.createParams(
             partyLevel = 1,
             partySize = 4,
             dungeonDifficulty = 1,
             treasureValue = 1.0,
             itemsRarity = 3,
             monsterType = "any",
-            jsonMonster = UtilsTest.readJSON("monsters.json") ?: "",
-            jsonTreasure = UtilsTest.readJSON("treasures.json") ?: ""
+            jsonMonster = DungeonHelperTest.readJSON("monsters.json") ?: "",
+            jsonTreasure = DungeonHelperTest.readJSON("treasures.json") ?: ""
         )
         dungeon = Dungeon(800, 800, 15, 10, 15, 15, true, 10, params)
         dungeon.init()
@@ -61,7 +62,7 @@ class DungeonTest {
         dungeon.addEntryPoint()
         println(name.methodName)
         DrawTestDungeon.draw(dungeon.dungeonTiles)
-        val dungeonList = UtilsTest.twoDArrayToList(dungeon.dungeonTiles)
+        val dungeonList = DungeonHelperTest.twoDArrayToList(dungeon.dungeonTiles)
         assertThat(
             dungeonList,
             hasItem(hasProperty<DungeonTile>("texture", equalTo(Textures.ENTRY)))
@@ -75,7 +76,7 @@ class DungeonTest {
         dungeon.generateCorridors()
         println(name.methodName)
         DrawTestDungeon.draw(dungeon.dungeonTiles)
-        val dungeonList = UtilsTest.twoDArrayToList(dungeon.dungeonTiles)
+        val dungeonList = DungeonHelperTest.twoDArrayToList(dungeon.dungeonTiles)
         assertThat(
             dungeonList,
             hasItem(hasProperty<DungeonTile>("texture", equalTo(Textures.CORRIDOR)))
@@ -90,7 +91,7 @@ class DungeonTest {
         dungeon.addDeadEnds()
         println(name.methodName)
         DrawTestDungeon.draw(dungeon.dungeonTiles)
-        val dungeonList = UtilsTest.twoDArrayToList(dungeon.dungeonTiles)
+        val dungeonList = DungeonHelperTest.twoDArrayToList(dungeon.dungeonTiles)
         assertThat(
             dungeonList,
             hasItem(hasProperty<DungeonTile>("texture", equalTo(Textures.CORRIDOR)))
@@ -106,7 +107,7 @@ class DungeonTest {
         dungeon.addCorridorItem(2, Dungeon.Item.TRAP)
         println(name.methodName)
         DrawTestDungeon.draw(dungeon.dungeonTiles)
-        val dungeonList = UtilsTest.twoDArrayToList(dungeon.dungeonTiles)
+        val dungeonList = DungeonHelperTest.twoDArrayToList(dungeon.dungeonTiles)
         assertThat(
             dungeonList,
             hasItem(hasProperty<DungeonTile>("texture", equalTo(Textures.TRAP)))
@@ -122,7 +123,7 @@ class DungeonTest {
         dungeon.addCorridorItem(2, Dungeon.Item.ROAMING_MONSTER)
         println(name.methodName)
         DrawTestDungeon.draw(dungeon.dungeonTiles)
-        val dungeonList = UtilsTest.twoDArrayToList(dungeon.dungeonTiles)
+        val dungeonList = DungeonHelperTest.twoDArrayToList(dungeon.dungeonTiles)
         assertThat(
             dungeonList,
             hasItem(hasProperty<DungeonTile>("texture", equalTo(Textures.ROAMING_MONSTER)))

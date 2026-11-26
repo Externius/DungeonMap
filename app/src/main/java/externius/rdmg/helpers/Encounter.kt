@@ -66,7 +66,7 @@ internal object Encounter {
         var count: Int
         var allXP: Double
         while (monster < monsterCount) {
-            val currentMonster = filteredMonsters[Utils.getRandomInt(0, filteredMonsters.size)]
+            val currentMonster = filteredMonsters[DungeonHelper.getRandomInt(0, filteredMonsters.size)]
             filteredMonsters.remove(currentMonster)
             val monsterXP = getMonsterXP(currentMonster)
             for (i in multipliers.indices.reversed()) {
@@ -102,7 +102,7 @@ internal object Encounter {
         if (floor(Math.random() * 100) > 50) {
             result.append(addMonster(filteredMonsters, sumXP))
         } else {
-            val x = Utils.getRandomInt(2, params.dungeonDifficulty + 3)
+            val x = DungeonHelper.getRandomInt(2, params.dungeonDifficulty + 3)
             repeat(x) {
                 result.append(addMonster(filteredMonsters, sumXP / x))
                 result.append(", ")

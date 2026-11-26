@@ -11,7 +11,7 @@ import android.view.View
 import externius.rdmg.R
 import externius.rdmg.core.Dungeon
 import externius.rdmg.core.DungeonNoCorridor
-import externius.rdmg.helpers.Utils
+import externius.rdmg.helpers.DungeonHelper
 import externius.rdmg.models.DungeonTile
 import externius.rdmg.models.RoamingMonsterDescription
 import externius.rdmg.models.RoomDescription
@@ -84,7 +84,7 @@ class DungeonMapView @JvmOverloads constructor(
     }
 
     fun generateDungeon() {
-        val params = Utils.createParams(
+        val params = DungeonHelper.createParams(
             partyLevel = partyLevel,
             partySize = partySize,
             dungeonDifficulty = dungeonDifficulty,
