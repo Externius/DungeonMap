@@ -79,8 +79,31 @@ class DungeonMapView @JvmOverloads constructor(
         this.roomDescription = roomDescription
         this.trapDescription = trapDescription
         this.roamingMonsterDescription = roamingMonsterDescription
+
+        resize(dungeonTiles)
         setBitmaps(hasCorridor)
         setPaint()
+        invalidate()
+    }
+
+    private fun resize(dungeonTiles: Array<Array<DungeonTile>>) {
+        val size = dungeonTiles.size - 2
+        if (size > 0) {
+            dungeonSize = size
+            if (dungeonWidth > 0 && dungeonHeight > 0) {
+                val imgSizeX = dungeonWidth / size
+                val imgSizeY = dungeonHeight / size
+                for (i in 1 until dungeonTiles.size - 1) {
+                    for (j in 1 until dungeonTiles[i].size - 1) {
+                        val tile = dungeonTiles[i][j]
+                        tile.x = (j - 1) * imgSizeX
+                        tile.y = (i - 1) * imgSizeY
+                        tile.width = imgSizeX
+                        tile.height = imgSizeY
+                    }
+                }
+            }
+        }
     }
 
     fun generateDungeon() {
@@ -299,6 +322,17 @@ class DungeonMapView @JvmOverloads constructor(
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val w = MeasureSpec.getSize(widthMeasureSpec)
         setMeasuredDimension(w, w)
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        if (w > 0 && h > 0) {
+            dungeonWidth = w
+            dungeonHeight = h
+            dungeonTiles?.let { tiles ->
+                resize(tiles)
+            }
+        }
     }
 
     override fun performClick(): Boolean {
